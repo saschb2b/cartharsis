@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -46,9 +47,13 @@ import com.example.myapplication.ui.screens.ProductDetailScreen
 import com.example.myapplication.ui.screens.TrackingScreen
 import com.example.myapplication.ui.screens.WishlistScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
     private val shopViewModel: ShopViewModel by viewModels()
+
+    /** Route requested by a tapped notification; consumed (nulled) once navigated. */
+    private val pendingRoute = MutableStateFlow<String?>(null)
 
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -63,11 +68,17 @@ class MainActivity : ComponentActivity() {
         ) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        pendingRoute.value = intent.getStringExtra(Notifier.EXTRA_ROUTE)
         setContent {
             MyApplicationTheme {
-                CartharsisApp(shopViewModel)
+                CartharsisApp(shopViewModel, pendingRoute)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        pendingRoute.value = intent.getStringExtra(Notifier.EXTRA_ROUTE)
     }
 }
 
@@ -81,11 +92,20 @@ private val tabs = listOf(
 )
 
 @Composable
-fun CartharsisApp(viewModel: ShopViewModel) {
+fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<String?>? = null) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = currentRoute in tabs.map { it.route }
+
+    // Notification taps land on the order/product they announced.
+    val requestedRoute = pendingRoute?.collectAsState()?.value
+    LaunchedEffect(requestedRoute) {
+        if (requestedRoute != null) {
+            navController.navigate(requestedRoute) { launchSingleTop = true }
+            pendingRoute.value = null
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

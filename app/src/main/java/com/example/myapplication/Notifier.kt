@@ -33,6 +33,9 @@ object Notifier {
         }
     }
 
+    /** Intent extra carrying the in-app route a tapped notification should open. */
+    const val EXTRA_ROUTE = "cartharsis.route"
+
     fun notifyDelivered(context: Context, orderId: Int, moneyKept: String) {
         post(
             context,
@@ -40,6 +43,7 @@ object Notifier {
             title = "🧘 Your nothing has been delivered",
             text = "Order #$orderId arrived containing exactly nothing. " +
                 "$moneyKept stays in your account. Breathe.",
+            route = "tracking/$orderId",
         )
     }
 
@@ -50,17 +54,20 @@ object Notifier {
             title = "🔻 Price drop on your wishlist!",
             text = "$productName just fell $discountPercent% to $newPrice. " +
                 "It still costs you \$0.00. The deal of literally no lifetime.",
+            route = "product/$productId",
         )
     }
 
     @SuppressLint("MissingPermission") // guarded by areNotificationsEnabled + catch
-    private fun post(context: Context, id: Int, title: String, text: String) {
+    private fun post(context: Context, id: Int, title: String, text: String, route: String) {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
         val contentIntent = PendingIntent.getActivity(
             context,
-            0,
-            Intent(context, MainActivity::class.java),
+            id, // unique per notification so routes don't overwrite each other
+            Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .putExtra(EXTRA_ROUTE, route),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
