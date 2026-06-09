@@ -128,13 +128,14 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
+            val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
             FlashDealBanner(
-                emoji = flashDeal.emoji,
-                name = flashDeal.name,
-                price = formatPrice(flashDeal.priceCents),
-                originalPrice = flashDeal.originalPriceCents?.let(::formatPrice),
+                emoji = deal.emoji,
+                name = deal.name,
+                price = formatPrice(deal.priceCents),
+                originalPrice = deal.originalPriceCents?.let(::formatPrice),
                 countdown = formatCountdown(secondsLeft),
-                onClick = { onProductClick(flashDeal.id) },
+                onClick = { onProductClick(deal.id) },
             )
         }
 
