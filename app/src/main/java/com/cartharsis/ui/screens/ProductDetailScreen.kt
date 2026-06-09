@@ -259,15 +259,25 @@ fun ProductDetailScreen(
                 )
                 RatingSummary(product)
                 var showAllReviews by remember(productId) { mutableStateOf(false) }
+                // Top reviews first, like any shop that sorts by helpfulness.
+                val rankedReviews = remember(product.id) {
+                    product.reviews.mapIndexed { index, review ->
+                        Triple(
+                            review,
+                            reviewAgeLabel(product.id, index),
+                            reviewHelpfulCount(product.id, index),
+                        )
+                    }.sortedByDescending { it.third }
+                }
                 val visibleReviews =
-                    if (showAllReviews) product.reviews else product.reviews.take(3)
-                visibleReviews.forEachIndexed { index, review ->
+                    if (showAllReviews) rankedReviews else rankedReviews.take(3)
+                visibleReviews.forEach { (review, ageLabel, helpfulCount) ->
                     ReviewCard(
                         author = review.author,
                         rating = review.rating,
                         text = review.text,
-                        ageLabel = reviewAgeLabel(product.id, index),
-                        helpfulCount = reviewHelpfulCount(product.id, index),
+                        ageLabel = ageLabel,
+                        helpfulCount = helpfulCount,
                     )
                 }
                 if (product.reviews.size > 3) {
