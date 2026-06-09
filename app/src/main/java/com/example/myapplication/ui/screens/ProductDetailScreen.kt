@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ShopViewModel
 import com.example.myapplication.data.Product
+import com.example.myapplication.data.fakeStockLeft
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
+import com.example.myapplication.ui.theme.JuicyOrange
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,6 +150,14 @@ fun ProductDetailScreen(
                 )
                 RatingStars(rating = product.rating, reviewCount = product.reviewCount)
                 PriceRow(product, big = true)
+                product.fakeStockLeft?.let { left ->
+                    Text(
+                        text = "🔥 Only $left left in stock (the stock is imaginary, hurry anyway)",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = JuicyOrange,
+                    )
+                }
                 Text(
                     text = product.description,
                     style = MaterialTheme.typography.bodyLarge,

@@ -71,6 +71,14 @@ fun formatPrice(cents: Long): String {
     return "$%,d.%02d".format(java.util.Locale.US, dollars, rest)
 }
 
+/**
+ * Fake scarcity for roughly a third of the catalog, derived from the id so it
+ * is stable across runs. The stock is as imaginary as the product, which is
+ * why it never actually runs out.
+ */
+val Product.fakeStockLeft: Int?
+    get() = if (id % 3 == 0) 2 + id % 4 else null
+
 /** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
 fun formatOrderDate(millis: Long): String =
     java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())

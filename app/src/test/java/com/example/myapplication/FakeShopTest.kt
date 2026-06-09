@@ -3,6 +3,7 @@ package com.example.myapplication
 import com.example.myapplication.data.CartItem
 import com.example.myapplication.data.FakeCatalog
 import com.example.myapplication.data.Order
+import com.example.myapplication.data.fakeStockLeft
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
 import org.junit.Assert.assertEquals
@@ -77,6 +78,17 @@ class FakeShopTest {
         val price = product.priceCents / 3
         val once = product.withPriceOverride(price)
         assertEquals(once, once.withPriceOverride(price))
+    }
+
+    @Test
+    fun `fake scarcity is stable, small, and hits part of the catalog`() {
+        val scarce = FakeCatalog.products.filter { it.fakeStockLeft != null }
+        assertTrue(scarce.isNotEmpty())
+        assertTrue(scarce.size < FakeCatalog.products.size)
+        scarce.forEach { product ->
+            assertTrue(product.fakeStockLeft!! in 2..5)
+            assertEquals(product.fakeStockLeft, product.fakeStockLeft) // deterministic
+        }
     }
 
     @Test
