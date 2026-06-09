@@ -7,6 +7,7 @@ import com.example.myapplication.data.advanceStreak
 import com.example.myapplication.data.effectiveStreak
 import com.example.myapplication.data.fakeStockLeft
 import com.example.myapplication.data.formatPrice
+import com.example.myapplication.data.plusProduct
 import com.example.myapplication.data.withPriceOverride
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -91,6 +92,30 @@ class FakeShopTest {
             assertTrue(product.fakeStockLeft!! in 2..5)
             assertEquals(product.fakeStockLeft, product.fakeStockLeft) // deterministic
         }
+    }
+
+    @Test
+    fun `adding a product appends a new line or merges into an existing one`() {
+        val (first, second) = FakeCatalog.products.take(2)
+        val cart = emptyList<CartItem>()
+            .plusProduct(first, 1)
+            .plusProduct(second, 2)
+            .plusProduct(first, 3)
+        assertEquals(2, cart.size)
+        assertEquals(4, cart.first { it.product.id == first.id }.quantity)
+        assertEquals(2, cart.first { it.product.id == second.id }.quantity)
+    }
+
+    @Test
+    fun `merging keeps the original line's price snapshot`() {
+        val product = FakeCatalog.products.first()
+        val dropped = product.withPriceOverride(product.priceCents / 2)
+        // First added at the dropped price, then again at full price after the
+        // drop expired: the line keeps its original snapshot.
+        val cart = emptyList<CartItem>().plusProduct(dropped, 1).plusProduct(product, 1)
+        assertEquals(1, cart.size)
+        assertEquals(2, cart.single().quantity)
+        assertEquals(dropped.priceCents, cart.single().product.priceCents)
     }
 
     @Test

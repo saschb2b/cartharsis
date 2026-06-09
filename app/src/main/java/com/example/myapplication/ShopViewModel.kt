@@ -9,6 +9,7 @@ import com.example.myapplication.data.Order
 import com.example.myapplication.data.OrderStatus
 import com.example.myapplication.data.Product
 import com.example.myapplication.data.StatsStore
+import com.example.myapplication.data.plusProduct
 import com.example.myapplication.data.StreakStore
 import com.example.myapplication.data.WishlistStore
 import com.example.myapplication.data.advanceStreak
@@ -167,16 +168,7 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addToCart(product: Product, quantity: Int = 1) {
         val snapshot = displayProduct(product)
-        _cart.update { items ->
-            val existing = items.firstOrNull { it.product.id == snapshot.id }
-            if (existing == null) {
-                items + CartItem(snapshot, quantity)
-            } else {
-                items.map {
-                    if (it.product.id == snapshot.id) it.copy(quantity = it.quantity + quantity) else it
-                }
-            }
-        }
+        _cart.update { it.plusProduct(snapshot, quantity) }
         _cartPulse.update { it + 1 }
     }
 

@@ -72,6 +72,18 @@ fun formatPrice(cents: Long): String {
 }
 
 /**
+ * Adds a product snapshot to cart lines: merges into an existing line for the
+ * same product (keeping that line's price snapshot) or appends a new one.
+ */
+fun List<CartItem>.plusProduct(snapshot: Product, quantity: Int): List<CartItem> {
+    val existing = firstOrNull { it.product.id == snapshot.id }
+        ?: return this + CartItem(snapshot, quantity)
+    return map {
+        if (it.product.id == snapshot.id) it.copy(quantity = it.quantity + quantity) else it
+    }
+}
+
+/**
  * Fake scarcity for roughly a third of the catalog, derived from the id so it
  * is stable across runs. The stock is as imaginary as the product, which is
  * why it never actually runs out.
