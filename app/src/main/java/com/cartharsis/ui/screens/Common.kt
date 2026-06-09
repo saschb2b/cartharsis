@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,15 +26,15 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.cartharsis.ui.theme.CartharsisTheme
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.data.Product
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.ui.theme.ElectricPurple
-import com.example.myapplication.ui.theme.HotPink
+import com.cartharsis.data.Product
+import com.cartharsis.data.formatPrice
+import com.cartharsis.ui.theme.ElectricPurple
+import com.cartharsis.ui.theme.HotPink
 
 @Composable
 fun RatingStars(rating: Double, reviewCount: Int? = null) {
@@ -222,7 +222,7 @@ private val previewProduct = Product(
 @Preview(showBackground = true)
 @Composable
 private fun ProductCardPreview() {
-    MyApplicationTheme {
+    CartharsisTheme {
         ProductCard(
             product = previewProduct,
             onClick = {},
@@ -236,7 +236,7 @@ private fun ProductCardPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun MiniProductCardPreview() {
-    MyApplicationTheme {
+    CartharsisTheme {
         MiniProductCard(product = previewProduct, onClick = {})
     }
 }

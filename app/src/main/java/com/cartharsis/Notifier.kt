@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.cartharsis
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -13,23 +13,41 @@ import androidx.core.app.NotificationManagerCompat
 /**
  * Posts the app's two kinds of fake-commerce pings: "your nothing was delivered"
  * and wishlist price drops. Real notifications about fake events — the satire
- * is intentional, the permission handling is not.
+ * is intentional, the stress is not. Deliveries get a normal ping (one per
+ * order, the payoff of the core loop); price drops live on a low-importance
+ * channel so they land silently in the shade. When and how often anything fires
+ * is decided upstream by [com.cartharsis.data.NotificationPolicy].
  */
 object Notifier {
 
-    private const val CHANNEL_ID = "cartharsis.events"
+    private const val DELIVERY_CHANNEL_ID = "cartharsis.deliveries"
+    private const val WISHLIST_CHANNEL_ID = "cartharsis.wishlist"
 
-    fun ensureChannel(context: Context) {
+    /** Pre-rework channel that buzzed for everything; removed for upgraders. */
+    private const val LEGACY_CHANNEL_ID = "cartharsis.events"
+
+    fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Deliveries of nothing & fake deals",
-                NotificationManager.IMPORTANCE_DEFAULT,
-            ).apply {
-                description = "Order updates and wishlist price drops. None of it is real."
-            }
-            context.getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
+            val manager = context.getSystemService(NotificationManager::class.java)
+            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    DELIVERY_CHANNEL_ID,
+                    "Deliveries of nothing",
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    description = "One ping per order, when your nothing arrives. Not real."
+                },
+            )
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    WISHLIST_CHANNEL_ID,
+                    "Wishlist price drifts",
+                    NotificationManager.IMPORTANCE_LOW,
+                ).apply {
+                    description = "Occasional, silent, entirely imaginary deal sightings."
+                },
+            )
         }
     }
 
@@ -39,6 +57,7 @@ object Notifier {
     fun notifyDelivered(context: Context, orderId: Int, moneyKept: String) {
         post(
             context,
+            channelId = DELIVERY_CHANNEL_ID,
             id = 1_000 + orderId,
             title = "🧘 Your nothing has been delivered",
             text = "Order #$orderId arrived containing exactly nothing. " +
@@ -50,16 +69,17 @@ object Notifier {
     fun notifyPriceDrop(context: Context, productId: Int, productName: String, discountPercent: Int, newPrice: String) {
         post(
             context,
+            channelId = WISHLIST_CHANNEL_ID,
             id = 2_000 + productId,
-            title = "🔻 Price drop on your wishlist!",
-            text = "$productName just fell $discountPercent% to $newPrice. " +
-                "It still costs you \$0.00. The deal of literally no lifetime.",
+            title = "🍃 A wishlist price drifted down",
+            text = "$productName eased $discountPercent% to $newPrice. No timer, " +
+                "no rush — it costs \$0.00 whenever you wander back.",
             route = "product/$productId",
         )
     }
 
     @SuppressLint("MissingPermission") // guarded by areNotificationsEnabled + catch
-    private fun post(context: Context, id: Int, title: String, text: String, route: String) {
+    private fun post(context: Context, channelId: String, id: Int, title: String, text: String, route: String) {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return
         val contentIntent = PendingIntent.getActivity(
@@ -70,13 +90,14 @@ object Notifier {
                 .putExtra(EXTRA_ROUTE, route),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
             .build()
         try {
             manager.notify(id, notification)

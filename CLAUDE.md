@@ -27,7 +27,7 @@ SDK location comes from `local.properties` (`/home/sascha/Android/Sdk`).
 Single-activity Jetpack Compose app, MVVM, no DI framework.
 
 ```
-app/src/main/java/com/example/myapplication/
+app/src/main/java/com/cartharsis/
 ├── MainActivity.kt          # NavHost + bottom bar, notification permission request
 ├── ShopViewModel.kt         # All app state: catalog, cart, wishlist, price drops,
 │                            #   orders, delivery sim, stats (AndroidViewModel)
@@ -37,6 +37,8 @@ app/src/main/java/com/example/myapplication/
 │   │                        #   Product.withPriceOverride (fake price drops),
 │   │                        #   fakeStockLeft, streak math, price/date formatting
 │   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator
+│   ├── NotificationPolicy.kt # Pure when-to-ping rules (background-only, quiet
+│   │                        #   hours, price-drop cooldown)
 │   └── WishlistStore.kt     # DataStore persistence: wishlist ids + urge streak
 └── ui/
     ├── theme/               # Vibrant "dopamine" palette (pink/purple/orange)
@@ -55,7 +57,10 @@ app/src/main/java/com/example/myapplication/
 - The delivery simulation is a coroutine in the ViewModel that advances an order
   through `OrderStatus` stages on a timer; screens only render the state. Delivery
   completion and wishlist price drops post real notifications via `Notifier`
-  (permission-guarded; channel `cartharsis.events`).
+  (permission-guarded; channels `cartharsis.deliveries` + silent
+  `cartharsis.wishlist`), gated by `data/NotificationPolicy` — background-only,
+  quiet hours and a cooldown for drops. Notifications must stay calm; this is a
+  wellness app wearing a shopping app's clothes.
 - Price drops are an overlay map (`priceDrops: id → cents`) applied at display/
   cart-add time via `Product.withPriceOverride` — the catalog itself is immutable.
   Cart lines snapshot the price at add time.
@@ -75,8 +80,15 @@ app/src/main/java/com/example/myapplication/
 - Product "images" are emoji — no image loading library, keep it that way.
 - All animations are hand-rolled Compose/Canvas (confetti, courier) — no animation deps.
 - Versions live in `gradle/libs.versions.toml`; add dependencies there, not inline.
-- Copy/tone: playful, self-aware, slightly absurd ("Imagination Express card").
-  Keep fake product names obviously fake-adjacent; never imitate a real brand.
+- Copy/tone, two registers (per the dopamine-site research: believability drives
+  the anticipation, so the satire lives in the frame, not on the shelf):
+  - Product listings play it straight — realistic specs, prices, and sincere
+    marketing copy, like a real shop. Names stay invented and fake-adjacent
+    ("AuraPhone", "CloudStride"); never imitate a real brand. Chaos-category
+    items may be absurd, but their copy stays deadpan-sincere.
+  - App chrome is playful and self-aware ("Imagination Express card", reviews,
+    delivery-of-nothing notifications, order statuses) — that's where the wink
+    belongs.
 
 ## Workflow
 

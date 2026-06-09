@@ -1,33 +1,37 @@
-package com.example.myapplication
+package com.cartharsis
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.CartItem
-import com.example.myapplication.data.FakeCatalog
-import com.example.myapplication.data.Order
-import com.example.myapplication.data.OrderStatus
-import com.example.myapplication.data.Product
-import com.example.myapplication.data.StatsStore
-import com.example.myapplication.data.plusProduct
-import com.example.myapplication.data.StreakStore
-import com.example.myapplication.data.WishlistStore
-import com.example.myapplication.data.advanceStreak
-import com.example.myapplication.data.effectiveStreak
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.data.withPriceOverride
+import com.cartharsis.data.CartItem
+import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.NotificationPolicy
+import com.cartharsis.data.Order
+import com.cartharsis.data.OrderStatus
+import com.cartharsis.data.Product
+import com.cartharsis.data.StatsStore
+import com.cartharsis.data.plusProduct
+import com.cartharsis.data.StreakStore
+import com.cartharsis.data.WishlistStore
+import com.cartharsis.data.advanceStreak
+import com.cartharsis.data.effectiveStreak
+import com.cartharsis.data.formatPrice
+import com.cartharsis.data.withPriceOverride
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import kotlin.random.Random
 
 private const val FLASH_DEAL_SECONDS = 90
 private const val COURIER_TRIP_MILLIS = ShopViewModel.COURIER_TRIP_SECONDS * 1_000L
-private const val PRICE_DROP_INTERVAL_MILLIS = 25_000L
-private const val PRICE_DROP_LIFETIME_MILLIS = 90_000L
+private const val PRICE_DROP_INTERVAL_MILLIS = 60_000L
+private const val PRICE_DROP_LIFETIME_MILLIS = 5 * 60_000L
 
 class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -79,6 +83,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     private var nextOrderId = 1
 
+    /**
+     * When the last wishlist-drop notification fired. Seeded with "now" so the
+     * first ping can come no sooner than one full cooldown after launch — the
+     * app never chases someone who just put it down.
+     */
+    private var lastDropPingMillis = System.currentTimeMillis()
+
     init {
         // Restore the wishlist; wanting survives process death even if orders don't.
         viewModelScope.launch {
@@ -116,8 +127,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-        // Periodically "drop" the price of something on the wishlist. The drop is
-        // as fake as the price, but the notification ping is gloriously real.
+        // Periodically "drop" the price of something on the wishlist. The drop
+        // itself stays an in-app delight (badges, struck-through prices); a real
+        // notification only goes out when NotificationPolicy says it would be
+        // welcome — app in the background, daytime, and not pinged recently.
         viewModelScope.launch {
             while (true) {
                 delay(PRICE_DROP_INTERVAL_MILLIS)
@@ -127,13 +140,23 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
                 val discountPercent = Random.nextInt(15, 41)
                 val newPrice = product.priceCents * (100 - discountPercent) / 100
                 _priceDrops.update { it + (product.id to newPrice) }
-                Notifier.notifyPriceDrop(
-                    getApplication(),
-                    product.id,
-                    product.name,
-                    discountPercent,
-                    formatPrice(newPrice),
+                val now = System.currentTimeMillis()
+                val shouldPing = NotificationPolicy.shouldPingPriceDrop(
+                    appVisible = appInForeground(),
+                    hourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                    lastPingMillis = lastDropPingMillis,
+                    nowMillis = now,
                 )
+                if (shouldPing) {
+                    lastDropPingMillis = now
+                    Notifier.notifyPriceDrop(
+                        getApplication(),
+                        product.id,
+                        product.name,
+                        discountPercent,
+                        formatPrice(newPrice),
+                    )
+                }
                 launch {
                     delay(PRICE_DROP_LIFETIME_MILLIS)
                     _priceDrops.update { it - product.id }
@@ -247,8 +270,16 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             }
             updateOrder(orderId) { it.copy(status = OrderStatus.DELIVERED, progress = 1f) }
             val delivered = _orders.value.firstOrNull { it.id == orderId } ?: return@launch
-            Notifier.notifyDelivered(getApplication(), orderId, formatPrice(delivered.totalCents))
+            // In the foreground the tracking screen already celebrates the arrival;
+            // the system notification is only for someone who wandered off.
+            if (NotificationPolicy.shouldPingDelivery(appInForeground())) {
+                Notifier.notifyDelivered(getApplication(), orderId, formatPrice(delivered.totalCents))
+            }
         }
     }
+
+    /** Whether any of our UI is on screen; viewModelScope runs on Main, so reading this is safe. */
+    private fun appInForeground(): Boolean =
+        ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
 
 }

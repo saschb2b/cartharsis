@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -26,10 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ShopViewModel
-import com.example.myapplication.data.formatOrderDate
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.ui.theme.MintGreen
+import com.cartharsis.ShopViewModel
+import com.cartharsis.data.formatOrderDate
+import com.cartharsis.data.formatPrice
+import com.cartharsis.ui.theme.MintGreen
 
 @Composable
 fun OrdersScreen(

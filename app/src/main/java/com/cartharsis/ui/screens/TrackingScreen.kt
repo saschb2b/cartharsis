@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -37,13 +37,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ShopViewModel
-import com.example.myapplication.data.Order
-import com.example.myapplication.data.OrderStatus
-import com.example.myapplication.data.formatOrderDate
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.ui.theme.ElectricPurple
-import com.example.myapplication.ui.theme.MintGreen
+import com.cartharsis.ShopViewModel
+import com.cartharsis.data.Order
+import com.cartharsis.data.OrderStatus
+import com.cartharsis.data.formatOrderDate
+import com.cartharsis.data.formatPrice
+import com.cartharsis.ui.theme.ElectricPurple
+import com.cartharsis.ui.theme.MintGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

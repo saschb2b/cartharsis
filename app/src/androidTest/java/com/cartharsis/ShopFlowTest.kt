@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.cartharsis
 
 import android.Manifest
 import android.os.Build

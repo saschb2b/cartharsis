@@ -73,6 +73,41 @@ Living task list. Checked = done and compiling.
 - [x] Instrumented smoke test: browse → cart → checkout → order placed
       (bumped espresso/junit-ext test deps for Android 16 compatibility)
 
+## Phase 8 — Calm notifications rework
+- [x] NotificationPolicy (pure, tested): pings only when the app is backgrounded;
+      price-drop pings also gated by quiet hours (22:00–08:00) and a 30-min cooldown
+- [x] Split channels: deliveries (default importance) vs. wishlist drifts (low/silent);
+      legacy `cartharsis.events` channel deleted on upgrade
+- [x] Slow the drop engine: ~60s interval, 5-min drop lifetime (was 25s/90s)
+- [x] Calmer price-drop copy (no urgency, no countdown framing)
+
+## Phase 9 — Catalog realism + expansion
+- [x] Research check: Korean dopamine sites simulate *real* ordering — believability
+      is the mechanism; satire moved from listings to the app frame
+- [x] Rewrite all 27 original listings straight-faced (realistic specs/prices,
+      invented brands kept); reviews stay satirical — that's where the wink lives
+- [x] Horizontal: 6 → 13 categories (+ Kitchen, Beauty, Fitness, Outdoors, Pets,
+      Hobbies, Stationery); espresso/skincare/yoga-mat recategorized accordingly
+- [x] Vertical: 27 → 93 products, 7–8 per category; 21 sale-anchored products feed
+      the flash deal rotation; original ids preserved for saved wishlists
+- [x] Review pool 12 → 20 entries
+- [x] Docs updated: CLAUDE.md two-register tone convention, README marketplace bullet
+- [x] Niche-coverage pass: 93 → 124 products, 13 → 15 categories. New Audio
+      (earbuds, turntable, speakers, amp) and Gaming (console, handheld, controller,
+      two games, 240Hz monitor, gaming mouse/laptop) categories; Tech deepened with
+      phones (base + fold), VR, ultrabook, 5K monitor, PC parts (GPU/CPU/SSD), mouse;
+      knives + whetstone in Kitchen; plants, lamps, rug, mirror in Home; 3D printer
+      + filament in Hobbies. Invented brands kept coherent (Vortex, Crescent, Meteor,
+      AuraPhone line)
+
+## Phase 10 — Identity cleanup
+- [x] Rename package/namespace/applicationId com.example.myapplication → com.cartharsis
+      (sources moved to java/com/cartharsis, imports rewritten)
+- [x] Theme renames: MyApplicationTheme → CartharsisTheme, Theme.MyApplication →
+      Theme.Cartharsis (manifest + themes.xml)
+- [x] Gradle project name "My Application" → "Cartharsis"
+      (note: new applicationId = fresh install identity; old install's DataStore
+      does not carry over)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
-- [ ] Rename package from com.example.myapplication to a real id

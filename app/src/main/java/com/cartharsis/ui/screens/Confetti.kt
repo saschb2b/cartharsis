@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -12,10 +12,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
-import com.example.myapplication.ui.theme.ElectricPurple
-import com.example.myapplication.ui.theme.HotPink
-import com.example.myapplication.ui.theme.JuicyOrange
-import com.example.myapplication.ui.theme.MintGreen
+import com.cartharsis.ui.theme.ElectricPurple
+import com.cartharsis.ui.theme.HotPink
+import com.cartharsis.ui.theme.JuicyOrange
+import com.cartharsis.ui.theme.MintGreen
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random

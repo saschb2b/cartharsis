@@ -1,15 +1,17 @@
-package com.example.myapplication
+package com.cartharsis
 
-import com.example.myapplication.data.CartItem
-import com.example.myapplication.data.FakeCatalog
-import com.example.myapplication.data.Order
-import com.example.myapplication.data.advanceStreak
-import com.example.myapplication.data.effectiveStreak
-import com.example.myapplication.data.fakeStockLeft
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.data.plusProduct
-import com.example.myapplication.data.withPriceOverride
+import com.cartharsis.data.CartItem
+import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.NotificationPolicy
+import com.cartharsis.data.Order
+import com.cartharsis.data.advanceStreak
+import com.cartharsis.data.effectiveStreak
+import com.cartharsis.data.fakeStockLeft
+import com.cartharsis.data.formatPrice
+import com.cartharsis.data.plusProduct
+import com.cartharsis.data.withPriceOverride
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -131,6 +133,63 @@ class FakeShopTest {
         assertEquals(5, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 100))
         assertEquals(5, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 101))
         assertEquals(0, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 102))
+    }
+
+    @Test
+    fun `quiet hours cover the night and only the night`() {
+        listOf(22, 23, 0, 3, 7).forEach { assertTrue("$it should be quiet", NotificationPolicy.isQuietHour(it)) }
+        listOf(8, 12, 18, 21).forEach { assertFalse("$it should be awake", NotificationPolicy.isQuietHour(it)) }
+    }
+
+    @Test
+    fun `delivery pings only reach a backgrounded app`() {
+        assertTrue(NotificationPolicy.shouldPingDelivery(appVisible = false))
+        assertFalse(NotificationPolicy.shouldPingDelivery(appVisible = true))
+    }
+
+    @Test
+    fun `price-drop ping fires once the app is away, it is daytime, and the cooldown passed`() {
+        val cooldown = NotificationPolicy.DROP_PING_COOLDOWN_MILLIS
+        assertTrue(
+            NotificationPolicy.shouldPingPriceDrop(
+                appVisible = false, hourOfDay = 14, lastPingMillis = 0, nowMillis = cooldown,
+            ),
+        )
+    }
+
+    @Test
+    fun `price-drop ping stays silent while the app is open`() {
+        assertFalse(
+            NotificationPolicy.shouldPingPriceDrop(
+                appVisible = true, hourOfDay = 14, lastPingMillis = 0,
+                nowMillis = NotificationPolicy.DROP_PING_COOLDOWN_MILLIS,
+            ),
+        )
+    }
+
+    @Test
+    fun `price-drop ping stays silent at night`() {
+        assertFalse(
+            NotificationPolicy.shouldPingPriceDrop(
+                appVisible = false, hourOfDay = 23, lastPingMillis = 0,
+                nowMillis = NotificationPolicy.DROP_PING_COOLDOWN_MILLIS,
+            ),
+        )
+    }
+
+    @Test
+    fun `price-drop ping respects the cooldown window`() {
+        val cooldown = NotificationPolicy.DROP_PING_COOLDOWN_MILLIS
+        assertFalse(
+            NotificationPolicy.shouldPingPriceDrop(
+                appVisible = false, hourOfDay = 14, lastPingMillis = 1_000, nowMillis = cooldown,
+            ),
+        )
+        assertTrue(
+            NotificationPolicy.shouldPingPriceDrop(
+                appVisible = false, hourOfDay = 14, lastPingMillis = 1_000, nowMillis = cooldown + 1_000,
+            ),
+        )
     }
 
     @Test

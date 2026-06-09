@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,12 +40,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ShopViewModel
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.data.withPriceOverride
-import com.example.myapplication.ui.theme.ElectricPurple
-import com.example.myapplication.ui.theme.HotPink
-import com.example.myapplication.ui.theme.JuicyOrange
+import com.cartharsis.ShopViewModel
+import com.cartharsis.data.formatPrice
+import com.cartharsis.data.withPriceOverride
+import com.cartharsis.ui.theme.ElectricPurple
+import com.cartharsis.ui.theme.HotPink
+import com.cartharsis.ui.theme.JuicyOrange
 
 @Composable
 fun HomeScreen(

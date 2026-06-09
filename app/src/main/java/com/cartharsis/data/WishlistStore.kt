@@ -1,4 +1,4 @@
-package com.example.myapplication.data
+package com.cartharsis.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

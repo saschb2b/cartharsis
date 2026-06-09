@@ -1,4 +1,4 @@
-package com.example.myapplication.data
+package com.cartharsis.data
 
 data class Review(
     val author: String,

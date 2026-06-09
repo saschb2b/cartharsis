@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.screens
+package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,12 +43,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.ShopViewModel
-import com.example.myapplication.data.Product
-import com.example.myapplication.data.fakeStockLeft
-import com.example.myapplication.data.formatPrice
-import com.example.myapplication.data.withPriceOverride
-import com.example.myapplication.ui.theme.JuicyOrange
+import com.cartharsis.ShopViewModel
+import com.cartharsis.data.Product
+import com.cartharsis.data.fakeStockLeft
+import com.cartharsis.data.formatPrice
+import com.cartharsis.data.withPriceOverride
+import com.cartharsis.ui.theme.JuicyOrange
 import kotlinx.coroutines.launch
 
 /** One per tap, at random — the ritual deserves fresh applause. */

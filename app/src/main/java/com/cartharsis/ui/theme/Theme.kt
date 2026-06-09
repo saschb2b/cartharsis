@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.theme
+package com.cartharsis.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +51,7 @@ private val LightColorScheme = lightColorScheme(
 
 // Dynamic color is deliberately off: the dopamine palette IS the brand.
 @Composable
-fun MyApplicationTheme(
+fun CartharsisTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

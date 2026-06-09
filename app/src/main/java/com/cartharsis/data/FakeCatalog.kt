@@ -1,0 +1,1016 @@
+package com.cartharsis.data
+
+/**
+ * The entire "marketplace". Nothing here is real, purchasable, or shippable.
+ *
+ * Listings play it straight — invented brands, realistic specs and prices,
+ * sincere copy — because the research behind the app says believability is
+ * what makes the anticipation work. The satire lives in the frame around the
+ * shelf: the reviews below, the notifications, the checkout. Reviews are
+ * assigned deterministically from a shared pool so the catalog is stable
+ * across runs without any persistence.
+ *
+ * The first 27 products predate the catalog expansion and keep their listing
+ * order so persisted wishlist ids stay pointing at the same products.
+ */
+object FakeCatalog {
+
+    val categories = listOf(
+        "All", "Tech", "Audio", "Gaming", "Home", "Kitchen", "Fashion", "Beauty",
+        "Self-Care", "Fitness", "Snacks", "Outdoors", "Pets", "Hobbies",
+        "Stationery", "Chaos",
+    )
+
+    private val reviewPool = listOf(
+        Review("Ji-woo K.", 5, "Arrived instantly because it never shipped. Incredible logistics."),
+        Review("Marta S.", 5, "I own nothing and I have never been happier."),
+        Review("Dev P.", 4, "Four stars only because I wanted to want it more."),
+        Review("Hannah L.", 5, "My wallet sent me a thank-you card."),
+        Review("Tom B.", 5, "Bought three. Returned zero. They were never here."),
+        Review("Yuki T.", 4, "The anticipation alone fixed my whole week."),
+        Review("Carlos M.", 5, "10/10 would not receive again."),
+        Review("Anonymous", 5, "I showed my therapist. She added it to her cart too."),
+        Review("Min-seo P.", 5, "Tracking the courier was the best 90 seconds of my day."),
+        Review("Greg W.", 4, "Slightly smaller than expected (it does not exist)."),
+        Review("Lena F.", 5, "Shipping was immediate. Nothing arrived right on time."),
+        Review("Sam O.", 5, "Finally, a purchase my bank account agrees with."),
+        Review("Priya R.", 5, "Five stars for the courier who delivered nothing, on time, in the rain."),
+        Review("Jae-min L.", 5, "Checkout took ten seconds and my rent is still paid. Flawless."),
+        Review("Sofia G.", 4, "I keep opening this instead of my banking app. Both apps approve."),
+        Review("Noah E.", 5, "It said 'only 3 left' so I panicked and bought nothing immediately."),
+        Review("Eun-ji C.", 5, "Replaced my 2am shopping habit and my 2am shopping debt."),
+        Review("Viktor H.", 4, "Quality of the nothing is consistent with my previous orders."),
+        Review("Amara D.", 5, "Wishlisted it, watched the price drop, felt everything. Spent zero."),
+        Review("Your roommate", 5, "I can finally afford my hobbies. They are also in this app."),
+    )
+
+    private fun reviewsFor(id: Int): List<Review> {
+        val start = id % reviewPool.size
+        return (0 until 3).map { reviewPool[(start + it * 7) % reviewPool.size] }
+    }
+
+    private var nextId = 0
+
+    private fun product(
+        name: String,
+        emoji: String,
+        tagline: String,
+        description: String,
+        priceCents: Long,
+        category: String,
+        rating: Double,
+        reviewCount: Int,
+        originalPriceCents: Long? = null,
+    ): Product {
+        val id = nextId++
+        return Product(
+            id, name, emoji, tagline, description, priceCents, category,
+            rating, reviewCount, reviewsFor(id), originalPriceCents,
+        )
+    }
+
+    val products: List<Product> = listOf(
+        // ---- Original catalog (ids 0–26, order preserved for saved wishlists) ----
+        product(
+            "AuraPhone 17 Ultra Max", "📱",
+            "The flagship, fully realized.",
+            "A 6.9-inch LTPO display that scales 1–120Hz, a 200MP main sensor with " +
+                "sensor-shift stabilization, and a ceramic-glass back in four finishes. " +
+                "80W fast charging and seven years of software updates.",
+            129_900, "Tech", 4.8, 12473, originalPriceCents = 159_900,
+        ),
+        product(
+            "NoiseGone Pro Headphones", "🎧",
+            "Hear nothing but the music.",
+            "Adaptive noise cancellation driven by eleven microphones, 40 hours of " +
+                "battery, plush memory-foam earcups, and multipoint Bluetooth. Folds " +
+                "flat into the included hard case.",
+            34_900, "Audio", 4.7, 8821,
+        ),
+        product(
+            "RoboVac Sensei 9000", "🤖",
+            "Maps your home. Minds the rugs.",
+            "LiDAR navigation, 8,000Pa suction, automatic mop-pad lifting over carpet, " +
+                "and a self-emptying dock that holds 60 days of dust. Per-room schedules " +
+                "and no-go zones included.",
+            79_900, "Tech", 4.6, 5310, originalPriceCents = 99_900,
+        ),
+        product(
+            "Mechanical Keyboard, Extra Clacky", "⌨️",
+            "Every keystroke, a small reward.",
+            "Gasket-mounted case with factory-lubed linear switches, double-shot PBT " +
+                "keycaps, and a hot-swappable PCB so the sound profile is yours to tune. " +
+                "South-facing RGB, USB-C, 1,000Hz polling.",
+            21_900, "Tech", 4.9, 15294,
+        ),
+        product(
+            "8K Drone with Follow-Me Mode", "🛸",
+            "Your life, from above.",
+            "8K/30fps video on a 1-inch sensor, 34 minutes of flight time, " +
+                "omnidirectional obstacle sensing, and a follow-me mode that keeps you " +
+                "centered at up to 45km/h. Folds to the size of a water bottle.",
+            64_900, "Tech", 4.5, 3107,
+        ),
+        product(
+            "Cloud Sofa (3-Seater)", "🛋️",
+            "Sink in. Stay a while.",
+            "Feather-wrapped foam cushions on a kiln-dried hardwood frame, with a " +
+                "performance fabric that shrugs off spills. Modular design splits into " +
+                "three sections for narrow stairwells.",
+            189_900, "Home", 4.8, 6642, originalPriceCents = 249_900,
+        ),
+        product(
+            "Self-Watering Plant That Can't Die", "🪴",
+            "Greenery for the forgetful.",
+            "A potted golden pothos in a self-watering planter with a four-week " +
+                "reservoir and a water-level window. Thrives in low light and forgives " +
+                "missed weekends.",
+            4_900, "Home", 4.9, 9210,
+        ),
+        product(
+            "Artisan Candle: 'New Apartment Smell'", "🕯️",
+            "Fresh paint, clean linen, possibility.",
+            "Hand-poured soy wax with top notes of white tea, a cedar heart, and a " +
+                "clean-linen base. 60-hour burn time, cotton wick, reusable amber jar.",
+            3_200, "Home", 4.7, 4188,
+        ),
+        product(
+            "Floor-to-Ceiling Bookshelf", "📚",
+            "A wall that reads well.",
+            "Solid oak uprights with adjustable shelves rated to 30kg each and anti-tip " +
+                "wall anchors included. Flat-packs into three boxes; assembly takes an " +
+                "afternoon and pays off for decades.",
+            45_900, "Home", 4.6, 2871,
+        ),
+        product(
+            "Espresso Machine, Barista-Grade", "☕",
+            "Café-quality shots at home.",
+            "Dual boiler with PID temperature control, 9-bar extraction through a " +
+                "commercial 58mm portafilter, and a steam wand that microfoams like the " +
+                "third-wave place around the corner.",
+            89_900, "Kitchen", 4.8, 7754, originalPriceCents = 109_900,
+        ),
+        product(
+            "Limited Drop Sneakers 'Phantom 1'", "👟",
+            "The colorway everyone asks about.",
+            "Full-grain leather upper on a cushioned cup sole, reflective lace tips, " +
+                "and a numbered tongue tag. This release is limited to a single " +
+                "production run.",
+            27_900, "Fashion", 4.9, 18337, originalPriceCents = 39_900,
+        ),
+        product(
+            "Cashmere Hoodie of Main Character Energy", "🧥",
+            "Soft power.",
+            "Grade-A Mongolian cashmere in a 12-gauge knit, with dropped shoulders and " +
+                "a double-lined hood. Machine-washable on the wool cycle, somehow.",
+            18_900, "Fashion", 4.7, 6029,
+        ),
+        product(
+            "Vintage Watch, Old Money Edition", "⌚",
+            "Quiet on the wrist, loud in the room.",
+            "A 36mm automatic with a Swiss movement, domed sapphire crystal, and a " +
+                "discreet date at six. Ships on a leather strap with a spare NATO band.",
+            399_900, "Fashion", 4.8, 1543,
+        ),
+        product(
+            "Sunglasses You'd Never Lose", "🕶️",
+            "Polarized, weightless, findable.",
+            "Polarized CR-39 lenses with full UV400 protection in a featherweight " +
+                "acetate frame, plus a magnetic hard case that clips to any bag strap.",
+            15_900, "Fashion", 4.6, 3390,
+        ),
+        product(
+            "Midnight Tteokbokki Mega Set", "🍜",
+            "Late-night spice, done right.",
+            "Chewy rice cakes in a gochujang sauce that builds slowly, with fish " +
+                "cakes, half-moon dumplings, and extra mozzarella. Serves two, or one " +
+                "with intent.",
+            2_400, "Snacks", 4.9, 22481,
+        ),
+        product(
+            "Artisanal Fried Chicken Bucket", "🍗",
+            "Double-fried. Twice as crisp.",
+            "Eight pieces double-fried for a shatter-crisp crust, tossed in soy-garlic " +
+                "or sweet-spicy glaze. Pickled radish included, as it must be.",
+            3_100, "Snacks", 4.8, 31764, originalPriceCents = 3_900,
+        ),
+        product(
+            "Emotional Support Cake (Whole)", "🍰",
+            "Because some days need cake.",
+            "A whole vanilla-cream celebration cake layered with fresh strawberries " +
+                "and a light, not-too-sweet frosting. No occasion required.",
+            5_600, "Snacks", 4.9, 12058,
+        ),
+        product(
+            "Imported Snack Box: Mystery Edition", "🎁",
+            "47 snacks. Zero repeats.",
+            "A curated surprise box of 47 snacks from twelve countries — chips, " +
+                "candies, biscuits, and at least one flavor you'll need to describe " +
+                "to a friend afterward.",
+            7_900, "Snacks", 4.7, 8146,
+        ),
+        product(
+            "10-Step Skincare Ritual Kit", "🧴",
+            "The full routine, bottled.",
+            "Cleanser to cream in ten labeled steps: snail mucin essence, niacinamide " +
+                "serum, centella toner, and a ceramide moisturizer, with a laminated " +
+                "routine card for mornings and nights.",
+            12_900, "Beauty", 4.8, 9931, originalPriceCents = 16_900,
+        ),
+        product(
+            "Weighted Blanket, Anxiety-Rated", "🛌",
+            "Twelve kilograms of calm.",
+            "Glass-bead fill quilted into small pockets so the weight stays even, " +
+                "under a removable bamboo cover that sleeps cool. Pick roughly 10% of " +
+                "your body weight.",
+            9_900, "Self-Care", 4.9, 14207,
+        ),
+        product(
+            "Spa Day In A Box", "🧖",
+            "The home spa, fully stocked.",
+            "Four bath bombs, a jade roller, two clay masks, cucumber eye pads, and a " +
+                "waffle-weave headband, packed in a keepsake box with a how-to card.",
+            8_400, "Self-Care", 4.7, 5566,
+        ),
+        product(
+            "Yoga Mat of Future Discipline", "🧘",
+            "Grip that meets you halfway.",
+            "A 6mm dual-layer mat with a moisture-wicking top, non-slip base, and " +
+                "alignment lines printed end to end. Carry strap included.",
+            6_900, "Fitness", 4.6, 7012,
+        ),
+        product(
+            "Inflatable T-Rex Costume", "🦖",
+            "The room changes when you arrive.",
+            "Self-inflating in 60 seconds with a quiet battery fan; one size fits " +
+                "1.5–1.9m. Machine-washable shell and surprisingly good visibility.",
+            5_900, "Chaos", 4.9, 19877,
+        ),
+        product(
+            "1,000 Live Ladybugs", "🐞",
+            "Natural pest control, by the thousand.",
+            "Live adult ladybugs for aphid control in gardens and greenhouses. " +
+                "Release at dusk after watering for best retention. Yes, this is a " +
+                "real category of commerce.",
+            2_900, "Chaos", 4.8, 6203,
+        ),
+        product(
+            "Medieval Sword (Decorative)", "⚔️",
+            "Forged for the mantelpiece.",
+            "Hand-forged high-carbon steel with a full tang, leather-wrapped grip, " +
+                "and a carved oak display stand. Blunted display edge.",
+            22_900, "Chaos", 4.7, 4419,
+        ),
+        product(
+            "Brick (Premium)", "🧱",
+            "It's a brick.",
+            "A single kiln-fired clay brick, palm-sized and satisfyingly dense. " +
+                "Doorstop, bookend, paperweight, statement.",
+            1_900, "Chaos", 5.0, 27345, originalPriceCents = 2_900,
+        ),
+        product(
+            "Tiny Hands (Pair)", "🤏",
+            "Big laughs, small commitment.",
+            "A pair of finger-puppet-sized hands for your hands. Sturdy PVC, fits " +
+                "most fingers, ruins most meetings.",
+            3_400, "Chaos", 4.9, 11932,
+        ),
+
+        // ---- Tech ----
+        product(
+            "Lumen 65\" QLED TV", "📺",
+            "Cinema, wall-mounted.",
+            "A 65-inch QLED panel with 120Hz refresh, Dolby Vision, and a " +
+                "near-bezel-less frame. Game mode drops input lag under 10ms; the " +
+                "one-cable stand keeps the console clutter behind the credenza.",
+            99_900, "Tech", 4.7, 4521, originalPriceCents = 129_900,
+        ),
+        product(
+            "PulseTrack Smartwatch 5", "⏱️",
+            "Your wrist, but informed.",
+            "Heart rate, sleep staging, and dual-band GPS in a 44mm aluminum case, " +
+                "with a 10-day battery and 5ATM water resistance. Bands swap without " +
+                "tools.",
+            24_900, "Tech", 4.5, 6890,
+        ),
+        product(
+            "PicoBeam Mini Projector", "📽️",
+            "A 100-inch screen in a coat pocket.",
+            "Native 1080p at 500 ANSI lumens with autofocus, auto keystone, and a " +
+                "built-in speaker that's better than it has any right to be. Movie " +
+                "night moves wherever you do.",
+            39_900, "Tech", 4.4, 2310,
+        ),
+        product(
+            "AuraPhone 17", "📱",
+            "The flagship essentials, minus the Max.",
+            "A 6.3-inch OLED at 120Hz, the same 200MP main camera as its bigger " +
+                "sibling, and a battery that comfortably clears a day. Five finishes, " +
+                "seven years of updates.",
+            79_900, "Tech", 4.7, 9482,
+        ),
+        product(
+            "AuraFold 3", "📲",
+            "Unfolds into more screen than your tablet.",
+            "A 7.8-inch folding inner display with a crease you stop noticing by day " +
+                "two, app continuity across both screens, and a hinge rated for " +
+                "400,000 folds.",
+            179_900, "Tech", 4.5, 2071, originalPriceCents = 199_900,
+        ),
+        product(
+            "Nimbus VR One", "🥽",
+            "Presence, included.",
+            "A standalone headset with dual 2.5K panels at 120Hz, inside-out " +
+                "tracking, and touch controllers with finger sensing. Sets up in five " +
+                "minutes, no PC required.",
+            49_900, "Tech", 4.6, 5320,
+        ),
+        product(
+            "FeatherBook 14", "💻",
+            "All day, under a kilo.",
+            "A 14-inch 2.8K display in a 990g magnesium chassis, 18 hours of " +
+                "battery, and a keyboard people write home about. Fanless, so it " +
+                "never makes a sound.",
+            119_900, "Tech", 4.8, 4106, originalPriceCents = 139_900,
+        ),
+        product(
+            "Spectra 27\" 5K Monitor", "🖥️",
+            "Every pixel of the picture.",
+            "A 27-inch 5K IPS panel with 99% DCI-P3 coverage and factory " +
+                "calibration, plus one-cable USB-C with 90W charging for laptops.",
+            109_900, "Tech", 4.7, 1843,
+        ),
+        product(
+            "Vortex V90 Graphics Card, 16GB", "⚡",
+            "Frames to spare.",
+            "16GB of GDDR7 under a triple-fan cooler that idles silent and boosts " +
+                "quiet. 4K gaming at high refresh, with dual encoders for streaming.",
+            84_900, "Tech", 4.8, 3217,
+        ),
+        product(
+            "Ridgeline 9 Desktop CPU", "🧠",
+            "Sixteen cores, no waiting.",
+            "Sixteen cores boosting to 5.6GHz with a generous cache that serves " +
+                "gaming and rendering alike. Cooler sold separately.",
+            44_900, "Tech", 4.9, 5630,
+        ),
+        product(
+            "2TB NVMe SSD, Gen4", "💾",
+            "Load screens, abbreviated.",
+            "Sequential reads at 7,400MB/s, a five-year warranty, and a heatsink " +
+                "low-profile enough for laptops and consoles alike.",
+            14_900, "Tech", 4.8, 12490, originalPriceCents = 17_900,
+        ),
+        product(
+            "GlideMaster Wireless Mouse", "🖱️",
+            "Scrolls like silk, clicks like silence.",
+            "An ergonomic shape with a free-spinning scroll wheel, silent switches, " +
+                "and three months of battery per charge. Pairs to three devices.",
+            7_900, "Tech", 4.7, 8865,
+        ),
+
+        // ---- Audio ----
+        product(
+            "NoiseGone Buds", "🎵",
+            "The Pro sound, pocket-sized.",
+            "Adaptive noise cancellation in 5-gram earbuds with multipoint, wireless " +
+                "charging, and six hours per charge — thirty with the case.",
+            19_900, "Audio", 4.6, 10412, originalPriceCents = 24_900,
+        ),
+        product(
+            "Crescent Belt-Drive Turntable", "💿",
+            "Side A, the proper way.",
+            "A belt-drive deck with a carbon tonearm, pre-mounted moving-magnet " +
+                "cartridge, and a switchable phono stage so it plays nice with any " +
+                "amp. Anti-skate you can actually set.",
+            34_900, "Audio", 4.7, 2964,
+        ),
+        product(
+            "Walnut Bookshelf Speakers (Pair)", "🔊",
+            "Small cabinets, honest sound.",
+            "Two-way bookshelf speakers with silk dome tweeters and 5.25-inch woven " +
+                "woofers in real walnut veneer. Front-ported for shelf-friendly " +
+                "placement.",
+            44_900, "Audio", 4.8, 1872,
+        ),
+        product(
+            "Crescent Streaming Amplifier", "🎚️",
+            "One box, whole system.",
+            "An 80W-per-channel integrated amp with a built-in streamer, a phono " +
+                "input for the turntable, and a volume knob with proper weight to it.",
+            59_900, "Audio", 4.7, 1346,
+        ),
+
+        // ---- Gaming ----
+        product(
+            "Meteor MK-II Console", "🎮",
+            "Launch night, every night.",
+            "4K at up to 120fps, a 2TB SSD that ends storage anxiety, and cooling " +
+                "you'll never hear over the soundtrack. Backward compatible with " +
+                "your whole shelf.",
+            49_900, "Gaming", 4.8, 21304,
+        ),
+        product(
+            "Wisp Handheld", "📟",
+            "Your library, couch optional.",
+            "A 7-inch 90Hz OLED handheld with detachable grips, eight hours on a " +
+                "charge for indies, and a kickstand made for tray tables.",
+            34_900, "Gaming", 4.6, 8740,
+        ),
+        product(
+            "Meteor Pro Controller", "🕹️",
+            "Built for the long session.",
+            "Hall-effect sticks that never drift, four remappable back paddles, " +
+                "adjustable trigger stops, and 40 hours per charge.",
+            6_900, "Gaming", 4.7, 13208,
+        ),
+        product(
+            "Emberfall: Complete Edition", "🐉",
+            "Two hundred hours, zero filler.",
+            "The acclaimed open-world RPG with all three expansions: a hand-built " +
+                "map, choices that follow you to the credits, and a photo mode that " +
+                "fills your storage.",
+            6_900, "Gaming", 4.9, 31876,
+        ),
+        product(
+            "Turbo Kart Carnival", "🏎️",
+            "Friendship-testing since lap one.",
+            "A four-player couch kart racer with 32 tracks, unlockable vehicles of " +
+                "escalating absurdity, and an item balance patched with suspicious " +
+                "care.",
+            5_900, "Gaming", 4.8, 18452,
+        ),
+        product(
+            "Vortex 27\" 240Hz Monitor", "🖥️",
+            "See them first.",
+            "A 27-inch 1440p IPS panel at 240Hz with 1ms response and adaptive " +
+                "sync, on a stand with real height and swivel range.",
+            54_900, "Gaming", 4.7, 4317, originalPriceCents = 64_900,
+        ),
+        product(
+            "Vortex Featherweight Gaming Mouse", "🖱️",
+            "55 grams, zero excuses.",
+            "A 55g wireless mouse with a flagship optical sensor, optical switches, " +
+                "and 90 hours of battery. Grip tape in the box.",
+            9_900, "Gaming", 4.8, 7626,
+        ),
+        product(
+            "Vortex 16 Gaming Laptop", "💻",
+            "Desktop frames, backpack form.",
+            "A 16-inch 240Hz display driven by the V90 mobile GPU, a vapor-chamber " +
+                "cooler that keeps its composure, and per-key RGB you can also just " +
+                "turn off.",
+            189_900, "Gaming", 4.6, 2954,
+        ),
+
+        // ---- Home ----
+        product(
+            "Linen Duvet Set, Hotel Weight", "🛏️",
+            "The good-hotel feeling, nightly.",
+            "Stonewashed French linen duvet cover and two shams, pre-softened and " +
+                "breathable in every season. Corner ties that actually hold the duvet " +
+                "in place.",
+            17_900, "Home", 4.8, 3754,
+        ),
+        product(
+            "AirLoom Tower Purifier", "🌬️",
+            "Quietly clears the room.",
+            "True HEPA H13 filtration for rooms up to 50m², a 19dB night mode, and a " +
+                "filter reminder that does the remembering for you. Air quality readout " +
+                "glows from across the room.",
+            22_900, "Home", 4.6, 5102, originalPriceCents = 27_900,
+        ),
+        product(
+            "Arc Floor Lamp, Brass", "💡",
+            "Light that leans in.",
+            "A 1.8m brushed-brass arc with a linen drum shade and a marble base that " +
+                "stays put. Dims from reading-bright to evening-warm on a foot switch.",
+            15_900, "Home", 4.7, 1893,
+        ),
+        product(
+            "Ceramic Table Lamp, Dimmable", "🏮",
+            "Pools of warm light.",
+            "A hand-glazed ceramic base with a linen shade and a full-range dimmer " +
+                "on the cord. Sized for sideboards and bedside tables.",
+            8_900, "Home", 4.6, 2415,
+        ),
+        product(
+            "Monstera Deliciosa, Large", "🍃",
+            "The houseplant with presence.",
+            "A 90cm monstera in a nursery pot, leaves already split. Likes bright " +
+                "corners and forgives average ones.",
+            6_900, "Home", 4.8, 5217,
+        ),
+        product(
+            "Snake Plant, Low-Light", "🌱",
+            "Thrives on neglect.",
+            "A 60cm sansevieria that tolerates dim rooms, missed waterings, and " +
+                "general indifference. Filters the air while you ignore it.",
+            3_400, "Home", 4.9, 8814,
+        ),
+        product(
+            "Windowsill Herb Garden Kit", "🌾",
+            "Basil within arm's reach.",
+            "Three ceramic pots, soil discs, and seed packets for basil, mint, and " +
+                "chives, with a drip tray that protects the sill.",
+            4_900, "Home", 4.5, 4076,
+        ),
+        product(
+            "Hand-Loomed Wool Rug, 160×230", "🧶",
+            "The room, pulled together.",
+            "Hand-loomed New Zealand wool in a flat weave that hides crumbs and " +
+                "survives chair legs. Naturally stain-resistant; stops shedding " +
+                "after week one.",
+            39_900, "Home", 4.7, 1932, originalPriceCents = 49_900,
+        ),
+        product(
+            "Full-Length Oak Mirror", "🪞",
+            "The last look before leaving.",
+            "A 165cm solid oak frame that leans against the wall or mounts to it, " +
+                "with bevel-edged glass and felt backing.",
+            19_900, "Home", 4.8, 1567,
+        ),
+
+        // ---- Kitchen ----
+        product(
+            "CrispWave Air Fryer XL", "🍟",
+            "Crunch without the oil.",
+            "A 5.5L family-size basket, 80–200°C range, dishwasher-safe parts, and " +
+                "eight presets. Fries, wings, and roast vegetables that actually crisp.",
+            11_900, "Kitchen", 4.7, 18204, originalPriceCents = 14_900,
+        ),
+        product(
+            "Cast Iron Skillet, Pre-Seasoned", "🍳",
+            "The last pan you'll buy.",
+            "10.25 inches of pre-seasoned cast iron, oven-safe to 260°C. Sears, " +
+                "bakes, fries, and gets better every year you own it.",
+            4_400, "Kitchen", 4.9, 24871,
+        ),
+        product(
+            "Santoku Chef's Knife, 67-Layer", "🔪",
+            "One knife for nearly everything.",
+            "A VG-10 steel core in 67 layers of Damascus cladding, an 18cm blade, and " +
+                "a walnut handle balanced for long prep sessions. Arrives scary-sharp.",
+            13_900, "Kitchen", 4.8, 6755,
+        ),
+        product(
+            "Cloud Rice Cooker, 6-Cup", "🍚",
+            "Perfect rice, zero attention.",
+            "Induction heating with fuzzy-logic programs for white, brown, and " +
+                "porridge, a 24-hour keep-warm, and a delay timer for waking up to " +
+                "breakfast already made.",
+            18_900, "Kitchen", 4.9, 11240,
+        ),
+        product(
+            "Stand Mixer, Bakery Tier", "🎂",
+            "Weekend bakery, weekday counter.",
+            "A 500W direct-drive motor with a 4.8L stainless bowl, dough hook, whisk, " +
+                "and paddle. Ten speeds from a gentle fold to a stiff-peak whip.",
+            34_900, "Kitchen", 4.8, 8412, originalPriceCents = 42_900,
+        ),
+        product(
+            "Cold Brew Tower, Slow Drip", "🧊",
+            "Eight hours well spent.",
+            "A glass slow-drip tower that turns 80g of grounds into 600ml of smooth " +
+                "concentrate overnight. Adjustable drip valve, sustainably sourced " +
+                "wood frame.",
+            8_900, "Kitchen", 4.5, 1576,
+        ),
+        product(
+            "Petty Prep Knife, 12cm", "🔪",
+            "The santoku's quick little sibling.",
+            "A 12cm utility blade for shallots, garlic, and everything fiddly, in " +
+                "the same VG-10 steel and walnut handle as our santoku.",
+            5_900, "Kitchen", 4.8, 3122,
+        ),
+        product(
+            "Whetstone, 1000/6000 Grit", "🪨",
+            "Sharp is a habit.",
+            "A dual-grit water stone on a non-slip bamboo base, with an angle guide " +
+                "for beginners. Five minutes a month keeps every edge honest.",
+            3_900, "Kitchen", 4.7, 5489,
+        ),
+
+        // ---- Fashion ----
+        product(
+            "Water-Repellent Trench, City Cut", "🌂",
+            "Rain, handled. Silhouette, kept.",
+            "A double-breasted trench in water-repellent cotton twill with a " +
+                "removable lining for three seasons of wear. Hits just below the knee.",
+            21_900, "Fashion", 4.7, 2984,
+        ),
+        product(
+            "Everyday Leather Tote", "👜",
+            "Carries the whole day.",
+            "Full-grain pebbled leather with a padded laptop sleeve, three interior " +
+                "pockets, and a zip top. Ages into its own color story.",
+            16_900, "Fashion", 4.8, 4366,
+        ),
+        product(
+            "Heavyweight Tee, 3-Pack", "👕",
+            "The good plain tee, finally.",
+            "240gsm combed cotton, pre-shrunk, with a collar that holds its shape " +
+                "past fifty washes. White, black, and stone.",
+            5_900, "Fashion", 4.6, 13207,
+        ),
+
+        // ---- Beauty ----
+        product(
+            "Glass Glow Vitamin C Serum", "✨",
+            "Brighter by breakfast.",
+            "15% stabilized vitamin C with ferulic acid and hyaluronic acid in an " +
+                "airless amber pump. A morning staple that sits well under sunscreen.",
+            3_900, "Beauty", 4.6, 9341,
+        ),
+        product(
+            "Velvet Cushion Foundation SPF50", "🪞",
+            "Skin, but on its best day.",
+            "A second-skin cushion compact with SPF50+ PA++++, buildable from sheer " +
+                "to medium, in sixteen shades. Refill puck included.",
+            4_400, "Beauty", 4.7, 12658, originalPriceCents = 5_400,
+        ),
+        product(
+            "Lip Tint Trio, Silk Finish", "💄",
+            "Three moods per pocket.",
+            "Weightless water tints in rosewood, fig, and chili, with a blurred silk " +
+                "finish that survives a latte.",
+            2_900, "Beauty", 4.5, 7820,
+        ),
+        product(
+            "Overnight Sheet Mask, 30-Pack", "🌙",
+            "While-you-sleep hydration.",
+            "Thirty cellulose sheet masks soaked in hyaluronic acid and birch sap, " +
+                "individually sealed. One a night keeps the dry season civil.",
+            3_400, "Beauty", 4.6, 5934,
+        ),
+        product(
+            "IonPro Hair Dryer", "💨",
+            "Salon speed, bedroom outlet.",
+            "A 110,000rpm brushless motor dries in half the time at half the noise, " +
+                "with ionic care that cuts frizz and three magnetic styling nozzles.",
+            32_900, "Beauty", 4.8, 6147, originalPriceCents = 39_900,
+        ),
+        product(
+            "Eau de Quiet, 50ml", "🌸",
+            "Worn close, noticed closer.",
+            "A skin-scent of white musk, pear, and cedar that stays within arm's " +
+                "reach. Eight hours of wear; lingers politely.",
+            11_900, "Beauty", 4.7, 3289,
+        ),
+
+        // ---- Self-Care ----
+        product(
+            "Stoneware Aroma Diffuser", "🪔",
+            "Set the room to calm.",
+            "Ultrasonic mist through a matte stoneware shell, an 8-hour runtime with " +
+                "auto-off, and a warm-light mode for evenings. Two essential oil " +
+                "blends included.",
+            6_400, "Self-Care", 4.7, 4458,
+        ),
+        product(
+            "Mulberry Silk Sleep Mask", "😴",
+            "Lights out, properly.",
+            "22-momme mulberry silk with a contoured fit that blocks light without " +
+                "pressing on your lashes. Adjustable strap, matching travel pouch.",
+            2_700, "Self-Care", 4.8, 8112,
+        ),
+        product(
+            "Drift White Noise Machine", "🔉",
+            "A softer way to end the day.",
+            "Twenty non-looping soundscapes from steady rain to brown noise, a " +
+                "sunset-dim display, and a one-button bedtime routine.",
+            4_900, "Self-Care", 4.6, 6890,
+        ),
+        product(
+            "Acupressure Mat & Pillow Set", "🌵",
+            "Twenty minutes of useful ouch.",
+            "6,210 stimulation points across mat and pillow, with a linen cover and " +
+                "coconut-fiber core. Start with a t-shirt on; graduate without it.",
+            5_400, "Self-Care", 4.5, 3741,
+        ),
+        product(
+            "Dead Sea Bath Salt Trio", "🛁",
+            "Draw the good kind of bath.",
+            "Lavender, eucalyptus, and unscented mineral salts in three 500g jars " +
+                "with a wooden scoop. Dissolves fast, drains clean.",
+            3_600, "Self-Care", 4.7, 2954,
+        ),
+
+        // ---- Fitness ----
+        product(
+            "Adjustable Dumbbells, 2–24kg", "🏋️",
+            "A rack in two handles.",
+            "Dial-select plates swap weights in seconds, replacing fifteen pairs of " +
+                "dumbbells in one cradle's footprint. Knurled steel grip.",
+            29_900, "Fitness", 4.8, 5371, originalPriceCents = 34_900,
+        ),
+        product(
+            "Percussive Massage Gun Mini", "💆",
+            "Recovery, pocket-sized.",
+            "Four heads, three speeds, 40dB quiet, and a 10-hour battery in a 1.1kg " +
+                "body. The case fits carry-on luggage rules.",
+            12_900, "Fitness", 4.6, 7204,
+        ),
+        product(
+            "CloudStride Running Shoes", "🏃",
+            "Kilometers feel shorter.",
+            "A nitrogen-infused midsole with an 8mm drop, engineered mesh upper, and " +
+                "outsole rubber rated for 800km of road.",
+            13_900, "Fitness", 4.7, 9866,
+        ),
+        product(
+            "Smart Jump Rope", "🤸",
+            "Counts so you don't.",
+            "Ball-bearing handles with a magnetic counter tracking jumps, time, and " +
+                "calories, plus a ropeless mode for low ceilings.",
+            3_400, "Fitness", 4.4, 4109,
+        ),
+        product(
+            "Resistance Band Set, 5 Tiers", "🪢",
+            "A gym that fits in a drawer.",
+            "Five latex bands from feather to formidable, with cushioned handles, " +
+                "ankle straps, and a door anchor. Carry bag included.",
+            2_900, "Fitness", 4.6, 11473,
+        ),
+        product(
+            "Deep-Tissue Foam Roller", "🌀",
+            "Tomorrow's legs will thank you.",
+            "High-density EVA with a ridged surface for calves, quads, and the upper " +
+                "back. 45cm long, supports up to 150kg.",
+            2_400, "Fitness", 4.7, 8541,
+        ),
+
+        // ---- Snacks ----
+        product(
+            "Honey Butter Chip Case (12 Bags)", "🍯",
+            "Sweet, salty, gone.",
+            "Twelve full-size bags of the honey-butter chips that once caused a " +
+                "national shortage. Stock up accordingly.",
+            3_900, "Snacks", 4.8, 16234,
+        ),
+        product(
+            "Ramyeon Pantry Box, 20-Pack", "🍲",
+            "Twenty nights, sorted.",
+            "Twenty packs across mild, spicy, and extra-spicy tiers, including two " +
+                "limited editions. A pantry that plans ahead.",
+            3_200, "Snacks", 4.7, 21098,
+        ),
+        product(
+            "Mochi Assortment, 18 Pieces", "🍡",
+            "Soft, softer, softest.",
+            "Eighteen daifuku across matcha, black sesame, strawberry, and red bean, " +
+                "individually wrapped so the box lasts longer than one evening. " +
+                "Theoretically.",
+            2_800, "Snacks", 4.8, 7456,
+        ),
+        product(
+            "Korean Corn Dog Night Kit", "🌭",
+            "Crunchy outside, cheese-pull inside.",
+            "Everything for six mozzarella corn dogs at home: batter mix, panko, " +
+                "sticks, and the sugar for the controversial-but-correct finish.",
+            2_600, "Snacks", 4.6, 5872, originalPriceCents = 3_200,
+        ),
+
+        // ---- Outdoors ----
+        product(
+            "One-Touch Pop Tent, 4-Person", "⛺",
+            "Camp set up before the kettle boils.",
+            "Umbrella-frame pitch in under a minute, a 3,000mm waterproof fly, two " +
+                "doors, and blackout lining for sleeping past sunrise.",
+            18_900, "Outdoors", 4.7, 3982, originalPriceCents = 23_900,
+        ),
+        product(
+            "Lowback Camp Chair", "🪑",
+            "The best seat outside the house.",
+            "An aluminum frame at 1.1kg that packs to bottle size and holds 120kg. " +
+                "Mesh panels for summer, cup holder for always.",
+            6_900, "Outdoors", 4.6, 6233,
+        ),
+        product(
+            "Titanium Cook Set, 3-Piece", "🍵",
+            "Boils fast, weighs nothing.",
+            "A 750ml pot, 400ml cup, and folding spork at 285g all-in, nesting into " +
+                "a mesh bag. Handles stay cool off the flame.",
+            8_900, "Outdoors", 4.8, 2147,
+        ),
+        product(
+            "Three-Season Down Sleeping Bag", "💤",
+            "Warm to minus seven.",
+            "650-fill duck down comfort-rated to -7°C, with a draft collar and a " +
+                "two-way zip for venting. Compresses to four liters.",
+            13_900, "Outdoors", 4.7, 3318,
+        ),
+        product(
+            "Rechargeable Headlamp, 400lm", "🔦",
+            "Hands-free until sunrise.",
+            "400 lumens with flood and spot modes, red night vision, USB-C charging, " +
+                "and IPX6 rain-proofing — at 50 grams.",
+            3_400, "Outdoors", 4.6, 7726,
+        ),
+        product(
+            "Parkside Hammock, Double", "🌳",
+            "Two trees from a nap.",
+            "Ripstop nylon rated to 230kg with tree-friendly straps included. Sets up " +
+                "in 90 seconds, packs down to grapefruit size.",
+            4_900, "Outdoors", 4.8, 5490,
+        ),
+        product(
+            "Frostkeep 28L Cooler", "❄️",
+            "Ice for days. Plural.",
+            "Rotomolded walls hold ice up to four days, with bear-resistant latches " +
+                "and a built-in bottle opener. Drains without tipping.",
+            21_900, "Outdoors", 4.7, 1865, originalPriceCents = 24_900,
+        ),
+
+        // ---- Pets ----
+        product(
+            "Floor-to-Ceiling Cat Tower", "🐈",
+            "Vertical territory, claimed.",
+            "A tension-mounted floor-to-ceiling pole with five sisal-wrapped perches " +
+                "and a hideaway pod. Rated for two determined cats.",
+            13_900, "Pets", 4.7, 4106,
+        ),
+        product(
+            "Auto Feeder with Portion Control", "🍽️",
+            "Dinner at six, even when you're late.",
+            "Schedules up to six meals a day in gram-level portions from a 4L sealed " +
+                "hopper, with a battery backup for power cuts.",
+            8_900, "Pets", 4.6, 6678, originalPriceCents = 10_900,
+        ),
+        product(
+            "Whisper Pet Water Fountain", "⛲",
+            "Fresh water, always moving.",
+            "2.5L of triple-filtered circulation at under 30dB, a dishwasher-safe " +
+                "stainless tray, and a low-water auto shutoff.",
+            4_400, "Pets", 4.5, 8923,
+        ),
+        product(
+            "Orthopedic Dog Bed, L", "🐶",
+            "Old joints, new mornings.",
+            "A 10cm memory-foam base with a bolstered rim, a washable microsuede " +
+                "cover, and a non-slip bottom. For dogs up to 40kg.",
+            9_900, "Pets", 4.8, 5217,
+        ),
+        product(
+            "PetWatch Treat Camera", "📷",
+            "Check in. Toss a treat.",
+            "1080p wide-angle with night vision, two-way audio, bark alerts, and a " +
+                "treat launcher with adjustable distance.",
+            12_900, "Pets", 4.5, 3754, originalPriceCents = 15_900,
+        ),
+        product(
+            "All-Weather Dog Raincoat", "🦮",
+            "Walks happen regardless.",
+            "A waterproof shell with a fleece lining, leash port, reflective trim, " +
+                "and a high collar. Five sizes, dachshund cut available.",
+            3_400, "Pets", 4.6, 4488,
+        ),
+        product(
+            "Catnip Kicker, Organic", "🌿",
+            "The good stuff, ethically grown.",
+            "A 30cm kicker stuffed with organically grown catnip and crinkle fill, " +
+                "double-stitched for committed rabbit-kicks.",
+            1_600, "Pets", 4.9, 9035,
+        ),
+
+        // ---- Hobbies ----
+        product(
+            "1,000-Piece Puzzle: Night Market", "🧩",
+            "One table, three weekends.",
+            "A 1,000-piece illustrated night market scene with an anti-glare matte " +
+                "finish and a poster-size reference. Pieces snap in with a " +
+                "satisfying click.",
+            2_400, "Hobbies", 4.8, 6651,
+        ),
+        product(
+            "Acrylic Paint Studio Set", "🎨",
+            "Start before you're ready.",
+            "24 colors, five brushes, a canvas pad, and a mixing guide pitched at " +
+                "absolute beginners onward. Water-based, easy cleanup.",
+            4_400, "Hobbies", 4.7, 4892,
+        ),
+        product(
+            "Mecha Model Kit, 1/100 Scale", "🦾",
+            "An evening of clean assembly.",
+            "Over 200 snap-fit parts with no glue or paint required, articulated " +
+                "joints, and a display stand. Nippers recommended, patience supplied " +
+                "by the process.",
+            4_900, "Hobbies", 4.9, 7340,
+        ),
+        product(
+            "Concert Ukulele, Mahogany", "🎸",
+            "Four strings, fast friends.",
+            "A mahogany body with smooth geared tuners, a padded gig bag, and a " +
+                "chord chart that gets you to three songs tonight.",
+            7_900, "Hobbies", 4.6, 3127,
+        ),
+        product(
+            "Instant Camera, Retro Body", "📸",
+            "One shot, one print, no edits.",
+            "An auto-exposure instant film camera with a selfie mirror and a " +
+                "double-exposure mode. Prints develop in your hand in 90 seconds.",
+            8_900, "Hobbies", 4.7, 5563, originalPriceCents = 9_900,
+        ),
+        product(
+            "Tournament Chess Set, Weighted", "♟️",
+            "The long game, beautifully made.",
+            "Triple-weighted boxwood and sheesham pieces on a folding walnut board, " +
+                "with felted bases and a second queen for each side.",
+            6_400, "Hobbies", 4.8, 2218,
+        ),
+        product(
+            "Embroidery Starter Kit", "🪡",
+            "Slow stitches, quiet evenings.",
+            "Three pre-printed hoops, 24 thread colors, needles, and a stitch guide " +
+                "that takes you from backstitch to french knots.",
+            2_700, "Hobbies", 4.7, 3905,
+        ),
+        product(
+            "LayerForge One 3D Printer", "🖨️",
+            "From file to object, overnight.",
+            "Auto bed leveling, 250mm/s print speeds, and an enclosed chamber that " +
+                "keeps drafts off your prints. Quiet enough to share a bookshelf with.",
+            27_900, "Hobbies", 4.7, 4521, originalPriceCents = 32_900,
+        ),
+        product(
+            "PLA Filament Set, 4×1kg", "🧵",
+            "Four spools, endless prototypes.",
+            "Matte PLA in white, black, sage, and terracotta, vacuum-sealed with " +
+                "desiccant at ±0.02mm tolerance. Tangle-free winding, genuinely.",
+            7_900, "Hobbies", 4.8, 6973,
+        ),
+
+        // ---- Stationery ----
+        product(
+            "Brass Fountain Pen, Fine Nib", "🖋️",
+            "Writing you can feel.",
+            "A machined brass body that patinas with use, a German fine nib, and a " +
+                "converter included for bottled ink.",
+            6_900, "Stationery", 4.8, 2871,
+        ),
+        product(
+            "Gel Pen Set, 36 Colors", "🖊️",
+            "Every note, color-coded.",
+            "36 quick-dry gel inks at 0.5mm in a stand-up case, from highlighter " +
+                "brights to muted pastels.",
+            1_900, "Stationery", 4.7, 10982,
+        ),
+        product(
+            "Undated Weekly Planner", "📅",
+            "Start any Monday.",
+            "52 undated weekly spreads with habit trackers, monthly reviews, and " +
+                "lay-flat binding. The 120gsm paper takes fountain pen ink without " +
+                "bleed.",
+            2_900, "Stationery", 4.6, 7448,
+        ),
+        product(
+            "Washi Tape Archive, 20 Rolls", "🎀",
+            "Decorate the margins.",
+            "Twenty patterns from grid-minimal to botanical, ten meters each, " +
+                "repositionable on most surfaces.",
+            2_200, "Stationery", 4.8, 5126,
+        ),
+        product(
+            "Leather Desk Pad, 80cm", "🗒️",
+            "A desk that feels finished.",
+            "Vegetable-tanned leather over a non-slip base, 80×40cm, with stitched " +
+                "edges. Develops character with every meeting survived.",
+            5_900, "Stationery", 4.7, 1654,
+        ),
+        product(
+            "Sticker Sheet Mega Pack", "🌟",
+            "200 small joys.",
+            "Two hundred matte vinyl stickers across food, plants, and weather " +
+                "moods. Water-resistant, laptop-grade adhesive.",
+            1_400, "Stationery", 4.6, 8830,
+        ),
+        product(
+            "Linen Journal, Dot Grid", "📓",
+            "Blank pages, good intentions.",
+            "192 dot-grid pages of 100gsm cream paper in a linen hardcover, with a " +
+                "ribbon marker and an expandable back pocket.",
+            2_400, "Stationery", 4.8, 6042,
+        ),
+
+        // ---- Chaos ----
+        product(
+            "Googly Eyes, 500 Assorted", "👀",
+            "Everything is funnier with eyes.",
+            "Five hundred self-adhesive googly eyes from 6mm to 40mm. Apply " +
+                "responsibly, or don't.",
+            1_200, "Chaos", 4.9, 14209,
+        ),
+        product(
+            "A Single Potato, Gift-Wrapped", "🥔",
+            "Say it with a potato.",
+            "One premium russet, hand-wrapped in kraft paper and twine, with a blank " +
+                "gift tag for your message. It is exactly what it sounds like.",
+            1_500, "Chaos", 4.8, 7621,
+        ),
+    )
+
+    fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
+
+    /** Products eligible for the rotating flash deal slot. */
+    val dealCandidates: List<Product> = products.filter { it.originalPriceCents != null }
+}

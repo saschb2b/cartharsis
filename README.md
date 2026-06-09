@@ -25,8 +25,11 @@ instead, and watch your "money not spent" counter grow.
 
 ## Features
 
-- 🏬 **Fake marketplace** — a catalog of absurd-but-plausible products with prices,
-  star ratings, review counts, and glowing fake reviews
+- 🏬 **Fake marketplace** — 120+ products across 15 categories (tech, audio,
+  gaming, kitchen, beauty, pets, outdoors…) that read like a real shop: invented
+  brands, realistic specs and prices, star ratings, and glowing fake reviews. The
+  listings play it straight on purpose — the research says believability is what
+  makes the anticipation work; the satire lives in everything around them
 - ⚡ **Flash deals** — a rotating "deal of the moment" with a live countdown timer,
   because urgency is half the fun
 - 🛒 **The cart ritual** — add to cart with haptic feedback and a bouncing cart badge

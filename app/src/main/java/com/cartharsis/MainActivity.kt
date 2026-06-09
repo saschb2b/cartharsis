@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.cartharsis
 
 import android.Manifest
 import android.content.Intent
@@ -39,14 +39,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.ui.screens.CartScreen
-import com.example.myapplication.ui.screens.CheckoutScreen
-import com.example.myapplication.ui.screens.HomeScreen
-import com.example.myapplication.ui.screens.OrdersScreen
-import com.example.myapplication.ui.screens.ProductDetailScreen
-import com.example.myapplication.ui.screens.TrackingScreen
-import com.example.myapplication.ui.screens.WishlistScreen
-import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.cartharsis.ui.screens.CartScreen
+import com.cartharsis.ui.screens.CheckoutScreen
+import com.cartharsis.ui.screens.HomeScreen
+import com.cartharsis.ui.screens.OrdersScreen
+import com.cartharsis.ui.screens.ProductDetailScreen
+import com.cartharsis.ui.screens.TrackingScreen
+import com.cartharsis.ui.screens.WishlistScreen
+import com.cartharsis.ui.theme.CartharsisTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        Notifier.ensureChannel(this)
+        Notifier.ensureChannels(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
         }
         pendingRoute.value = intent.getStringExtra(Notifier.EXTRA_ROUTE)
         setContent {
-            MyApplicationTheme {
+            CartharsisTheme {
                 CartharsisApp(shopViewModel, pendingRoute)
             }
         }
