@@ -3,6 +3,7 @@ package com.cartharsis.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -294,6 +295,14 @@ private fun HoldToPlaceOrderButton(
     val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
     var done by remember { mutableStateOf(false) }
+    // A tap-trained thumb will tap; tell it what the button actually wants.
+    var showHoldHint by remember { mutableStateOf(false) }
+    LaunchedEffect(showHoldHint) {
+        if (showHoldHint) {
+            delay(1_400)
+            showHoldHint = false
+        }
+    }
 
     fun complete() {
         if (!done) {
@@ -337,6 +346,7 @@ private fun HoldToPlaceOrderButton(
                         tryAwaitRelease()
                         if (!done) {
                             fill.cancel()
+                            if (progress.value < 0.5f) showHoldHint = true
                             scope.launch {
                                 progress.animateTo(0f, spring(stiffness = Spring.StiffnessMedium))
                             }
@@ -360,11 +370,14 @@ private fun HoldToPlaceOrderButton(
                 .background(Brush.horizontalGradient(listOf(HotPink, ElectricPurple)))
                 .align(Alignment.CenterStart),
         )
-        Text(
-            text = "Hold to pay ${formatPrice(totalCents)}",
-            fontWeight = FontWeight.Bold,
-            color = labelColor,
-        )
+        Crossfade(targetState = showHoldHint, label = "holdHint") { hinting ->
+            Text(
+                text = if (hinting) "Keep holding — commitment takes a second"
+                else "Hold to pay ${formatPrice(totalCents)}",
+                fontWeight = FontWeight.Bold,
+                color = labelColor,
+            )
+        }
     }
 }
 
