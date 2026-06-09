@@ -21,7 +21,7 @@ object FakeCatalog {
         "Stationery", "Chaos",
     )
 
-    private val reviewPool = listOf(
+    private val genericPool = listOf(
         Review("Ji-woo K.", 5, "Arrived instantly because it never shipped. Incredible logistics."),
         Review("Marta S.", 5, "I own nothing and I have never been happier."),
         Review("Dev P.", 4, "Four stars only because I wanted to want it more."),
@@ -42,11 +42,128 @@ object FakeCatalog {
         Review("Viktor H.", 4, "Quality of the nothing is consistent with my previous orders."),
         Review("Amara D.", 5, "Wishlisted it, watched the price drop, felt everything. Spent zero."),
         Review("Your roommate", 5, "I can finally afford my hobbies. They are also in this app."),
+        Review("Priyanka V.", 3, "Three stars. The anticipation was a ten, but then I remembered."),
+        Review("Klaus W.", 1, "One star. I waited by the door all day like a fool. (Reordering now.)"),
+        Review("Bea L.", 2, "Two stars because my real packages disappoint me now."),
+        Review("Oskar T.", 5, "My fifth order. My savings account left a five-star review of me."),
     )
 
-    private fun reviewsFor(id: Int): List<Review> {
-        val start = id % reviewPool.size
-        return (0 until 3).map { reviewPool[(start + it * 7) % reviewPool.size] }
+    /**
+     * Each category has its own regulars — a graphics card and a fried
+     * chicken bucket should not share a reviewer voice.
+     */
+    private val categoryPools = mapOf(
+        "Tech" to listOf(
+            Review("Arjun M.", 5, "Specs are flagship, price is fiction, performance is theoretical. Perfect."),
+            Review("Renee C.", 4, "Benchmarked it in my head. Beats everything else I don't own."),
+            Review("Tobias F.", 5, "Zero thermal throttling. Hard to overheat when it never powers on."),
+            Review("Gwen S.", 5, "Future-proof forever. Can't go obsolete if it never existed."),
+        ),
+        "Audio" to listOf(
+            Review("Marco D.", 5, "The soundstage is unbelievable. Literally."),
+            Review("Fei L.", 5, "Silence has never sounded this good. Genuinely zero distortion."),
+            Review("Hugo B.", 4, "A/B tested it against nothing and couldn't tell the difference."),
+            Review("Tessa R.", 5, "Bass so deep it never surfaced."),
+        ),
+        "Gaming" to listOf(
+            Review("Dev K.", 5, "Zero input lag. Zero input, too, but still."),
+            Review("Lara P.", 5, "My backlog can't grow if the games never arrive. Strategic purchase."),
+            Review("Milo J.", 4, "Rock-solid 60fps in my imagination. 120 on the fake monitor."),
+            Review("Sana A.", 5, "Finally beat every level. It ships without any."),
+        ),
+        "Home" to listOf(
+            Review("Ingrid H.", 5, "The room feels bigger already. Nothing takes up remarkably little space."),
+            Review("Paulo S.", 5, "Assembly was instant. Zero parts, zero tears, zero allen keys."),
+            Review("Nora E.", 4, "Matches my decor perfectly, which is also aspirational."),
+            Review("Dmitri V.", 5, "My apartment is a minimalist dream now. I bought forty things."),
+        ),
+        "Kitchen" to listOf(
+            Review("Chef Tomas", 5, "Restaurant quality. The restaurant is also imaginary."),
+            Review("Aiko N.", 5, "Cleanup is effortless. Nothing to wash, ever."),
+            Review("Bruno M.", 4, "My cooking improved the moment I stopped doing it."),
+            Review("Greta F.", 5, "Meal prep for the week: done, in the sense that I dreamed it."),
+        ),
+        "Fashion" to listOf(
+            Review("Camille R.", 5, "Fits perfectly. Nothing always does."),
+            Review("Theo B.", 5, "Got so many compliments on the idea of it."),
+            Review("Zadie M.", 4, "True to size, if the size is a concept."),
+            Review("Luca G.", 5, "Pairs with everything in my imaginary capsule wardrobe."),
+        ),
+        "Beauty" to listOf(
+            Review("Yuna S.", 5, "My skin has never looked like this. (It looks the same. Glowing, though.)"),
+            Review("Priya D.", 5, "Dermatologist-untested and flawless."),
+            Review("Mara K.", 4, "The glow is internal now. Cheaper that way."),
+            Review("Elif T.", 5, "Shade match was perfect. The shade was hypothetical."),
+        ),
+        "Self-Care" to listOf(
+            Review("Jonas W.", 5, "I have never been this calm about a purchase."),
+            Review("Amara O.", 5, "My therapist asked what changed. I said: nothing, and it was free."),
+            Review("Saskia B.", 4, "Slept like a person with no outstanding deliveries."),
+            Review("Ravi P.", 5, "Inner peace, outer savings."),
+        ),
+        "Fitness" to listOf(
+            Review("Coach Dana", 5, "Zero missed workouts since nothing arrived to skip."),
+            Review("Pieter V.", 4, "My gains are theoretical, but so is my soreness."),
+            Review("Keiko M.", 5, "Personal best: lifted nothing, every day, without fail."),
+            Review("Omar F.", 5, "The discipline was inside me all along. The equipment was not."),
+        ),
+        "Snacks" to listOf(
+            Review("Min-ji K.", 5, "Tasted incredible at 2am in my mind. Zero crumbs in my bed."),
+            Review("Stefan R.", 5, "The diet is intact. The craving is satisfied. Witchcraft."),
+            Review("Lia C.", 4, "Four stars only because I can still smell it, somehow."),
+            Review("Gustav H.", 5, "Ordered the family size. Shared it with no one. There was nothing to share."),
+        ),
+        "Outdoors" to listOf(
+            Review("Wren A.", 5, "Packed light for the trip. Couldn't pack lighter than this."),
+            Review("Jorge M.", 5, "Survived a week in the wilderness of my living room."),
+            Review("Helga S.", 4, "Waterproof rating unverifiable. It has never been outside. Neither have I."),
+            Review("Finn O.", 5, "The view from the summit I didn't climb was stunning."),
+        ),
+        "Pets" to listOf(
+            Review("Rosa & Biscuit", 5, "My dog waited by the door with me. Bonding experience. Five stars."),
+            Review("Henrik J.", 5, "The cat ignored it before it didn't arrive. She's consistent."),
+            Review("Tilly W.", 4, "No fur on it whatsoever. Cleanest pet product I own."),
+            Review("Andre B.", 5, "My goldfish seems happier. Hard to verify. Five stars."),
+        ),
+        "Hobbies" to listOf(
+            Review("Maren L.", 5, "Finished the whole project in zero evenings."),
+            Review("Diego A.", 5, "My craft room has space for this and infinitely many other nothings."),
+            Review("Petra N.", 4, "The instructions were blank, but so was the kit. Consistent."),
+            Review("Callum S.", 5, "First hobby I've never abandoned."),
+        ),
+        "Stationery" to listOf(
+            Review("June P.", 5, "Writes like a dream, which is where I use it."),
+            Review("Anders K.", 5, "My planner is empty and so is my anxiety. Coincidence?"),
+            Review("Mei F.", 4, "Paper weight: zero grams. Featherlight. Unbeatable."),
+            Review("Viola R.", 5, "Organized my entire life by adding this to a list."),
+        ),
+        "Chaos" to listOf(
+            Review("Babs Q.", 5, "Exactly as unhinged as advertised. Nothing arrived. Chaos achieved."),
+            Review("Norm T.", 5, "Bought it as a joke. The joke was on no one. Flawless transaction."),
+            Review("Zelda V.", 4, "My friends asked why. There was no answer. There was no item."),
+            Review("Gus P.", 5, "This is the most committed I've been to a bit. No regrets, no product."),
+        ),
+    )
+
+    /**
+     * 4–6 deterministic reviews per product: two in the category's voice, the
+     * rest from the shared pool (which includes the occasional disappointed
+     * low-star poet, so the rating bars aren't lying). Rotated by id so the
+     * category regulars don't always lead.
+     */
+    private fun reviewsFor(id: Int, category: String): List<Review> {
+        val local = categoryPools[category].orEmpty()
+        val total = 4 + id % 3
+        val picks = ArrayList<Review>(total)
+        if (local.isNotEmpty()) {
+            repeat(2) { i -> picks += local[(id + i) % local.size] }
+        }
+        repeat(total - picks.size) { i ->
+            // Step 5 is coprime with the pool size, so picks stay distinct.
+            picks += genericPool[(id * 7 + i * 5) % genericPool.size]
+        }
+        val cut = id % picks.size
+        return picks.drop(cut) + picks.take(cut)
     }
 
     private var nextId = 0
@@ -65,7 +182,7 @@ object FakeCatalog {
         val id = nextId++
         return Product(
             id, name, emoji, tagline, description, priceCents, category,
-            rating, reviewCount, reviewsFor(id), originalPriceCents,
+            rating, reviewCount, reviewsFor(id, category), originalPriceCents,
         )
     }
 

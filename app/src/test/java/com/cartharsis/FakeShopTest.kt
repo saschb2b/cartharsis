@@ -136,6 +136,22 @@ class FakeShopTest {
     }
 
     @Test
+    fun `every product carries 4 to 6 distinct reviews with sane ratings`() {
+        FakeCatalog.products.forEach { product ->
+            val reviews = product.reviews
+            assertTrue("${product.name} has ${reviews.size} reviews", reviews.size in 4..6)
+            assertEquals("${product.name} repeats a reviewer", reviews.size, reviews.toSet().size)
+            reviews.forEach { assertTrue(it.rating in 1..5) }
+        }
+    }
+
+    @Test
+    fun `the low-star satire actually appears somewhere in the catalog`() {
+        val allShown = FakeCatalog.products.flatMap { it.reviews }
+        assertTrue(allShown.any { it.rating <= 3 })
+    }
+
+    @Test
     fun `quiet hours cover the night and only the night`() {
         listOf(22, 23, 0, 3, 7).forEach { assertTrue("$it should be quiet", NotificationPolicy.isQuietHour(it)) }
         listOf(8, 12, 18, 21).forEach { assertFalse("$it should be awake", NotificationPolicy.isQuietHour(it)) }
