@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -91,6 +95,19 @@ fun ProductDetailScreen(
     val scope = rememberCoroutineScope()
     var quantity by remember { mutableIntStateOf(1) }
     var justAdded by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    // Window-space anchors so the rating row can jump to the review section;
+    // their difference is scroll-invariant (both move together).
+    var contentTopY by remember { mutableFloatStateOf(0f) }
+    var reviewsTopY by remember { mutableFloatStateOf(0f) }
+
+    fun jumpToReviews() {
+        scope.launch {
+            scrollState.animateScrollTo(
+                (scrollState.value + reviewsTopY - contentTopY).toInt().coerceAtLeast(0),
+            )
+        }
+    }
 
     LaunchedEffect(productId) { viewModel.markViewed(productId) }
     LaunchedEffect(justAdded) {
@@ -151,7 +168,8 @@ fun ProductDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState)
+                .onGloballyPositioned { contentTopY = it.positionInWindow().y },
         ) {
             EmojiHero(
                 emoji = product.emoji,
@@ -177,7 +195,19 @@ fun ProductDetailScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                RatingStars(rating = product.rating, reviewCount = product.reviewCount)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClickLabel = "Jump to reviews") {
+                        jumpToReviews()
+                    },
+                ) {
+                    RatingStars(rating = product.rating, reviewCount = product.reviewCount)
+                    Text(
+                        text = "  ›",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
 
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     PriceRow(product, big = true)
@@ -221,7 +251,12 @@ fun ProductDetailScreen(
                 )
                 SpecRows(product)
 
-                SectionHeader(title = "Reviews", modifier = Modifier.padding(top = 8.dp))
+                SectionHeader(
+                    title = "Reviews",
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .onGloballyPositioned { reviewsTopY = it.positionInWindow().y },
+                )
                 RatingSummary(product)
                 var showAllReviews by remember(productId) { mutableStateOf(false) }
                 val visibleReviews =
