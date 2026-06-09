@@ -64,7 +64,9 @@ Living task list. Checked = done and compiling.
 - [x] "Save for later" cart action (moves line to wishlist)
 - [x] Lint cleanup: template colors.xml, redundant activity label
 - [x] Daily "shopping urge resisted" streak (persisted, on Orders stats)
+- [x] "Keep browsing" recently-viewed row on Home (session-only)
+- [x] Persist lifetime stats (orders/items/cents kept) with DataStore
 
 ## Backlog (future)
-- [ ] Persist orders/stats with DataStore (wishlist done; orders need serialization)
+- [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
 - [ ] Rename package from com.example.myapplication to a real id

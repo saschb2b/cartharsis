@@ -52,7 +52,7 @@ fun HomeScreen(
     viewModel: ShopViewModel,
     onProductClick: (Int) -> Unit,
 ) {
-    val orders by viewModel.orders.collectAsState()
+    val lifetimeStats by viewModel.lifetimeStats.collectAsState()
     val flashDeal by viewModel.flashDeal.collectAsState()
     val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
     val wishlist by viewModel.wishlist.collectAsState()
@@ -95,7 +95,7 @@ fun HomeScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                val saved = viewModel.totalSavedCents(orders)
+                val saved = lifetimeStats.centsKept
                 if (saved > 0) {
                     Text(
                         text = "💸 ${formatPrice(saved)} not spent so far",

@@ -14,6 +14,9 @@ private val Context.dataStore by preferencesDataStore(name = "cartharsis")
 private val WISHLIST_KEY = stringSetPreferencesKey("wishlist_ids")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
+private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
+private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
+private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
 
 /**
  * Persists the wishlist across process death. Wanting things is free,
@@ -30,6 +33,32 @@ object WishlistStore {
     suspend fun save(context: Context, ids: Set<Int>) {
         context.dataStore.edit { prefs ->
             prefs[WISHLIST_KEY] = ids.map { it.toString() }.toSet()
+        }
+    }
+}
+
+/**
+ * Lifetime totals across every fake order ever placed. The order list itself
+ * is session-only by design; the bragging numbers are forever.
+ */
+object StatsStore {
+
+    data class Stats(val ordersPlaced: Int, val itemsBought: Int, val centsKept: Long)
+
+    suspend fun load(context: Context): Stats {
+        val prefs = context.dataStore.data.first()
+        return Stats(
+            ordersPlaced = prefs[STATS_ORDERS_KEY] ?: 0,
+            itemsBought = prefs[STATS_ITEMS_KEY] ?: 0,
+            centsKept = prefs[STATS_CENTS_KEY] ?: 0L,
+        )
+    }
+
+    suspend fun save(context: Context, stats: Stats) {
+        context.dataStore.edit { prefs ->
+            prefs[STATS_ORDERS_KEY] = stats.ordersPlaced
+            prefs[STATS_ITEMS_KEY] = stats.itemsBought
+            prefs[STATS_CENTS_KEY] = stats.centsKept
         }
     }
 }

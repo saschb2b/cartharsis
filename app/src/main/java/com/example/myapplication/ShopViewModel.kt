@@ -8,6 +8,7 @@ import com.example.myapplication.data.FakeCatalog
 import com.example.myapplication.data.Order
 import com.example.myapplication.data.OrderStatus
 import com.example.myapplication.data.Product
+import com.example.myapplication.data.StatsStore
 import com.example.myapplication.data.StreakStore
 import com.example.myapplication.data.WishlistStore
 import com.example.myapplication.data.advanceStreak
@@ -61,6 +62,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _priceDrops = MutableStateFlow<Map<Int, Long>>(emptyMap())
     val priceDrops: StateFlow<Map<Int, Long>> = _priceDrops.asStateFlow()
 
+    /** Lifetime fake-shopping totals; survive process death unlike the order list. */
+    private val _lifetimeStats = MutableStateFlow(StatsStore.Stats(0, 0, 0L))
+    val lifetimeStats: StateFlow<StatsStore.Stats> = _lifetimeStats.asStateFlow()
+
     /** Recently opened product ids, newest first — feeds the "keep browsing" row. */
     private val _recentlyViewed = MutableStateFlow<List<Int>>(emptyList())
     val recentlyViewed: StateFlow<List<Int>> = _recentlyViewed.asStateFlow()
@@ -83,6 +88,17 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             val saved = StreakStore.load(getApplication())
             streakLastEpochDay = saved.lastEpochDay
             _streakDays.value = effectiveStreak(saved.days, saved.lastEpochDay, todayEpochDay())
+        }
+        viewModelScope.launch {
+            val saved = StatsStore.load(getApplication())
+            _lifetimeStats.update { current ->
+                // Orders placed before the load finished are already counted in `current`.
+                StatsStore.Stats(
+                    ordersPlaced = saved.ordersPlaced + current.ordersPlaced,
+                    itemsBought = saved.itemsBought + current.itemsBought,
+                    centsKept = saved.centsKept + current.centsKept,
+                )
+            }
         }
         // Rotate the flash deal forever; urgency is the product.
         viewModelScope.launch {
@@ -192,6 +208,14 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         )
         _orders.update { listOf(order) + it }
         _cart.value = emptyList()
+        _lifetimeStats.update {
+            StatsStore.Stats(
+                ordersPlaced = it.ordersPlaced + 1,
+                itemsBought = it.itemsBought + order.itemCount,
+                centsKept = it.centsKept + order.totalCents,
+            )
+        }
+        viewModelScope.launch { StatsStore.save(getApplication(), _lifetimeStats.value) }
         advanceUrgeStreak()
         runDeliverySimulation(order.id)
         return order.id
@@ -235,8 +259,4 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ---- Stats ----
-
-    /** Real money not spent: the sum of every fake order ever placed. */
-    fun totalSavedCents(orders: List<Order>): Long = orders.sumOf { it.totalCents }
 }

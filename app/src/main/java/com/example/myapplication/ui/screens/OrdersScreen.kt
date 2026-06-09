@@ -38,6 +38,7 @@ fun OrdersScreen(
 ) {
     val orders by viewModel.orders.collectAsState()
     val streakDays by viewModel.streakDays.collectAsState()
+    val stats by viewModel.lifetimeStats.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -56,11 +57,11 @@ fun OrdersScreen(
         item {
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                 Row(Modifier.fillMaxWidth().padding(16.dp)) {
-                    StatBlock("🛍️", "${orders.size}", "orders", Modifier.weight(1f))
-                    StatBlock("📦", "${orders.sumOf { it.itemCount }}", "items \"bought\"", Modifier.weight(1f))
+                    StatBlock("🛍️", "${stats.ordersPlaced}", "orders", Modifier.weight(1f))
+                    StatBlock("📦", "${stats.itemsBought}", "items \"bought\"", Modifier.weight(1f))
                     StatBlock(
                         "💸",
-                        animatedMoney(viewModel.totalSavedCents(orders)),
+                        animatedMoney(stats.centsKept),
                         "not spent",
                         Modifier.weight(1f),
                     )
@@ -82,7 +83,7 @@ fun OrdersScreen(
                 ) {
                     Text("🗃️", fontSize = 56.sp)
                     Text(
-                        text = "No fake orders yet",
+                        text = "No fake orders this session",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp),
