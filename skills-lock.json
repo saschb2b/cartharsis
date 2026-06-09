@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "autopilot": {
+      "source": "saschb2b/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/autopilot/SKILL.md",
+      "computedHash": "9439212adf2497251e9807e5aded17298ef80914f13e10673fd6ffc4b5617ee3"
+    }
+  }
+}
