@@ -89,6 +89,10 @@ app/src/main/java/com/cartharsis/
   cumulative numbers tick up rather than appear; randomness stays decorative and
   free. Never: confirmshaming, loss-framed streaks, urgency that pressures the
   decision (post-commit anticipation countdowns are fine).
+- Checkout dramaturgy: the cart (decision surface) is honest about $0.00; the
+  checkout/payment ceremony plays it straight at the full fake price (a
+  commitment to $0.00 carries no weight); the $0.00 truth lands as the success
+  screen's punchline. Don't reintroduce pre-commit "$0.00" spoilers.
 - Product "images" are emoji — no image loading library, keep it that way.
 - All animations are hand-rolled Compose/Canvas (confetti, courier) — no animation deps.
 - Versions live in `gradle/libs.versions.toml`; add dependencies there, not inline.

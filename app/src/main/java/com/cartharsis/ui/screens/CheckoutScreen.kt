@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -83,15 +84,19 @@ import kotlinx.coroutines.launch
 
 private sealed interface CheckoutPhase {
     data object Form : CheckoutPhase
-    data object Processing : CheckoutPhase
+    data class Processing(val totalCents: Long) : CheckoutPhase
     data class Success(val orderId: Int) : CheckoutPhase
 }
 
-/** The fake bank takes a moment; shown labor is what makes nothing feel earned. */
-private val processingLines = listOf(
-    "Contacting imaginary bank…",
-    "Verifying infinite balance…",
-    "Gift-wrapping the void…",
+/**
+ * The fake bank takes a moment; shown labor is what makes nothing feel
+ * earned. The ceremony plays it straight at the full fake price — the
+ * $0.00 truth is the success screen's punchline, never an opening spoiler.
+ */
+private fun processingLines(totalCents: Long) = listOf(
+    "Contacting Imagination Express…",
+    "Verifying available balance…",
+    "Charging ${formatPrice(totalCents)}…",
 )
 
 /** The last line read is the one remembered — rotate the punchline. */
@@ -136,9 +141,11 @@ fun CheckoutScreen(
                     )
                 },
                 bottomBar = {
+                    val total = viewModel.cartTotalCents(cart)
                     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
                         HoldToPlaceOrderButton(
-                            onPlaced = { phase = CheckoutPhase.Processing },
+                            totalCents = total,
+                            onPlaced = { phase = CheckoutPhase.Processing(total) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
@@ -190,6 +197,9 @@ fun CheckoutScreen(
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             cart.forEach { item -> SummaryLine(item) }
                             HorizontalDivider(Modifier.padding(vertical = 2.dp))
+                            // No "$0.00" reveal here: the checkout plays it
+                            // straight so the ceremony has stakes. The truth
+                            // is the success screen's punchline.
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.weight(1f))
@@ -199,20 +209,6 @@ fun CheckoutScreen(
                                     fontWeight = FontWeight.ExtraBold,
                                 )
                             }
-                            Row {
-                                Text(
-                                    "Charged to your card",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    "\$0.00",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MintGreen,
-                                )
-                            }
                         }
                     }
                 }
@@ -220,11 +216,14 @@ fun CheckoutScreen(
         }
 
         is CheckoutPhase.Processing -> {
+            val lines = remember(p.totalCents) { processingLines(p.totalCents) }
             var lineIndex by remember { mutableIntStateOf(0) }
             var showCheck by remember { mutableStateOf(false) }
             val scope = rememberCoroutineScope()
+            // You can't back out mid-payment, even of a payment of nothing.
+            BackHandler { }
             LaunchedEffect(Unit) {
-                processingLines.indices.drop(1).forEach {
+                lines.indices.drop(1).forEach {
                     delay(600)
                     lineIndex = it
                 }
@@ -240,7 +239,7 @@ fun CheckoutScreen(
                     CircularProgressIndicator()
                     AnimatedContent(targetState = lineIndex, label = "processing") { index ->
                         Text(
-                            text = processingLines[index],
+                            text = lines[index],
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 16.dp),
                         )
@@ -258,7 +257,7 @@ fun CheckoutScreen(
                         },
                     )
                     Text(
-                        text = "\$0.00 charged",
+                        text = "Payment complete",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(top = 16.dp),
                     )
@@ -267,6 +266,8 @@ fun CheckoutScreen(
         }
 
         is CheckoutPhase.Success -> {
+            // Back from the confirmation goes shopping, not to a dead cart.
+            BackHandler { onKeepShopping() }
             SuccessScreen(
                 viewModel = viewModel,
                 orderId = p.orderId,
@@ -278,12 +279,17 @@ fun CheckoutScreen(
 }
 
 /**
- * The payment ceremony: you don't tap a fake purchase, you commit to it.
+ * The payment ceremony: you don't tap a fake purchase, you commit to it —
+ * at the full fake price, because a commitment to $0.00 carries no weight.
  * Hold ~0.9s while the fill rises with haptic ticks; release early and it
  * springs back. Screen readers get a plain activate action instead.
  */
 @Composable
-private fun HoldToPlaceOrderButton(onPlaced: () -> Unit, modifier: Modifier = Modifier) {
+private fun HoldToPlaceOrderButton(
+    totalCents: Long,
+    onPlaced: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
@@ -340,7 +346,7 @@ private fun HoldToPlaceOrderButton(onPlaced: () -> Unit, modifier: Modifier = Mo
             }
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                onClick(label = "Place order") {
+                onClick(label = "Pay ${formatPrice(totalCents)}") {
                     complete()
                     true
                 }
@@ -355,7 +361,7 @@ private fun HoldToPlaceOrderButton(onPlaced: () -> Unit, modifier: Modifier = Mo
                 .align(Alignment.CenterStart),
         )
         Text(
-            text = "Hold to place order · \$0.00",
+            text = "Hold to pay ${formatPrice(totalCents)}",
             fontWeight = FontWeight.Bold,
             color = labelColor,
         )

@@ -46,7 +46,7 @@ class ShopFlowTest {
 
         // A plain click would release the hold-to-pay button too early; place
         // the order through its accessibility action (the screen-reader path).
-        compose.onNodeWithText("Hold to place order · \$0.00")
+        compose.onNodeWithText("Hold to pay ", substring = true)
             .performSemanticsAction(SemanticsActions.OnClick)
         // "Order placed!" or the first-order milestone "First order placed!".
         compose.waitUntil(timeoutMillis = 10_000) {

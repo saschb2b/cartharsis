@@ -167,5 +167,16 @@ Living task list. Checked = done and compiling.
 
 Declined by owner: review sort/filter controls.
 
+## Phase 14 — Checkout dramaturgy fix
+- [x] Hold-to-pay charges the full fake total ("Hold to pay $1,299.00") — a
+      commitment to $0.00 carried no weight; the $0.00 reveal moves entirely to
+      the success screen's punchline
+- [x] Pre-commit spoilers removed: "Charged to your card $0.00" summary row cut;
+      processing lines play it straight ("Charging $1,299.00…"), checkmark caption
+      now "Payment complete"
+- [x] Back-press gaps: consumed during processing (no backing out mid-payment),
+      confirmation back goes to shopping instead of the dead cart
+- [x] Verified on emulator (form → charging → reveal) + instrumented test green
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
