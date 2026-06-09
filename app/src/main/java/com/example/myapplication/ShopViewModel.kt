@@ -8,7 +8,10 @@ import com.example.myapplication.data.FakeCatalog
 import com.example.myapplication.data.Order
 import com.example.myapplication.data.OrderStatus
 import com.example.myapplication.data.Product
+import com.example.myapplication.data.StreakStore
 import com.example.myapplication.data.WishlistStore
+import com.example.myapplication.data.advanceStreak
+import com.example.myapplication.data.effectiveStreak
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
 import kotlinx.coroutines.delay
@@ -58,6 +61,12 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _priceDrops = MutableStateFlow<Map<Int, Long>>(emptyMap())
     val priceDrops: StateFlow<Map<Int, Long>> = _priceDrops.asStateFlow()
 
+    /** Consecutive days with at least one fake order — the urge-resisted streak. */
+    private val _streakDays = MutableStateFlow(0)
+    val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
+
+    private var streakLastEpochDay = 0L
+
     private var nextOrderId = 1
 
     init {
@@ -65,6 +74,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val saved = WishlistStore.load(getApplication())
             if (saved.isNotEmpty()) _wishlist.update { it + saved }
+        }
+        viewModelScope.launch {
+            val saved = StreakStore.load(getApplication())
+            streakLastEpochDay = saved.lastEpochDay
+            _streakDays.value = effectiveStreak(saved.days, saved.lastEpochDay, todayEpochDay())
         }
         // Rotate the flash deal forever; urgency is the product.
         viewModelScope.launch {
@@ -167,8 +181,21 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         )
         _orders.update { listOf(order) + it }
         _cart.value = emptyList()
+        advanceUrgeStreak()
         runDeliverySimulation(order.id)
         return order.id
+    }
+
+    private fun todayEpochDay(): Long = System.currentTimeMillis() / 86_400_000L
+
+    private fun advanceUrgeStreak() {
+        val today = todayEpochDay()
+        if (today == streakLastEpochDay) return
+        _streakDays.value = advanceStreak(_streakDays.value, streakLastEpochDay, today)
+        streakLastEpochDay = today
+        viewModelScope.launch {
+            StreakStore.save(getApplication(), StreakStore.Streak(_streakDays.value, today))
+        }
     }
 
     private fun updateOrder(id: Int, transform: (Order) -> Order) {

@@ -59,8 +59,12 @@ Living task list. Checked = done and compiling.
 - [x] Cart line totals for quantity > 1
 - [x] Locale-pinned price formatting, real plurals, ETA derived from courier constant
 - [x] Persist wishlist with DataStore (survives process death)
+- [x] Notification deep links (delivery → tracking, price drop → product)
+- [x] Fake scarcity line on product pages ("Only N left", imaginary stock)
+- [x] "Save for later" cart action (moves line to wishlist)
+- [x] Lint cleanup: template colors.xml, redundant activity label
+- [x] Daily "shopping urge resisted" streak (persisted, on Orders stats)
 
 ## Backlog (future)
 - [ ] Persist orders/stats with DataStore (wishlist done; orders need serialization)
-- [ ] Daily "shopping urge resisted" streak
 - [ ] Rename package from com.example.myapplication to a real id

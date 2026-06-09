@@ -3,6 +3,8 @@ package com.example.myapplication
 import com.example.myapplication.data.CartItem
 import com.example.myapplication.data.FakeCatalog
 import com.example.myapplication.data.Order
+import com.example.myapplication.data.advanceStreak
+import com.example.myapplication.data.effectiveStreak
 import com.example.myapplication.data.fakeStockLeft
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
@@ -89,6 +91,21 @@ class FakeShopTest {
             assertTrue(product.fakeStockLeft!! in 2..5)
             assertEquals(product.fakeStockLeft, product.fakeStockLeft) // deterministic
         }
+    }
+
+    @Test
+    fun `streak advances on consecutive days, holds same-day, restarts after a gap`() {
+        assertEquals(4, advanceStreak(3, lastEpochDay = 100, todayEpochDay = 101))
+        assertEquals(3, advanceStreak(3, lastEpochDay = 100, todayEpochDay = 100))
+        assertEquals(1, advanceStreak(3, lastEpochDay = 100, todayEpochDay = 103))
+        assertEquals(1, advanceStreak(0, lastEpochDay = 0, todayEpochDay = 20_000))
+    }
+
+    @Test
+    fun `saved streak survives one missed day but not two`() {
+        assertEquals(5, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 100))
+        assertEquals(5, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 101))
+        assertEquals(0, effectiveStreak(5, lastEpochDay = 100, todayEpochDay = 102))
     }
 
     @Test

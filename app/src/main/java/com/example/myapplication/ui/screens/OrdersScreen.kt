@@ -37,6 +37,7 @@ fun OrdersScreen(
     onOrderClick: (Int) -> Unit,
 ) {
     val orders by viewModel.orders.collectAsState()
+    val streakDays by viewModel.streakDays.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -61,6 +62,12 @@ fun OrdersScreen(
                         "💸",
                         animatedMoney(viewModel.totalSavedCents(orders)),
                         "not spent",
+                        Modifier.weight(1f),
+                    )
+                    StatBlock(
+                        "🔥",
+                        "$streakDays",
+                        if (streakDays == 1) "day streak" else "days streak",
                         Modifier.weight(1f),
                     )
                 }

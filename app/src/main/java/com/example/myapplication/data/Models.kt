@@ -79,6 +79,21 @@ fun formatPrice(cents: Long): String {
 val Product.fakeStockLeft: Int?
     get() = if (id % 3 == 0) 2 + id % 4 else null
 
+/**
+ * One fake order per day keeps the real spending away. Advances the
+ * "urge resisted" streak: same day is a no-op, the next day extends it,
+ * any gap restarts at 1.
+ */
+fun advanceStreak(currentDays: Int, lastEpochDay: Long, todayEpochDay: Long): Int = when {
+    todayEpochDay == lastEpochDay -> currentDays
+    todayEpochDay - lastEpochDay == 1L -> currentDays + 1
+    else -> 1
+}
+
+/** What a saved streak is worth today: a gap of more than a day means it's broken. */
+fun effectiveStreak(savedDays: Int, lastEpochDay: Long, todayEpochDay: Long): Int =
+    if (todayEpochDay - lastEpochDay > 1) 0 else savedDays
+
 /** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
 fun formatOrderDate(millis: Long): String =
     java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
