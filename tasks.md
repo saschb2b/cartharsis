@@ -66,6 +66,12 @@ Living task list. Checked = done and compiling.
 - [x] Daily "shopping urge resisted" streak (persisted, on Orders stats)
 - [x] "Keep browsing" recently-viewed row on Home (session-only)
 - [x] Persist lifetime stats (orders/items/cents kept) with DataStore
+- [x] Flash deal banner applies live price-drop overrides
+- [x] Compose previews for shared product cards
+- [x] Rotating add-to-cart snackbar copy
+- [x] Cart merge logic extracted to pure, tested plusProduct
+- [x] Instrumented smoke test: browse → cart → checkout → order placed
+      (bumped espresso/junit-ext test deps for Android 16 compatibility)
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
