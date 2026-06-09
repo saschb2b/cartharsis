@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -140,6 +141,39 @@ fun ProductCard(
                 RatingStars(rating = product.rating, reviewCount = product.reviewCount)
                 PriceRow(product)
             }
+        }
+    }
+}
+
+/** Small tappable product card for horizontal suggestion strips. */
+@Composable
+fun MiniProductCard(product: Product, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .width(132.dp)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        EmojiHero(
+            emoji = product.emoji,
+            modifier = Modifier.fillMaxWidth().height(72.dp),
+            fontSize = 36,
+        )
+        Column(Modifier.padding(8.dp)) {
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 2,
+                minLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = formatPrice(product.priceCents),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

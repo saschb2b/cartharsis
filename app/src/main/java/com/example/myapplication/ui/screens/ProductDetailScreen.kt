@@ -26,6 +26,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -66,6 +67,8 @@ fun ProductDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var quantity by remember { mutableIntStateOf(1) }
+
+    LaunchedEffect(productId) { viewModel.markViewed(productId) }
 
     Scaffold(
         topBar = {
@@ -243,35 +246,10 @@ private fun AlsoBoughtRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             suggestions.forEach { suggestion ->
-                val displayed = viewModel.displayProduct(suggestion)
-                Card(
-                    modifier = Modifier
-                        .width(132.dp)
-                        .clickable { onProductClick(suggestion.id) },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                ) {
-                    EmojiHero(
-                        emoji = displayed.emoji,
-                        modifier = Modifier.fillMaxWidth().height(72.dp),
-                        fontSize = 36,
-                    )
-                    Column(Modifier.padding(8.dp)) {
-                        Text(
-                            text = displayed.name,
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 2,
-                            minLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = formatPrice(displayed.priceCents),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
+                MiniProductCard(
+                    product = viewModel.displayProduct(suggestion),
+                    onClick = { onProductClick(suggestion.id) },
+                )
             }
         }
     }

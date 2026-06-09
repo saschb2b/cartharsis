@@ -57,6 +57,7 @@ fun HomeScreen(
     val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
+    val recentlyViewed by viewModel.recentlyViewed.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
     var query by remember { mutableStateOf("") }
 
@@ -150,6 +151,31 @@ fun HomeScreen(
                         onClick = { selectedCategory = category },
                         label = { Text(category) },
                     )
+                }
+            }
+        }
+
+        val recentProducts = recentlyViewed.mapNotNull { id -> viewModel.catalog.firstOrNull { it.id == id } }
+        if (query.isBlank() && recentProducts.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Column {
+                    Text(
+                        text = "Keep browsing (you know you want to)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        recentProducts.forEach { recent ->
+                            MiniProductCard(
+                                product = viewModel.displayProduct(recent),
+                                onClick = { onProductClick(recent.id) },
+                            )
+                        }
+                    }
                 }
             }
         }

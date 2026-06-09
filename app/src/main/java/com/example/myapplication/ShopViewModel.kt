@@ -61,6 +61,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _priceDrops = MutableStateFlow<Map<Int, Long>>(emptyMap())
     val priceDrops: StateFlow<Map<Int, Long>> = _priceDrops.asStateFlow()
 
+    /** Recently opened product ids, newest first — feeds the "keep browsing" row. */
+    private val _recentlyViewed = MutableStateFlow<List<Int>>(emptyList())
+    val recentlyViewed: StateFlow<List<Int>> = _recentlyViewed.asStateFlow()
+
     /** Consecutive days with at least one fake order — the urge-resisted streak. */
     private val _streakDays = MutableStateFlow(0)
     val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
@@ -124,6 +128,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     /** The catalog product with any active price drop applied — use for display and cart adds. */
     fun displayProduct(product: Product): Product =
         product.withPriceOverride(_priceDrops.value[product.id])
+
+    /** Remember that a product page was opened; newest first, capped at 10. */
+    fun markViewed(productId: Int) {
+        _recentlyViewed.update { recent ->
+            (listOf(productId) + recent.filterNot { it == productId }).take(10)
+        }
+    }
 
     // ---- Wishlist ----
 
