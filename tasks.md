@@ -147,5 +147,23 @@ Living task list. Checked = done and compiling.
       form → processing → checkmark → success → tracking (packing / on-the-way /
       delivered)
 
+## Phase 13 — Review section: quantity + quality (autopilot run)
+- [x] Review pool 20 → 84: 24 shared entries (now with 1–3★ satire so the
+      distribution bars have visible witnesses) + four category regulars × 15
+      categories; products carry 4–6 deterministic reviews (was a flat 3), two in
+      the category's voice; tested (count range, distinctness, rating sanity,
+      low-star presence)
+- [x] Review cards: "✓ Verified non-buyer" badge, posted-age label, "N found this
+      helpful" — derived stably from (product, slot) since pool reviews are shared
+- [x] "Show all N reviews" expander (3 visible by default)
+- [x] PDP rating row jumps to the review section (chevron affordance, a11y label)
+- [x] Reviews sorted most-helpful-first
+
+Proposals (owner decision needed, not shipped):
+- "Write a review" flow — user-generated content + persistence + moderation-of-self
+  questions; would also be the first user input stored beyond wishlist/stats
+- Review sort/filter controls (by rating, newest) — adds UI surface for a catalog
+  whose reviews are static; unclear it earns its complexity
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
