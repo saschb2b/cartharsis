@@ -51,7 +51,16 @@ Living task list. Checked = done and compiling.
 - [x] Price-drop count badge on the Wishlist tab
 - [x] Unit tests for withPriceOverride (anchor keeping, non-drops, idempotency)
 
+## Phase 7 — Autopilot polish round
+- [x] Catalog search on home (name/tagline/category, clear button, empty state)
+- [x] Order timestamps ("Placed Jun 9, 8:54 PM" in history + tracking)
+- [x] "Customers also bought" suggestion row on product detail
+- [x] Accessibility: semantics + 48dp targets for hearts, steppers, back/clear; rating stars read naturally
+- [x] Cart line totals for quantity > 1
+- [x] Locale-pinned price formatting, real plurals, ETA derived from courier constant
+- [x] Persist wishlist with DataStore (survives process death)
+
 ## Backlog (future)
-- [ ] Persist orders/stats/wishlist with DataStore (survive process death)
+- [ ] Persist orders/stats with DataStore (wishlist done; orders need serialization)
 - [ ] Daily "shopping urge resisted" streak
 - [ ] Rename package from com.example.myapplication to a real id

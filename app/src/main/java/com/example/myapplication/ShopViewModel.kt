@@ -8,6 +8,7 @@ import com.example.myapplication.data.FakeCatalog
 import com.example.myapplication.data.Order
 import com.example.myapplication.data.OrderStatus
 import com.example.myapplication.data.Product
+import com.example.myapplication.data.WishlistStore
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
 import kotlinx.coroutines.delay
@@ -60,6 +61,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private var nextOrderId = 1
 
     init {
+        // Restore the wishlist; wanting survives process death even if orders don't.
+        viewModelScope.launch {
+            val saved = WishlistStore.load(getApplication())
+            if (saved.isNotEmpty()) _wishlist.update { it + saved }
+        }
         // Rotate the flash deal forever; urgency is the product.
         viewModelScope.launch {
             var dealIndex = 0
@@ -111,6 +117,7 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _wishlist.update { if (productId in it) it - productId else it + productId }
         // A vanished wish takes its fake deal with it.
         if (productId !in _wishlist.value) _priceDrops.update { it - productId }
+        viewModelScope.launch { WishlistStore.save(getApplication(), _wishlist.value) }
     }
 
     // ---- Cart ----
