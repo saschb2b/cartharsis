@@ -99,12 +99,21 @@ fun CartScreen(
                                 style = MaterialTheme.typography.titleSmall,
                                 maxLines = 1,
                             )
-                            Text(
-                                text = formatPrice(item.product.priceCents),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = formatPrice(item.product.priceCents),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                if (item.quantity > 1) {
+                                    Text(
+                                        text = " · ${formatPrice(item.totalCents)} total",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
                             TextButton(
                                 onClick = { viewModel.removeFromCart(item.product.id) },
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
