@@ -66,7 +66,9 @@ fun Product.withPriceOverride(overrideCents: Long?): Product =
 fun formatPrice(cents: Long): String {
     val dollars = cents / 100
     val rest = cents % 100
-    return "$%,d.%02d".format(dollars, rest)
+    // Prices are USD-styled fiction; pin the locale so "$1,299.00" never
+    // turns into "$1.299,00" on devices with other grouping rules.
+    return "$%,d.%02d".format(java.util.Locale.US, dollars, rest)
 }
 
 /** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
