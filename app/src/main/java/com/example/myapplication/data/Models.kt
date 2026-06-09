@@ -46,6 +46,7 @@ data class Order(
     val status: OrderStatus = OrderStatus.CONFIRMED,
     /** Courier progress across town, 0f..1f, only meaningful from COURIER_ASSIGNED on. */
     val progress: Float = 0f,
+    val placedAtMillis: Long = System.currentTimeMillis(),
 ) {
     val itemCount: Int get() = items.sumOf { it.quantity }
 }
@@ -67,3 +68,8 @@ fun formatPrice(cents: Long): String {
     val rest = cents % 100
     return "$%,d.%02d".format(dollars, rest)
 }
+
+/** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
+fun formatOrderDate(millis: Long): String =
+    java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
+        .format(java.util.Date(millis))

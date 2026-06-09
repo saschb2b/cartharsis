@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ShopViewModel
 import com.example.myapplication.data.Order
 import com.example.myapplication.data.OrderStatus
+import com.example.myapplication.data.formatOrderDate
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.ui.theme.ElectricPurple
 import com.example.myapplication.ui.theme.MintGreen
@@ -206,6 +207,11 @@ private fun StatusStepper(order: Order) {
 private fun ItemsCard(order: Order) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = "Placed ${formatOrderDate(order.placedAtMillis)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             order.items.forEach { item ->
                 Text(
                     "${item.product.emoji} ${item.product.name} ×${item.quantity}",

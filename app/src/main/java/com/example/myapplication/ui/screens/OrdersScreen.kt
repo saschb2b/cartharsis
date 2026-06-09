@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ShopViewModel
+import com.example.myapplication.data.formatOrderDate
 import com.example.myapplication.data.formatPrice
 import com.example.myapplication.ui.theme.MintGreen
 
@@ -108,6 +109,11 @@ fun OrdersScreen(
                             fontWeight = FontWeight.Bold,
                         )
                     }
+                    Text(
+                        text = "Placed ${formatOrderDate(order.placedAtMillis)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Text(
                         text = order.items.joinToString(" ") { it.product.emoji } +
                             "  ${order.itemCount} item(s)",
