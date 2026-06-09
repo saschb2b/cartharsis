@@ -112,6 +112,7 @@ fun CartharsisApp(viewModel: ShopViewModel) {
                     viewModel = viewModel,
                     productId = id,
                     onBack = { navController.popBackStack() },
+                    onProductClick = { navController.navigate("product/$it") },
                 )
             }
             composable("wishlist") {

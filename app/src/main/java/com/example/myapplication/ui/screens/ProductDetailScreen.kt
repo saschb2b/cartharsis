@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -32,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ShopViewModel
 import com.example.myapplication.data.Product
+import com.example.myapplication.data.formatPrice
 import com.example.myapplication.data.withPriceOverride
 import kotlinx.coroutines.launch
 
@@ -48,6 +52,7 @@ fun ProductDetailScreen(
     viewModel: ShopViewModel,
     productId: Int,
     onBack: () -> Unit,
+    onProductClick: (Int) -> Unit,
 ) {
     val base: Product = viewModel.catalog.firstOrNull { it.id == productId } ?: return
     val wishlist by viewModel.wishlist.collectAsState()
@@ -142,6 +147,12 @@ fun ProductDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                AlsoBoughtRow(
+                    viewModel = viewModel,
+                    current = base,
+                    onProductClick = onProductClick,
+                )
+
                 Text(
                     text = "Reviews",
                     style = MaterialTheme.typography.titleMedium,
@@ -176,6 +187,69 @@ fun ProductDetailScreen(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+/** "Customers also bought" — nobody bought anything, but the rabbit hole must go on. */
+@Composable
+private fun AlsoBoughtRow(
+    viewModel: ShopViewModel,
+    current: Product,
+    onProductClick: (Int) -> Unit,
+) {
+    val suggestions = remember(current.id) {
+        val sameCategory = viewModel.catalog
+            .filter { it.id != current.id && it.category == current.category }
+        val filler = viewModel.catalog
+            .filter { it.id != current.id && it.category != current.category }
+            .sortedByDescending { it.rating }
+        (sameCategory + filler).take(6)
+    }
+    if (suggestions.isEmpty()) return
+
+    Column {
+        Text(
+            text = "Customers also \"bought\"",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            suggestions.forEach { suggestion ->
+                val displayed = viewModel.displayProduct(suggestion)
+                Card(
+                    modifier = Modifier
+                        .width(132.dp)
+                        .clickable { onProductClick(suggestion.id) },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                ) {
+                    EmojiHero(
+                        emoji = displayed.emoji,
+                        modifier = Modifier.fillMaxWidth().height(72.dp),
+                        fontSize = 36,
+                    )
+                    Column(Modifier.padding(8.dp)) {
+                        Text(
+                            text = displayed.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 2,
+                            minLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = formatPrice(displayed.priceCents),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
         }
     }
