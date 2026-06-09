@@ -25,6 +25,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.myapplication.ui.theme.MyApplicationTheme
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -202,3 +204,39 @@ fun WishHeart(isWishlisted: Boolean, onToggle: () -> Unit, modifier: Modifier = 
 }
 
 fun formatCountdown(totalSeconds: Int): String = "%d:%02d".format(totalSeconds / 60, totalSeconds % 60)
+
+private val previewProduct = Product(
+    id = 0,
+    name = "Preview Phone Ultra Max",
+    emoji = "📱",
+    tagline = "Only renders, never ships.",
+    description = "A product that exists exclusively inside Android Studio.",
+    priceCents = 129_900,
+    category = "Tech",
+    rating = 4.8,
+    reviewCount = 12_473,
+    reviews = emptyList(),
+    originalPriceCents = 159_900,
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductCardPreview() {
+    MyApplicationTheme {
+        ProductCard(
+            product = previewProduct,
+            onClick = {},
+            isWishlisted = true,
+            onToggleWishlist = {},
+            modifier = Modifier.width(180.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MiniProductCardPreview() {
+    MyApplicationTheme {
+        MiniProductCard(product = previewProduct, onClick = {})
+    }
+}
