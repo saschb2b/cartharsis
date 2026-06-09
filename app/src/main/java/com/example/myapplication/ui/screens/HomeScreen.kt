@@ -19,7 +19,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,12 +56,20 @@ fun HomeScreen(
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
+    var query by remember { mutableStateOf("") }
 
-    val products = remember(selectedCategory, priceDrops) {
+    val products = remember(selectedCategory, query, priceDrops) {
         val inCategory =
             if (selectedCategory == "All") viewModel.catalog
             else viewModel.catalog.filter { it.category == selectedCategory }
-        inCategory.map { it.withPriceOverride(priceDrops[it.id]) }
+        val matching =
+            if (query.isBlank()) inCategory
+            else inCategory.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                    it.tagline.contains(query, ignoreCase = true) ||
+                    it.category.contains(query, ignoreCase = true)
+            }
+        matching.map { it.withPriceOverride(priceDrops[it.id]) }
     }
 
     LazyVerticalGrid(
@@ -96,6 +106,23 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search for things you'll never receive") },
+                leadingIcon = { Text("🔍") },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) { Text("✕") }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+            )
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
             FlashDealBanner(
                 emoji = flashDeal.emoji,
                 name = flashDeal.name,
@@ -118,6 +145,28 @@ fun HomeScreen(
                         selected = category == selectedCategory,
                         onClick = { selectedCategory = category },
                         label = { Text(category) },
+                    )
+                }
+            }
+        }
+
+        if (products.isEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text("🔍", fontSize = 48.sp)
+                    Text(
+                        text = "Nothing matches \"$query\"",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Text(
+                        text = "Which is fitting, because nothing is what we sell.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
