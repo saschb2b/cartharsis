@@ -51,6 +51,15 @@ import com.example.myapplication.data.withPriceOverride
 import com.example.myapplication.ui.theme.JuicyOrange
 import kotlinx.coroutines.launch
 
+/** One per tap, at random — the ritual deserves fresh applause. */
+private val cartSnackLines = listOf(
+    "Added to cart. Feel that? That's the good stuff. ✨",
+    "In the cart. Your serotonin says thank you. 💆",
+    "Cart +1. Wallet ±0. Perfect balance. ⚖️",
+    "Secured. The void ships shortly. 📦",
+    "Excellent taste. It costs exactly nothing. 💸",
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -116,7 +125,7 @@ fun ProductDetailScreen(
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.addToCart(product, quantity)
                         scope.launch {
-                            snackbarHostState.showSnackbar("Added to cart. Feel that? That's the good stuff. ✨")
+                            snackbarHostState.showSnackbar(cartSnackLines.random())
                         }
                     },
                     modifier = Modifier.weight(1f),
