@@ -114,11 +114,20 @@ fun CartScreen(
                                     )
                                 }
                             }
-                            TextButton(
-                                onClick = { viewModel.removeFromCart(item.product.id) },
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                            ) {
-                                Text("Remove", style = MaterialTheme.typography.labelSmall)
+                            Row {
+                                TextButton(
+                                    onClick = { viewModel.removeFromCart(item.product.id) },
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                                ) {
+                                    Text("Remove", style = MaterialTheme.typography.labelSmall)
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                TextButton(
+                                    onClick = { viewModel.moveToWishlist(item.product.id) },
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                                ) {
+                                    Text("Save for later 💖", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         }
                         OutlinedIconButton(onClick = {

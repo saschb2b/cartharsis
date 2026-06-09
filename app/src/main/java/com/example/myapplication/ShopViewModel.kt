@@ -148,6 +148,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removeFromCart(productId: Int) = setQuantity(productId, 0)
 
+    /** The classic cart retreat: not buying it, not letting go of it either. */
+    fun moveToWishlist(productId: Int) {
+        removeFromCart(productId)
+        _wishlist.update { it + productId }
+        viewModelScope.launch { WishlistStore.save(getApplication(), _wishlist.value) }
+    }
+
     // ---- Orders & delivery simulation ----
 
     /** Converts the cart into a fake order and starts its delivery sim. Returns the order id. */
