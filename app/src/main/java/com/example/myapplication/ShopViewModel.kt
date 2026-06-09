@@ -19,11 +19,16 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 private const val FLASH_DEAL_SECONDS = 90
-private const val COURIER_TRIP_MILLIS = 45_000L
+private const val COURIER_TRIP_MILLIS = ShopViewModel.COURIER_TRIP_SECONDS * 1_000L
 private const val PRICE_DROP_INTERVAL_MILLIS = 25_000L
 private const val PRICE_DROP_LIFETIME_MILLIS = 90_000L
 
 class ShopViewModel(application: Application) : AndroidViewModel(application) {
+
+    companion object {
+        /** How long the courier carries your nothing across town. UI ETAs derive from this. */
+        const val COURIER_TRIP_SECONDS = 45
+    }
 
     val catalog: List<Product> = FakeCatalog.products
     val categories: List<String> = FakeCatalog.categories

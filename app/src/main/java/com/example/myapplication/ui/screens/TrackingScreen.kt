@@ -165,9 +165,10 @@ private fun EtaCard(order: Order) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             if (order.status == OrderStatus.ON_THE_WAY) {
-                val secondsLeft = ((1f - order.progress) * 45).toInt() + 1
+                val secondsLeft = ((1f - order.progress) * ShopViewModel.COURIER_TRIP_SECONDS).toInt() + 1
+                val noun = if (order.itemCount == 1) "item" else "items"
                 Text(
-                    text = "Arriving in ~${secondsLeft}s with 0 of your ${order.itemCount} items",
+                    text = "Arriving in ~${secondsLeft}s with 0 of your ${order.itemCount} $noun",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.padding(top = 4.dp),
