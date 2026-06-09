@@ -116,7 +116,7 @@ fun OrdersScreen(
                     )
                     Text(
                         text = order.items.joinToString(" ") { it.product.emoji } +
-                            "  ${order.itemCount} item(s)",
+                            "  ${order.itemCount} " + (if (order.itemCount == 1) "item" else "items"),
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
