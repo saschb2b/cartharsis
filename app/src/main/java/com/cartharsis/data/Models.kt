@@ -24,6 +24,37 @@ data class Product(
         get() = originalPriceCents?.let { ((1 - priceCents.toDouble() / it) * 100).toInt() }
 }
 
+/** A review the user wrote themselves — the one voice the pool can't fake. */
+data class UserReview(
+    val productId: Int,
+    val rating: Int,
+    val text: String,
+    val createdAtMillis: Long,
+)
+
+// Codec for DataStore string-set persistence. The separator is a control
+// character no soft keyboard produces, and the free-text field comes last
+// (parsed with a limit) so it may contain anything at all.
+private const val USER_REVIEW_SEP = '\u0001'
+
+fun encodeUserReview(review: UserReview): String = buildString {
+    append(review.productId); append(USER_REVIEW_SEP)
+    append(review.rating); append(USER_REVIEW_SEP)
+    append(review.createdAtMillis); append(USER_REVIEW_SEP)
+    append(review.text)
+}
+
+fun decodeUserReview(encoded: String): UserReview? {
+    val parts = encoded.split(USER_REVIEW_SEP, limit = 4)
+    if (parts.size != 4) return null
+    return UserReview(
+        productId = parts[0].toIntOrNull() ?: return null,
+        rating = parts[1].toIntOrNull()?.takeIf { it in 1..5 } ?: return null,
+        text = parts[3],
+        createdAtMillis = parts[2].toLongOrNull() ?: return null,
+    )
+}
+
 data class CartItem(
     val product: Product,
     val quantity: Int,

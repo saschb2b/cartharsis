@@ -11,7 +11,9 @@ import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.Product
+import com.cartharsis.data.ReviewStore
 import com.cartharsis.data.StatsStore
+import com.cartharsis.data.UserReview
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.StreakStore
 import com.cartharsis.data.WishlistStore
@@ -67,6 +69,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _priceDrops = MutableStateFlow<Map<Int, Long>>(emptyMap())
     val priceDrops: StateFlow<Map<Int, Long>> = _priceDrops.asStateFlow()
 
+    /** Reviews the user wrote, one per product — the app's only user content. */
+    private val _userReviews = MutableStateFlow<Map<Int, UserReview>>(emptyMap())
+    val userReviews: StateFlow<Map<Int, UserReview>> = _userReviews.asStateFlow()
+
     /** Lifetime fake-shopping totals; survive process death unlike the order list. */
     private val _lifetimeStats = MutableStateFlow(StatsStore.Stats(0, 0, 0L))
     val lifetimeStats: StateFlow<StatsStore.Stats> = _lifetimeStats.asStateFlow()
@@ -95,6 +101,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val saved = WishlistStore.load(getApplication())
             if (saved.isNotEmpty()) _wishlist.update { it + saved }
+        }
+        viewModelScope.launch {
+            val saved = ReviewStore.load(getApplication())
+            // Reviews written before the load finished win over their saved versions.
+            if (saved.isNotEmpty()) _userReviews.update { saved + it }
         }
         viewModelScope.launch {
             val saved = StreakStore.load(getApplication())
@@ -174,6 +185,20 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _recentlyViewed.update { recent ->
             (listOf(productId) + recent.filterNot { it == productId }).take(10)
         }
+    }
+
+    // ---- User reviews ----
+
+    /** Saves (or replaces) the user's review of a product. */
+    fun saveUserReview(productId: Int, rating: Int, text: String) {
+        val review = UserReview(productId, rating, text.trim(), System.currentTimeMillis())
+        _userReviews.update { it + (productId to review) }
+        viewModelScope.launch { ReviewStore.save(getApplication(), _userReviews.value) }
+    }
+
+    fun deleteUserReview(productId: Int) {
+        _userReviews.update { it - productId }
+        viewModelScope.launch { ReviewStore.save(getApplication(), _userReviews.value) }
     }
 
     // ---- Wishlist ----

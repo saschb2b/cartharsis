@@ -159,11 +159,13 @@ Living task list. Checked = done and compiling.
 - [x] PDP rating row jumps to the review section (chevron affordance, a11y label)
 - [x] Reviews sorted most-helpful-first
 
-Proposals (owner decision needed, not shipped):
-- "Write a review" flow — user-generated content + persistence + moderation-of-self
-  questions; would also be the first user input stored beyond wishlist/stats
-- Review sort/filter controls (by rating, newest) — adds UI surface for a catalog
-  whose reviews are static; unclear it earns its complexity
+- [x] "Write a review" flow (approved by owner): star picker + text editor on the
+      PDP, one review per product, pinned "Your review" card with Edit/Delete,
+      persisted via ReviewStore (DataStore string set, control-char codec with
+      round-trip + garbage-rejection tests). Verified on emulator incl. process-
+      death persistence.
+
+Declined by owner: review sort/filter controls.
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

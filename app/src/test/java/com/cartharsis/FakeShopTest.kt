@@ -4,6 +4,9 @@ import com.cartharsis.data.CartItem
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
+import com.cartharsis.data.UserReview
+import com.cartharsis.data.decodeUserReview
+import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.fakeStockLeft
@@ -149,6 +152,23 @@ class FakeShopTest {
     fun `the low-star satire actually appears somewhere in the catalog`() {
         val allShown = FakeCatalog.products.flatMap { it.reviews }
         assertTrue(allShown.any { it.rating <= 3 })
+    }
+
+    @Test
+    fun `user review codec round-trips, including hostile text`() {
+        val nasty = UserReview(42, 3, "lines\nand|pipes and \"quotes\" and 🦖", 1_765_000_000_000)
+        assertEquals(nasty, decodeUserReview(encodeUserReview(nasty)))
+        val empty = UserReview(0, 5, "", 1L)
+        assertEquals(empty, decodeUserReview(encodeUserReview(empty)))
+    }
+
+    @Test
+    fun `user review codec rejects garbage instead of crashing`() {
+        assertEquals(null, decodeUserReview(""))
+        assertEquals(null, decodeUserReview("not a review"))
+        assertEquals(null, decodeUserReview("12\u00019"))
+        assertEquals(null, decodeUserReview("x\u00015\u00011\u0001text"))
+        assertEquals(null, decodeUserReview("1\u00019\u00011\u0001rating out of range"))
     }
 
     @Test

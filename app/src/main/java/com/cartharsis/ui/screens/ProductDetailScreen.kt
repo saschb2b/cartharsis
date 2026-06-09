@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,6 +36,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -59,7 +62,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.Product
+import com.cartharsis.data.UserReview
 import com.cartharsis.data.fakeStockLeft
+import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.JuicyOrange
@@ -251,13 +256,41 @@ fun ProductDetailScreen(
                 )
                 SpecRows(product)
 
+                val userReviews by viewModel.userReviews.collectAsState()
+                val ownReview = userReviews[product.id]
+                var editingReview by remember(productId) { mutableStateOf(false) }
                 SectionHeader(
                     title = "Reviews",
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .onGloballyPositioned { reviewsTopY = it.positionInWindow().y },
+                    actionLabel = if (ownReview == null && !editingReview) "Write a review" else null,
+                    onAction = { editingReview = true },
                 )
                 RatingSummary(product)
+                if (editingReview) {
+                    ReviewEditor(
+                        initialRating = ownReview?.rating ?: 0,
+                        initialText = ownReview?.text ?: "",
+                        onCancel = { editingReview = false },
+                        onPost = { rating, text ->
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.saveUserReview(product.id, rating, text)
+                            editingReview = false
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    "Posted. Your opinion of nothing is now on record. ⭐",
+                                )
+                            }
+                        },
+                    )
+                } else if (ownReview != null) {
+                    OwnReviewCard(
+                        review = ownReview,
+                        onEdit = { editingReview = true },
+                        onDelete = { viewModel.deleteUserReview(product.id) },
+                    )
+                }
                 var showAllReviews by remember(productId) { mutableStateOf(false) }
                 // Top reviews first, like any shop that sorts by helpfulness.
                 val rankedReviews = remember(product.id) {
@@ -467,6 +500,120 @@ private fun ratingDistribution(rating: Double): List<Float> {
     val top = (((rating - 3.4) / 1.6).coerceIn(0.45, 0.9)).toFloat()
     val rest = 1f - top
     return listOf(top, rest * 0.55f, rest * 0.25f, rest * 0.12f, rest * 0.08f)
+}
+
+/** Star picker + text field — the whole "write a review" surface. */
+@Composable
+private fun ReviewEditor(
+    initialRating: Int,
+    initialText: String,
+    onCancel: () -> Unit,
+    onPost: (Int, String) -> Unit,
+) {
+    var rating by remember { mutableIntStateOf(initialRating) }
+    var text by remember { mutableStateOf(initialText) }
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = "Your rating",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row {
+                (1..5).forEach { star ->
+                    Box(
+                        modifier = Modifier
+                            .minimumInteractiveComponentSize()
+                            .clickable(onClickLabel = "Rate $star out of 5") { rating = star },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = if (star <= rating) "★" else "☆",
+                            fontSize = 26.sp,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.clearAndSetSemantics {
+                                contentDescription =
+                                    if (star <= rating) "$star stars, selected" else "$star stars"
+                            },
+                        )
+                    }
+                }
+            }
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("What did the nothing mean to you?") },
+                minLines = 2,
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onCancel) { Text("Cancel") }
+                Button(onClick = { onPost(rating, text) }, enabled = rating > 0) {
+                    Text("Post review")
+                }
+            }
+        }
+    }
+}
+
+/** The user's own review — pinned above the regulars, editable, deletable. */
+@Composable
+private fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Y",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+                Column(Modifier.padding(start = 8.dp).weight(1f)) {
+                    Text(text = "You", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = "Your review",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Text(
+                    text = "★".repeat(review.rating),
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            if (review.text.isNotBlank()) {
+                Text(
+                    text = review.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                Text(
+                    text = "Posted ${formatOrderDate(review.createdAtMillis)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = onEdit) { Text("Edit", style = MaterialTheme.typography.labelMedium) }
+                TextButton(onClick = onDelete) { Text("Delete", style = MaterialTheme.typography.labelMedium) }
+            }
+        }
+    }
 }
 
 // Pool reviews are shared across products, so per-product metadata (age,

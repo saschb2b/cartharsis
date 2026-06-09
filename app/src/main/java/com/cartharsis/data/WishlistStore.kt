@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 private val Context.dataStore by preferencesDataStore(name = "cartharsis")
 
 private val WISHLIST_KEY = stringSetPreferencesKey("wishlist_ids")
+private val USER_REVIEWS_KEY = stringSetPreferencesKey("user_reviews")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
@@ -33,6 +34,25 @@ object WishlistStore {
     suspend fun save(context: Context, ids: Set<Int>) {
         context.dataStore.edit { prefs ->
             prefs[WISHLIST_KEY] = ids.map { it.toString() }.toSet()
+        }
+    }
+}
+
+/**
+ * Persists the reviews the user writes — the app's only user-generated
+ * content. One review per product, keyed by product id.
+ */
+object ReviewStore {
+
+    suspend fun load(context: Context): Map<Int, UserReview> =
+        context.dataStore.data.first()[USER_REVIEWS_KEY]
+            .orEmpty()
+            .mapNotNull(::decodeUserReview)
+            .associateBy { it.productId }
+
+    suspend fun save(context: Context, reviews: Map<Int, UserReview>) {
+        context.dataStore.edit { prefs ->
+            prefs[USER_REVIEWS_KEY] = reviews.values.map(::encodeUserReview).toSet()
         }
     }
 }
