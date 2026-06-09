@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -222,12 +223,28 @@ fun ProductDetailScreen(
 
                 SectionHeader(title = "Reviews", modifier = Modifier.padding(top = 8.dp))
                 RatingSummary(product)
-                product.reviews.forEach { review ->
+                var showAllReviews by remember(productId) { mutableStateOf(false) }
+                val visibleReviews =
+                    if (showAllReviews) product.reviews else product.reviews.take(3)
+                visibleReviews.forEachIndexed { index, review ->
                     ReviewCard(
                         author = review.author,
                         rating = review.rating,
                         text = review.text,
+                        ageLabel = reviewAgeLabel(product.id, index),
+                        helpfulCount = reviewHelpfulCount(product.id, index),
                     )
+                }
+                if (product.reviews.size > 3) {
+                    TextButton(
+                        onClick = { showAllReviews = !showAllReviews },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            if (showAllReviews) "Show fewer reviews"
+                            else "Show all ${product.reviews.size} reviews",
+                        )
+                    }
                 }
 
                 AlsoBoughtRow(
@@ -407,8 +424,24 @@ private fun ratingDistribution(rating: Double): List<Float> {
     return listOf(top, rest * 0.55f, rest * 0.25f, rest * 0.12f, rest * 0.08f)
 }
 
+// Pool reviews are shared across products, so per-product metadata (age,
+// helpful votes) is derived stably from (product, slot) instead of stored.
+private fun reviewAgeLabel(productId: Int, index: Int): String {
+    val days = (productId * 13 + index * 31) % 89 + 1
+    return if (days < 14) "${days}d ago" else "${days / 7}w ago"
+}
+
+private fun reviewHelpfulCount(productId: Int, index: Int): Int =
+    (productId * 37 + index * 53) % 412 + 3
+
 @Composable
-private fun ReviewCard(author: String, rating: Int, text: String) {
+private fun ReviewCard(
+    author: String,
+    rating: Int,
+    text: String,
+    ageLabel: String,
+    helpfulCount: Int,
+) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -428,11 +461,17 @@ private fun ReviewCard(author: String, rating: Int, text: String) {
                         )
                     }
                 }
-                Text(
-                    text = author,
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(start = 8.dp).weight(1f),
-                )
+                Column(Modifier.padding(start = 8.dp).weight(1f)) {
+                    Text(
+                        text = author,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    Text(
+                        text = "✓ Verified non-buyer",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MintGreen,
+                    )
+                }
                 Text(
                     text = "★".repeat(rating),
                     color = MaterialTheme.colorScheme.tertiary,
@@ -442,6 +481,12 @@ private fun ReviewCard(author: String, rating: Int, text: String) {
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                text = "$ageLabel · $helpfulCount found this helpful",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
     }
