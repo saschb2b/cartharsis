@@ -77,6 +77,18 @@ app/src/main/java/com/cartharsis/
 
 - Kotlin official code style; Compose-idiomatic (state hoisting, `Modifier` as the
   last default param, previews where cheap).
+- UX register (from the Baymard/Amazon/Apple research pass): dense, colorful
+  treasure-hunt on browse surfaces (home grid); calm and roomy on decision
+  surfaces (PDP buy box, cart summary, checkout, tracking). The accent palette
+  is reserved for primary CTAs and savings; prices render in ink (onSurface),
+  one badge max per card. Shared shop components (cards, stepper, price row,
+  section header) live in `ui/screens/Common.kt` — reuse, don't fork.
+- Reward moments (from the reward-psychology research pass): ceremony = gesture →
+  suspense → resolution (hold-to-pay → fake-labor lines → checkmark + haptic at
+  stroke completion). One big celebration per flow, scaled to the milestone;
+  cumulative numbers tick up rather than appear; randomness stays decorative and
+  free. Never: confirmshaming, loss-framed streaks, urgency that pressures the
+  decision (post-commit anticipation countdowns are fine).
 - Product "images" are emoji — no image loading library, keep it that way.
 - All animations are hand-rolled Compose/Canvas (confetti, courier) — no animation deps.
 - Versions live in `gradle/libs.versions.toml`; add dependencies there, not inline.

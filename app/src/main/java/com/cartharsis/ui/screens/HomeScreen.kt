@@ -46,6 +46,15 @@ import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
+import com.cartharsis.ui.theme.MintGreen
+
+/** Chip icons: a category you can recognize before you can read it. */
+private val categoryEmoji = mapOf(
+    "All" to "🛍️", "Tech" to "📱", "Audio" to "🎧", "Gaming" to "🎮",
+    "Home" to "🛋️", "Kitchen" to "🍳", "Fashion" to "👟", "Beauty" to "✨",
+    "Self-Care" to "🧖", "Fitness" to "🏋️", "Snacks" to "🍜", "Outdoors" to "⛺",
+    "Pets" to "🐾", "Hobbies" to "🎨", "Stationery" to "🖋️", "Chaos" to "🦖",
+)
 
 @Composable
 fun HomeScreen(
@@ -78,32 +87,37 @@ fun HomeScreen(
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Column {
-                Text(
-                    text = "Cartharsis",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = "Add to cart. Feel better. Buy nothing.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                val saved = lifetimeStats.centsKept
-                if (saved > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
                     Text(
-                        text = "💸 ${formatPrice(saved)} not spent so far",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp),
+                        text = "Cartharsis",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary,
                     )
+                    Text(
+                        text = "Add to cart. Feel better. Buy nothing.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (lifetimeStats.centsKept > 0) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MintGreen.copy(alpha = 0.15f),
+                    ) {
+                        Text(
+                            text = "💸 ${formatPrice(lifetimeStats.centsKept)} kept",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        )
+                    }
                 }
             }
         }
@@ -123,20 +137,22 @@ fun HomeScreen(
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(28.dp),
             )
         }
 
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
-            FlashDealBanner(
-                emoji = deal.emoji,
-                name = deal.name,
-                price = formatPrice(deal.priceCents),
-                originalPrice = deal.originalPriceCents?.let(::formatPrice),
-                countdown = formatCountdown(secondsLeft),
-                onClick = { onProductClick(deal.id) },
-            )
+        if (query.isBlank()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
+                FlashDealBanner(
+                    emoji = deal.emoji,
+                    name = deal.name,
+                    price = formatPrice(deal.priceCents),
+                    originalPrice = deal.originalPriceCents?.let(::formatPrice),
+                    countdown = formatCountdown(secondsLeft),
+                    onClick = { onProductClick(deal.id) },
+                )
+            }
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -150,7 +166,10 @@ fun HomeScreen(
                     FilterChip(
                         selected = category == selectedCategory,
                         onClick = { selectedCategory = category },
-                        label = { Text(category) },
+                        shape = RoundedCornerShape(50),
+                        label = {
+                            Text(categoryEmoji[category]?.let { "$it $category" } ?: category)
+                        },
                     )
                 }
             }
@@ -160,10 +179,8 @@ fun HomeScreen(
         if (query.isBlank() && recentProducts.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column {
-                    Text(
-                        text = "Keep browsing (you know you want to)",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                    SectionHeader(
+                        title = "Keep browsing",
                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
                     )
                     Row(
@@ -178,6 +195,28 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Text(
+                    text = when {
+                        query.isNotBlank() -> "Results"
+                        selectedCategory == "All" -> "Everything"
+                        else -> selectedCategory
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = if (products.size == 1) "1 item" else "${products.size} items",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
@@ -209,6 +248,7 @@ fun HomeScreen(
                 onClick = { onProductClick(product.id) },
                 isWishlisted = product.id in wishlist,
                 onToggleWishlist = { viewModel.toggleWishlist(product.id) },
+                modifier = Modifier.animateItem(),
             )
         }
     }
@@ -235,12 +275,27 @@ private fun FlashDealBanner(
         Text(text = emoji, fontSize = 44.sp)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(
-                text = "⚡ FLASH DEAL — ends in $countdown",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = 0.9f),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "⚡ FLASH DEAL",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.9f),
+                )
+                Surface(
+                    color = Color.Black.copy(alpha = 0.25f),
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.padding(start = 6.dp),
+                ) {
+                    Text(
+                        text = countdown,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                    )
+                }
+            }
             Text(
                 text = name,
                 style = MaterialTheme.typography.titleMedium,

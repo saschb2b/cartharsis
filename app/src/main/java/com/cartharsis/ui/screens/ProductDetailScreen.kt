@@ -1,6 +1,9 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,38 +11,44 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,9 +58,11 @@ import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.JuicyOrange
+import com.cartharsis.ui.theme.MintGreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** One per tap, at random — the ritual deserves fresh applause. */
+/** One per add, at random — the ritual deserves fresh applause. */
 private val cartSnackLines = listOf(
     "Added to cart. Feel that? That's the good stuff. ✨",
     "In the cart. Your serotonin says thank you. 💆",
@@ -67,6 +78,8 @@ fun ProductDetailScreen(
     productId: Int,
     onBack: () -> Unit,
     onProductClick: (Int) -> Unit,
+    onBuyNow: () -> Unit,
+    onViewCart: () -> Unit = {},
 ) {
     val base: Product = viewModel.catalog.firstOrNull { it.id == productId } ?: return
     val wishlist by viewModel.wishlist.collectAsState()
@@ -76,13 +89,36 @@ fun ProductDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var quantity by remember { mutableIntStateOf(1) }
+    var justAdded by remember { mutableStateOf(false) }
 
     LaunchedEffect(productId) { viewModel.markViewed(productId) }
+    LaunchedEffect(justAdded) {
+        if (justAdded) {
+            delay(1_500)
+            justAdded = false
+        }
+    }
+
+    fun addToCart() {
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        viewModel.addToCart(product, quantity)
+        justAdded = true
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = cartSnackLines.random(),
+                actionLabel = "View cart",
+            )
+            if (result == SnackbarResult.ActionPerformed) onViewCart()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(product.category) },
+                title = {},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Text(
@@ -102,37 +138,12 @@ fun ProductDetailScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedIconButton(onClick = { if (quantity > 1) quantity-- }) {
-                    Text("−", modifier = Modifier.clearAndSetSemantics { contentDescription = "Decrease quantity" })
-                }
-                Text(
-                    text = "$quantity",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                )
-                OutlinedIconButton(onClick = { quantity++ }) {
-                    Text("+", modifier = Modifier.clearAndSetSemantics { contentDescription = "Increase quantity" })
-                }
-                Spacer(Modifier.width(12.dp))
-                Button(
-                    onClick = {
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.addToCart(product, quantity)
-                        scope.launch {
-                            snackbarHostState.showSnackbar(cartSnackLines.random())
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Text("Add to cart 🛒", fontWeight = FontWeight.Bold)
-                }
-            }
+            BuyBar(
+                quantity = quantity,
+                onQuantityChange = { quantity = it },
+                justAdded = justAdded,
+                onAddToCart = ::addToCart,
+            )
         },
     ) { padding ->
         Column(
@@ -143,85 +154,295 @@ fun ProductDetailScreen(
         ) {
             EmojiHero(
                 emoji = product.emoji,
-                modifier = Modifier.fillMaxWidth().height(220.dp),
-                fontSize = 110,
+                modifier = Modifier.fillMaxWidth().height(250.dp),
+                fontSize = 120,
+                seed = product.id,
             )
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(
+                    text = product.category.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
                     text = product.name,
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = product.tagline,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 RatingStars(rating = product.rating, reviewCount = product.reviewCount)
-                PriceRow(product, big = true)
-                product.fakeStockLeft?.let { left ->
-                    Text(
-                        text = "🔥 Only $left left in stock (the stock is imaginary, hurry anyway)",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = JuicyOrange,
-                    )
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    PriceRow(product, big = true)
+                    product.originalPriceCents?.let { original ->
+                        Text(
+                            text = "You save ${formatPrice(original - product.priceCents)} " +
+                                "(and also the other ${formatPrice(product.priceCents)})",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MintGreen,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    product.fakeStockLeft?.let { left ->
+                        Text(
+                            text = "Only $left left in stock, allegedly",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = JuicyOrange,
+                        )
+                    }
                 }
+
+                DeliveryCard()
+
+                FilledTonalButton(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.addToCart(product, quantity)
+                        onBuyNow()
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                ) {
+                    Text("Buy now — straight to checkout", fontWeight = FontWeight.Bold)
+                }
+
+                SectionHeader(title = "About this item", modifier = Modifier.padding(top = 8.dp))
                 Text(
                     text = product.description,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    text = "🚚 Free delivery of nothing • 💳 $0.00 at checkout • ↩️ Returns impossible",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                SpecRows(product)
+
+                SectionHeader(title = "Reviews", modifier = Modifier.padding(top = 8.dp))
+                RatingSummary(product)
+                product.reviews.forEach { review ->
+                    ReviewCard(
+                        author = review.author,
+                        rating = review.rating,
+                        text = review.text,
+                    )
+                }
 
                 AlsoBoughtRow(
                     viewModel = viewModel,
                     current = base,
                     onProductClick = onProductClick,
                 )
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+    }
+}
 
-                Text(
-                    text = "Reviews",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                product.reviews.forEach { review ->
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                    ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = review.author,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    text = "★".repeat(review.rating),
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                )
-                            }
-                            Text(
-                                text = review.text,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        }
+/** Sticky buy bar: the purchase is always one thumb-reach away. */
+@Composable
+private fun BuyBar(
+    quantity: Int,
+    onQuantityChange: (Int) -> Unit,
+    justAdded: Boolean,
+    onAddToCart: () -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            QuantityStepper(quantity = quantity, onQuantityChange = onQuantityChange)
+            Button(
+                onClick = onAddToCart,
+                modifier = Modifier.weight(1f).height(48.dp),
+            ) {
+                Crossfade(targetState = justAdded, label = "addToCart") { added ->
+                    Text(
+                        text = if (added) "Added ✓" else "Add to cart",
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeliveryCard() {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            DeliveryLine("🚚", DELIVERY_PROMISE)
+            DeliveryLine("💳", "$0.00 at checkout — Imagination Express accepted")
+            DeliveryLine("🧘", "Returns unnecessary; nothing will arrive")
+        }
+    }
+}
+
+@Composable
+private fun DeliveryLine(emoji: String, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(emoji, fontSize = 16.sp)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun SpecRows(product: Product) {
+    Column {
+        SpecRow("Category", product.category)
+        SpecRow(
+            "Availability",
+            product.fakeStockLeft?.let { "Only $it left (imaginary)" } ?: "In stock (imaginary)",
+        )
+        SpecRow("Shipping", "Free, everywhere, instantly-ish")
+        SpecRow("Weight", "0g as delivered")
+    }
+}
+
+@Composable
+private fun SpecRow(label: String, value: String) {
+    Column {
+        Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(110.dp),
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    }
+}
+
+/**
+ * Big number + distribution bars. The distribution is synthesized from the
+ * (fake) average so it always tells a coherent story.
+ */
+@Composable
+private fun RatingSummary(product: Product) {
+    val shares = remember(product.id) { ratingDistribution(product.rating) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "${product.rating}",
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            RatingStars(rating = product.rating)
+            Text(
+                text = "%,d ratings".format(product.reviewCount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            shares.forEachIndexed { index, share ->
+                val stars = 5 - index
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = "$stars star: ${(share * 100).toInt()} percent"
+                    },
+                ) {
+                    Text(
+                        text = "$stars",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.width(12.dp),
+                    )
+                    LinearProgressIndicator(
+                        progress = { share },
+                        modifier = Modifier.weight(1f).height(8.dp),
+                        color = MaterialTheme.colorScheme.tertiary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                        gapSize = 0.dp,
+                        drawStopIndicator = {},
+                    )
+                    Text(
+                        text = "${(share * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(36.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Five shares (5★ first) that sum to ~1 and match the average's vibe. */
+private fun ratingDistribution(rating: Double): List<Float> {
+    val top = (((rating - 3.4) / 1.6).coerceIn(0.45, 0.9)).toFloat()
+    val rest = 1f - top
+    return listOf(top, rest * 0.55f, rest * 0.25f, rest * 0.12f, rest * 0.08f)
+}
+
+@Composable
+private fun ReviewCard(author: String, rating: Int, text: String) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = author.first().uppercase(),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = author,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(start = 8.dp).weight(1f),
+                )
+                Text(
+                    text = "★".repeat(rating),
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
             }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
@@ -244,10 +465,8 @@ private fun AlsoBoughtRow(
     if (suggestions.isEmpty()) return
 
     Column {
-        Text(
-            text = "Customers also \"bought\"",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+        SectionHeader(
+            title = "Customers also \"bought\"",
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
         )
         Row(

@@ -15,6 +15,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
@@ -82,6 +88,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private fun pushEnter() =
+    slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it / 3 }) + fadeIn(tween(280))
+
+private fun pushPopExit() =
+    slideOutHorizontally(animationSpec = tween(240), targetOffsetX = { it / 3 }) + fadeOut(tween(240))
+
 private data class Tab(val route: String, val emoji: String, val label: String)
 
 private val tabs = listOf(
@@ -115,10 +127,20 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
             }
         },
     ) { innerPadding ->
+        // Tab switches fade through; pushed screens (product, checkout, tracking)
+        // slide in from the right like a stack. One motion language everywhere.
         NavHost(
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                fadeIn(tween(220)) + scaleIn(initialScale = 0.97f, animationSpec = tween(220))
+            },
+            exitTransition = { fadeOut(tween(120)) },
+            popEnterTransition = {
+                fadeIn(tween(220)) + scaleIn(initialScale = 0.97f, animationSpec = tween(220))
+            },
+            popExitTransition = { fadeOut(tween(120)) },
         ) {
             composable("home") {
                 HomeScreen(
@@ -126,13 +148,19 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                     onProductClick = { navController.navigate("product/$it") },
                 )
             }
-            composable("product/{id}") { entry ->
+            composable(
+                "product/{id}",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) { entry ->
                 val id = entry.arguments?.getString("id")?.toIntOrNull() ?: return@composable
                 ProductDetailScreen(
                     viewModel = viewModel,
                     productId = id,
                     onBack = { navController.popBackStack() },
                     onProductClick = { navController.navigate("product/$it") },
+                    onBuyNow = { navController.navigate("checkout") },
+                    onViewCart = { navController.navigate("cart") { popUpTo("home") } },
                 )
             }
             composable("wishlist") {
@@ -149,7 +177,11 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                     onBrowse = { navController.navigate("home") { popUpTo("home") } },
                 )
             }
-            composable("checkout") {
+            composable(
+                "checkout",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) {
                 CheckoutScreen(
                     viewModel = viewModel,
                     onTrackOrder = { orderId ->
@@ -158,9 +190,16 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                         }
                     },
                     onBack = { navController.popBackStack() },
+                    onKeepShopping = {
+                        navController.navigate("home") { popUpTo("home") { inclusive = true } }
+                    },
                 )
             }
-            composable("tracking/{orderId}") { entry ->
+            composable(
+                "tracking/{orderId}",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) { entry ->
                 val orderId = entry.arguments?.getString("orderId")?.toIntOrNull() ?: return@composable
                 TrackingScreen(
                     viewModel = viewModel,

@@ -104,7 +104,7 @@ fun WishlistScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp))) {
-                        EmojiHero(product.emoji, Modifier.fillMaxSize(), fontSize = 30)
+                        EmojiHero(product.emoji, Modifier.fillMaxSize(), fontSize = 30, seed = product.id)
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {

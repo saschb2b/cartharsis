@@ -109,5 +109,43 @@ Living task list. Checked = done and compiling.
       (note: new applicationId = fresh install identity; old install's DataStore
       does not carry over)
 
+## Phase 11 — Buying-experience polish (Baymard/Amazon/Apple patterns, no dark ones)
+- [x] Research pass: Baymard + Amazon/Apple/Temu UX patterns, dark patterns excluded
+- [x] Design system: type scale w/ tight display tracking, per-product gradient tiles,
+      compact rating ("★ 4.8 · 12.5k"), single-badge rule, shared QuantityStepper,
+      SectionHeader; accent color reserved for CTAs + savings, prices in ink
+- [x] PDP rebuilt in canonical order: hero → title → rating → price ("You save X",
+      de-fanged scarcity) → delivery promise → Buy now → bullets/specs → rating
+      distribution bars + avatar reviews → also-bought; sticky buy bar with stepper,
+      "Added ✓" button state, snackbar with View-cart action
+- [x] Cart: line cards w/ stepper, deal-savings summary row, total-on-button checkout CTA
+- [x] Checkout: back affordance, labeled sections, emoji-tile order summary, cycling
+      processing copy, confirmation with order # + arrival promise + two CTAs
+- [x] Home: savings pill, emoji category chips, results header, animateItem grid
+- [x] Nav transitions: fade-through tabs, slide-in pushed screens; Buy now → checkout
+- [x] Tracking headline ETA first; Orders status chips
+- [x] Verified on emulator: smoke test green + screenshot tour (home/PDP/reviews/cart)
+
+## Phase 12 — Payment ceremony + order-experience dopamine pass
+- [x] Research pass: reward-moment psychology (anticipation > consummation, peak-end,
+      goal-gradient, operational transparency/labor illusion) + Apple Pay ceremony,
+      Duolingo celebrations, Domino's tracker; dark variants catalogued and avoided
+- [x] Hold-to-pay button: ~0.9s fill with rising haptic ticks, spring-back on early
+      release, accessibility onClick action as the screen-reader path (smoke test
+      uses it after performClick proved gesture-incompatible)
+- [x] Ceremony sequence: rotating fake-labor lines (600ms each) → stroke-drawn
+      checkmark (380ms, haptic at completion) → 250ms breath → celebration
+- [x] Success screen: spring-in hero, order # + arrival promise, money-kept counter
+      ticking up, rotating punchline, confetti scaled to milestones (first/every 10th)
+- [x] Tracking: horizontal pizza-tracker (endowed progress, pulsing current node,
+      courier leg fills live), map trail fills solid behind a bobbing courier with
+      goal-gradient acceleration, en-route micro-event vignettes, ~1-in-8 rocket
+      courier (decorative, stable per order), arrival confetti only on live
+      transition, delivered card counts the kept money up
+- [x] Orders: all four stats tick up, order cards with gradient item tiles + chevron
+- [x] Verified on emulator: instrumented test green + screenshot tour of checkout
+      form → processing → checkmark → success → tracking (packing / on-the-way /
+      delivered)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

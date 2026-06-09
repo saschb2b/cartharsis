@@ -2,12 +2,14 @@ package com.cartharsis
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import org.junit.Rule
@@ -35,17 +37,21 @@ class ShopFlowTest {
 
         // Open the first catalog product and add it to the cart.
         compose.onAllNodesWithText("AuraPhone 17 Ultra Max").onFirst().performClick()
-        compose.onNodeWithText("Add to cart 🛒").performClick()
+        compose.onNodeWithText("Add to cart").performClick()
 
         // Bottom bar → cart → checkout.
         compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
         compose.onNodeWithText("Cart").performClick()
-        compose.onNodeWithText("Checkout — risk-free, everything-free").performClick()
+        compose.onNodeWithText("Checkout · ", substring = true).performClick()
 
-        // Place the order and wait out the fake processing spinner.
-        compose.onNodeWithText("Place order — pay nothing 🎉").performClick()
+        // A plain click would release the hold-to-pay button too early; place
+        // the order through its accessibility action (the screen-reader path).
+        compose.onNodeWithText("Hold to place order · \$0.00")
+            .performSemanticsAction(SemanticsActions.OnClick)
+        // "Order placed!" or the first-order milestone "First order placed!".
         compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("Order placed!").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("order placed!", substring = true, ignoreCase = true)
+                .fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Track your nothing 🚚").assertIsDisplayed()
     }

@@ -10,6 +10,8 @@ val ElectricPurpleDim = Color(0xFFCFBCFF)
 val JuicyOrange = Color(0xFFFF7A1A)
 val JuicyOrangeDim = Color(0xFFFFC59E)
 val MintGreen = Color(0xFF00D9A6)
+val SkyBlue = Color(0xFF38B6FF)
+val LemonYellow = Color(0xFFFFC83D)
 
 val CreamBg = Color(0xFFFFF7F2)
 val CreamSurface = Color(0xFFFFFFFF)

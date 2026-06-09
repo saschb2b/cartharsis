@@ -3,10 +3,12 @@ package com.cartharsis.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,12 +28,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.CartItem
 import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.MintGreen
 
@@ -45,155 +46,196 @@ fun CartScreen(
     val cart by viewModel.cart.collectAsState()
 
     if (cart.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text("🛒", fontSize = 72.sp)
-            Text(
-                text = "Your cart is empty",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp),
-            )
-            Text(
-                text = "Your serotonin doesn't have to be.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(onClick = onBrowse, modifier = Modifier.padding(top = 16.dp)) {
-                Text("Go get that dopamine")
-            }
-        }
+        EmptyCart(onBrowse)
         return
     }
 
+    val itemCount = cart.sumOf { it.quantity }
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Your cart",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Your cart",
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = if (itemCount == 1) "1 item" else "$itemCount items",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             items(cart, key = { it.product.id }) { item ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp))) {
-                            EmojiHero(item.product.emoji, Modifier.fillMaxSize(), fontSize = 30)
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                text = item.product.name,
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1,
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = formatPrice(item.product.priceCents),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                if (item.quantity > 1) {
-                                    Text(
-                                        text = " · ${formatPrice(item.totalCents)} total",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                            Row {
-                                TextButton(
-                                    onClick = { viewModel.removeFromCart(item.product.id) },
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                                ) {
-                                    Text("Remove", style = MaterialTheme.typography.labelSmall)
-                                }
-                                Spacer(Modifier.width(12.dp))
-                                TextButton(
-                                    onClick = { viewModel.moveToWishlist(item.product.id) },
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                                ) {
-                                    Text("Save for later 💖", style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                        OutlinedIconButton(onClick = {
-                            viewModel.setQuantity(item.product.id, item.quantity - 1)
-                        }) {
-                            Text("−", modifier = Modifier.clearAndSetSemantics { contentDescription = "Decrease quantity" })
-                        }
+                CartLine(item, viewModel)
+            }
+        }
+        SummaryCard(cart, viewModel, onCheckout)
+    }
+}
+
+@Composable
+private fun CartLine(item: CartItem, viewModel: ShopViewModel) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(14.dp))) {
+                    EmojiHero(
+                        emoji = item.product.emoji,
+                        modifier = Modifier.fillMaxSize(),
+                        fontSize = 32,
+                        seed = item.product.id,
+                    )
+                }
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(
+                        text = item.product.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    PriceRow(item.product)
+                    if (item.quantity > 1) {
                         Text(
-                            text = "${item.quantity}",
-                            modifier = Modifier.padding(horizontal = 10.dp),
-                            fontWeight = FontWeight.Bold,
+                            text = "${formatPrice(item.totalCents)} for ${item.quantity}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        OutlinedIconButton(onClick = {
-                            viewModel.setQuantity(item.product.id, item.quantity + 1)
-                        }) {
-                            Text("+", modifier = Modifier.clearAndSetSemantics { contentDescription = "Increase quantity" })
-                        }
                     }
                 }
             }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                val total = viewModel.cartTotalCents(cart)
-                SummaryRow("Subtotal", formatPrice(total))
-                SummaryRow("Shipping (to nowhere)", "FREE")
-                SummaryRow("Dopamine fee", "$0.00")
-                HorizontalDivider(Modifier.padding(vertical = 4.dp))
-                SummaryRow("Total", formatPrice(total), bold = true)
-                Row {
-                    Text(
-                        text = "You will actually pay: ",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        text = "$0.00",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MintGreen,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    onClick = { viewModel.removeFromCart(item.product.id) },
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                ) {
+                    Text("Remove", style = MaterialTheme.typography.labelMedium)
                 }
-                Button(onClick = onCheckout, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                    Text("Checkout — risk-free, everything-free", fontWeight = FontWeight.Bold)
+                TextButton(
+                    onClick = { viewModel.moveToWishlist(item.product.id) },
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                ) {
+                    Text("Save for later 💖", style = MaterialTheme.typography.labelMedium)
                 }
+                Spacer(Modifier.weight(1f))
+                QuantityStepper(
+                    quantity = item.quantity,
+                    onQuantityChange = { viewModel.setQuantity(item.product.id, it) },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SummaryRow(label: String, value: String, bold: Boolean = false) {
+private fun SummaryCard(
+    cart: List<CartItem>,
+    viewModel: ShopViewModel,
+    onCheckout: () -> Unit,
+) {
+    val total = viewModel.cartTotalCents(cart)
+    val dealSavings = cart.sumOf { item ->
+        item.product.originalPriceCents?.let { (it - item.product.priceCents) * item.quantity } ?: 0L
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SummaryRow("Subtotal", formatPrice(total))
+            SummaryRow("Shipping (to nowhere)", "FREE", valueColor = MintGreen)
+            if (dealSavings > 0) {
+                SummaryRow("Deal savings", "−${formatPrice(dealSavings)}", valueColor = MintGreen)
+            }
+            HorizontalDivider(Modifier.padding(vertical = 4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = formatPrice(total),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
+            Row {
+                Text(
+                    text = "You will actually pay: ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = "$0.00",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MintGreen,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+            }
+            Button(
+                onClick = onCheckout,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp),
+            ) {
+                Text("Checkout · ${formatPrice(total)}", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyCart(onBrowse: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("🛒", fontSize = 72.sp)
+        Text(
+            text = "Your cart is empty",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Text(
+            text = "Your serotonin doesn't have to be.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(onClick = onBrowse, modifier = Modifier.padding(top = 16.dp)) {
+            Text("Go get that dopamine")
+        }
+    }
+}
+
+@Composable
+private fun SummaryRow(
+    label: String,
+    value: String,
+    valueColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified,
+) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.weight(1f))
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
+            color = valueColor,
         )
     }
 }
