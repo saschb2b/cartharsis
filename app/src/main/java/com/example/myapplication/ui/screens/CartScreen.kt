@@ -27,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -112,7 +114,9 @@ fun CartScreen(
                         }
                         OutlinedIconButton(onClick = {
                             viewModel.setQuantity(item.product.id, item.quantity - 1)
-                        }) { Text("−") }
+                        }) {
+                            Text("−", modifier = Modifier.clearAndSetSemantics { contentDescription = "Decrease quantity" })
+                        }
                         Text(
                             text = "${item.quantity}",
                             modifier = Modifier.padding(horizontal = 10.dp),
@@ -120,7 +124,9 @@ fun CartScreen(
                         )
                         OutlinedIconButton(onClick = {
                             viewModel.setQuantity(item.product.id, item.quantity + 1)
-                        }) { Text("+") }
+                        }) {
+                            Text("+", modifier = Modifier.clearAndSetSemantics { contentDescription = "Increase quantity" })
+                        }
                     }
                 }
             }

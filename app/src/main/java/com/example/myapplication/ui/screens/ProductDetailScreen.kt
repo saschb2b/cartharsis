@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -68,7 +70,13 @@ fun ProductDetailScreen(
             TopAppBar(
                 title = { Text(product.category) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←", fontSize = 22.sp) }
+                    IconButton(onClick = onBack) {
+                        Text(
+                            "←",
+                            fontSize = 22.sp,
+                            modifier = Modifier.clearAndSetSemantics { contentDescription = "Back" },
+                        )
+                    }
                 },
                 actions = {
                     WishHeart(
@@ -86,13 +94,17 @@ fun ProductDetailScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedIconButton(onClick = { if (quantity > 1) quantity-- }) { Text("−") }
+                OutlinedIconButton(onClick = { if (quantity > 1) quantity-- }) {
+                    Text("−", modifier = Modifier.clearAndSetSemantics { contentDescription = "Decrease quantity" })
+                }
                 Text(
                     text = "$quantity",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
-                OutlinedIconButton(onClick = { quantity++ }) { Text("+") }
+                OutlinedIconButton(onClick = { quantity++ }) {
+                    Text("+", modifier = Modifier.clearAndSetSemantics { contentDescription = "Increase quantity" })
+                }
                 Spacer(Modifier.width(12.dp))
                 Button(
                     onClick = {

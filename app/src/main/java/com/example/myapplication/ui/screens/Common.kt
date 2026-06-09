@@ -15,10 +15,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +35,12 @@ import com.example.myapplication.ui.theme.HotPink
 
 @Composable
 fun RatingStars(rating: Double, reviewCount: Int? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val description = "Rated $rating out of 5" +
+        (reviewCount?.let { ", %,d reviews".format(it) } ?: "")
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clearAndSetSemantics { contentDescription = description },
+    ) {
         val full = rating.toInt()
         Text(
             text = "★".repeat(full) + "☆".repeat(5 - full),
@@ -138,13 +147,24 @@ fun ProductCard(
 /** Heart toggle — wanting things is free, and we keep it that way. */
 @Composable
 fun WishHeart(isWishlisted: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    Text(
-        text = if (isWishlisted) "❤️" else "🤍",
-        fontSize = 20.sp,
+    Box(
         modifier = modifier
-            .clickable(onClick = onToggle)
-            .padding(8.dp),
-    )
+            .minimumInteractiveComponentSize()
+            .clickable(
+                onClick = onToggle,
+                role = Role.Checkbox,
+                onClickLabel = if (isWishlisted) "Remove from wishlist" else "Add to wishlist",
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = if (isWishlisted) "❤️" else "🤍",
+            fontSize = 20.sp,
+            modifier = Modifier.clearAndSetSemantics {
+                contentDescription = if (isWishlisted) "Wishlisted" else "Not wishlisted"
+            },
+        )
+    }
 }
 
 fun formatCountdown(totalSeconds: Int): String = "%d:%02d".format(totalSeconds / 60, totalSeconds % 60)
