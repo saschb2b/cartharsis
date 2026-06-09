@@ -34,8 +34,10 @@ app/src/main/java/com/example/myapplication/
 ├── Notifier.kt              # Notification channel + delivery/price-drop pings
 ├── data/
 │   ├── Models.kt            # Product, Review, CartItem, Order, OrderStatus,
-│   │                        #   Product.withPriceOverride (fake price drops)
-│   └── FakeCatalog.kt       # Hardcoded products, categories, review generator
+│   │                        #   Product.withPriceOverride (fake price drops),
+│   │                        #   fakeStockLeft, streak math, price/date formatting
+│   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator
+│   └── WishlistStore.kt     # DataStore persistence: wishlist ids + urge streak
 └── ui/
     ├── theme/               # Vibrant "dopamine" palette (pink/purple/orange)
     └── screens/             # One file per screen + Common.kt shared pieces
@@ -59,8 +61,12 @@ app/src/main/java/com/example/myapplication/
   Cart lines snapshot the price at add time.
 - Navigation Compose with plain string routes (`home`, `product/{id}`, `wishlist`,
   `cart`, `checkout`, `tracking/{orderId}`, `orders`).
-- Persistence is intentionally in-memory for now (stats reset on process death);
-  DataStore is a listed future task in tasks.md.
+- Persistence: wishlist and urge streak live in DataStore Preferences
+  (`WishlistStore`/`StreakStore`, single "cartharsis" file); orders and cart are
+  intentionally in-memory and reset on process death. Persisting orders/stats is
+  a listed future task in tasks.md.
+- Notification taps deep-link via a route-string intent extra
+  (`Notifier.EXTRA_ROUTE`) consumed by MainActivity into Navigation Compose.
 
 ## Conventions
 

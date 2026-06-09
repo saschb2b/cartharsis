@@ -42,6 +42,17 @@ instead, and watch your "money not spent" counter grow.
   to check back — except the deal was always $0.00
 - 📈 **Savings stats** — total fake orders, items "bought", and a running counter of
   real money you did **not** spend
+- 🔍 **Catalog search** — find the exact nothing you're looking for, by name,
+  tagline, or category
+- 🛍️ **"Customers also bought"** — the recommendation rabbit hole, faithfully
+  reproduced on every product page
+- 🔥 **Fake scarcity** — "Only 3 left in stock (the stock is imaginary, hurry anyway)"
+- 💾 **A wishlist that remembers** — hearts and your urge-resisted streak survive
+  app restarts (DataStore); orders intentionally evaporate
+- 🔁 **Urge-resisted streak** — one fake order a day keeps the real spending away;
+  miss a day and the streak breaks, exactly like the apps that train you
+- 📲 **Notification deep links** — tap "your nothing was delivered" and land on
+  that order's live tracking, like a real shop would
 
 ## What this app will never do
 
