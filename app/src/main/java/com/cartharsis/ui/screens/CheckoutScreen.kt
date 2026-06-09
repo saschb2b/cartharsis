@@ -20,12 +20,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -55,12 +57,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -540,33 +547,145 @@ private fun SummaryLine(item: CartItem) {
     }
 }
 
-/** The "payment method". Balance: infinite, by definition. */
+/**
+ * The "payment method", drawn with real card anatomy — ISO 1.586:1 ratio,
+ * EMV chip, contactless mark, embossed digit groups, holder and expiry
+ * blocks — because the ceremony only works if the props look real.
+ * Balance: infinite, by definition.
+ */
 @Composable
 private fun ImaginationCard() {
-    Column(
+    val embossed = Shadow(color = Color.Black.copy(alpha = 0.35f), offset = Offset(0f, 3f), blurRadius = 4f)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(1.586f)
             .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(ElectricPurple, HotPink)))
-            .padding(18.dp),
+            .background(Brush.linearGradient(listOf(ElectricPurple, HotPink))),
     ) {
-        Text(
-            "IMAGINATION EXPRESS",
-            color = Color.White,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.ExtraBold,
+        // A diagonal sheen so the surface reads as plastic, not as a fill.
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(
+                    Brush.linearGradient(
+                        colorStops = arrayOf(
+                            0f to Color.White.copy(alpha = 0.18f),
+                            0.45f to Color.Transparent,
+                            1f to Color.Black.copy(alpha = 0.12f),
+                        ),
+                    ),
+                ),
         )
-        Spacer(Modifier.height(18.dp))
-        Text(
-            "••••  ••••  ••••  0000",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(Modifier.height(10.dp))
-        Row {
-            Text("BALANCE", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+        Column(Modifier.fillMaxSize().padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "IMAGINATION EXPRESS",
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.5.sp,
+                )
+                Spacer(Modifier.weight(1f))
+                ContactlessMark()
+            }
             Spacer(Modifier.weight(1f))
-            Text("∞", color = Color.White, fontWeight = FontWeight.Bold)
+            EmvChip()
+            Spacer(Modifier.height(10.dp))
+            Text(
+                "5310  0000  0000  0000",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 1.5.sp,
+                    shadow = embossed,
+                ),
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.Bottom) {
+                CardField(label = "CARD HOLDER", value = "YOUR IMAGINATION", embossed)
+                Spacer(Modifier.width(20.dp))
+                CardField(label = "VALID THRU", value = "∞∞/∞∞", embossed)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    "∞",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.titleLarge.copy(shadow = embossed),
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun CardField(label: String, value: String, shadow: Shadow) {
+    Column {
+        Text(label, color = Color.White.copy(alpha = 0.65f), fontSize = 8.sp, letterSpacing = 1.sp)
+        Text(
+            text = value,
+            color = Color.White,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontFamily = FontFamily.Monospace,
+                shadow = shadow,
+            ),
+        )
+    }
+}
+
+/** Gold contact chip, simplified to the pattern everyone recognizes. */
+@Composable
+private fun EmvChip() {
+    Canvas(Modifier.size(width = 42.dp, height = 31.dp)) {
+        drawRoundRect(
+            brush = Brush.linearGradient(listOf(Color(0xFFEED787), Color(0xFFC49A45))),
+            cornerRadius = CornerRadius(6.dp.toPx()),
+        )
+        val line = Color(0xFF8A6B2F)
+        val strokeWidth = 1.4.dp.toPx()
+        val w = size.width
+        val h = size.height
+        drawLine(line, Offset(0f, h / 2), Offset(w, h / 2), strokeWidth)
+        drawLine(line, Offset(w * 0.33f, 0f), Offset(w * 0.33f, h), strokeWidth)
+        drawLine(line, Offset(w * 0.67f, 0f), Offset(w * 0.67f, h), strokeWidth)
+        drawRoundRect(
+            color = line,
+            topLeft = Offset(w * 0.33f, h * 0.28f),
+            size = Size(w * 0.34f, h * 0.44f),
+            cornerRadius = CornerRadius(3.dp.toPx()),
+            style = Stroke(strokeWidth),
+        )
+    }
+}
+
+/** The radio-waves mark; ours broadcasts nothing, contactlessly. */
+@Composable
+private fun ContactlessMark() {
+    Canvas(Modifier.size(22.dp)) {
+        val color = Color.White.copy(alpha = 0.85f)
+        val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+        val cx = size.width * 0.18f
+        val cy = size.height * 0.5f
+        listOf(0.28f, 0.52f, 0.76f).forEach { f ->
+            val r = size.width * f
+            drawArc(
+                color = color,
+                startAngle = -38f,
+                sweepAngle = 76f,
+                useCenter = false,
+                topLeft = Offset(cx - r, cy - r),
+                size = Size(2 * r, 2 * r),
+                style = stroke,
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+private fun ImaginationCardPreview() {
+    com.cartharsis.ui.theme.CartharsisTheme {
+        ImaginationCard()
     }
 }
