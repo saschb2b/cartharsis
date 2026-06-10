@@ -1104,7 +1104,9 @@ private fun CardStackReveal(
         }
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(top = 10.dp),
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .clearAndSetSemantics { contentDescription = "Card ${index + 1} of ${cards.size}" },
         ) {
             cards.indices.forEach { i ->
                 Box(
@@ -1173,6 +1175,9 @@ private fun RipCardFace(
     Box(
         modifier = modifier
             .size(220.dp, 308.dp)
+            .clearAndSetSemantics {
+                contentDescription = if (faceDown) "A face-down card" else "${card.name}, ${card.rarity}"
+            }
             .clip(RoundedCornerShape(14.dp))
             .background(Brush.linearGradient(theme.wrapper))
             .padding(7.dp),
