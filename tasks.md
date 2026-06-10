@@ -199,5 +199,12 @@ Declined by owner: review sort/filter controls.
 - [x] Smoke test walks the signup on fresh installs; verified on emulator end to
       end (welcome → name → address → card with name → shop → personalized checkout)
 
+## Phase 17 — Bottom nav to current Material guidelines
+- [x] NavigationBar → M3 Expressive ShortNavigationBar (compact 64dp)
+- [x] Badges carry plain counts per spec (the wishlist badge's "🔻3" emoji is gone)
+- [x] Selection emphasis for emoji icons (no filled/outlined variants): full
+      opacity + springy scale on the active tab, dimmed inactive tabs; cart
+      bounce-on-add retained
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

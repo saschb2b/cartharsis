@@ -24,9 +24,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -246,11 +247,13 @@ private fun BottomBar(navController: NavHostController, viewModel: ShopViewModel
         label = "cartBounce",
     )
 
-    NavigationBar {
+    // M3 Expressive's compact 64dp bar; badges carry plain counts per spec.
+    ShortNavigationBar {
         tabs.forEach { tab ->
             val isCart = tab.route == "cart"
-            NavigationBarItem(
-                selected = currentRoute == tab.route,
+            val selected = currentRoute == tab.route
+            ShortNavigationBarItem(
+                selected = selected,
                 onClick = {
                     navController.navigate(tab.route) {
                         popUpTo("home")
@@ -264,14 +267,14 @@ private fun BottomBar(navController: NavHostController, viewModel: ShopViewModel
                                 Badge(modifier = Modifier.animateContentSize()) { Text("$cartCount") }
                             }
                             if (tab.route == "wishlist" && dropCount > 0) {
-                                Badge { Text("🔻$dropCount") }
+                                Badge { Text("$dropCount") }
                             }
                         },
                     ) {
-                        Text(
-                            text = tab.emoji,
-                            fontSize = 22.sp,
-                            modifier = if (isCart) Modifier.scale(scale) else Modifier,
+                        TabEmoji(
+                            emoji = tab.emoji,
+                            selected = selected,
+                            extraScale = if (isCart) scale else 1f,
                         )
                     }
                 },
@@ -279,4 +282,29 @@ private fun BottomBar(navController: NavHostController, viewModel: ShopViewModel
             )
         }
     }
+}
+
+/**
+ * Emoji can't switch between outlined and filled variants the way M3 icons
+ * mark selection, so the active state reads through emphasis instead: full
+ * opacity plus a springy nudge up.
+ */
+@Composable
+private fun TabEmoji(emoji: String, selected: Boolean, extraScale: Float = 1f) {
+    val alpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.55f,
+        label = "tabAlpha",
+    )
+    val selectionScale by animateFloatAsState(
+        targetValue = if (selected) 1.12f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "tabScale",
+    )
+    Text(
+        text = emoji,
+        fontSize = 20.sp,
+        modifier = Modifier
+            .alpha(alpha)
+            .scale(selectionScale * extraScale),
+    )
 }
