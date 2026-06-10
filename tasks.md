@@ -268,5 +268,24 @@ Declined by owner: review sort/filter controls.
       bundles would add realism, but the bundle concept needs a data-model change and
       a rival ecosystem is a judgment call on how far to mirror the real duopoly.
 
+## Phase 22 — Console bundles & variants (Amazon pattern, researched)
+- [x] Researched Amazon's Switch-2-style bundle/variant merchandising; built to the
+      real pattern, dark patterns (fake strikethroughs, sum-as-savings) excluded
+- [x] Bundles: additive `Product.includes` + "What's included" PDP card; 5 console
+      bundles as separate listings (pack-in game, extra controller, starter kit,
+      everything, MK-II combo), each priced honestly below the sum of its parts
+- [x] Variants: additive `variantGroup`/`variantLabel`/`variantAxis`; sibling
+      listings + a PDP swatch row that swaps the displayed sibling in place
+      (selectedId, no re-nav). Meteor Pro Controller colorways (Carbon Black +
+      Volcanic Red/Starlight Blue/Sterling Silver) and a Swift console
+      Standard/Digital Edition split. Color axis shows dots; other axes label-only
+- [x] Tests: bundle honesty (real contents + real savings) and variant-group
+      integrity (≥2 siblings, one axis, distinct labels). 28 → 30 tests
+- [x] 230 → 234 products; docs (CLAUDE.md model/conventions) updated; verified on
+      emulator (bundle includes card; color + edition swaps change name/price/reviews)
+- Open proposal (still owner's call): a rival console brand, console+game cart
+      bundles via a real "Frequently bought together / Add all" block (honest sum),
+      and a swatch UI on the home grid card
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

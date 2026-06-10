@@ -44,8 +44,10 @@ app/src/main/java/com/cartharsis/
 ├── data/
 │   ├── Models.kt            # Product, Review, CartItem, Order, OrderStatus,
 │   │                        #   Product.withPriceOverride (fake price drops),
+│   │                        #   bundle `includes` + `variantGroup`/`variantLabel`,
 │   │                        #   fakeStockLeft, streak math, price/date formatting
-│   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator
+│   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator,
+│   │                        #   variantsOf(group) for swatch siblings
 │   ├── NotificationPolicy.kt # Pure when-to-ping rules (background-only, quiet
 │   │                        #   hours, price-drop cooldown)
 │   └── WishlistStore.kt     # DataStore persistence: wishlist, profile, stats,
@@ -79,6 +81,13 @@ app/src/main/java/com/cartharsis/
 - Price drops are an overlay map (`priceDrops: id → cents`) applied at display/
   cart-add time via `Product.withPriceOverride` — the catalog itself is immutable.
   Cart lines snapshot the price at add time.
+- Bundles & variants mimic Amazon (researched). A bundle is an ordinary product
+  with a non-empty `includes` list (rendered as a "What's included" card);
+  bundle prices stay honestly below the sum of parts — no fabricated
+  strikethroughs. Variants are sibling listings sharing a `variantGroup` (each
+  its own id/price/reviews, like Amazon's separate ASINs); the PDP shows a
+  `variantAxis` swatch row ("Color"/"Edition") and swaps the displayed sibling
+  in place via a local `selectedId`. Invariants are locked by FakeShopTest.
 - Navigation Compose with plain string routes (`home`, `product/{id}`, `wishlist`,
   `cart`, `checkout`, `tracking/{orderId}`, `orders`).
 - Persistence: wishlist, urge streak, lifetime stats, the user's reviews, and
