@@ -29,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Product
 import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.CartharsisTheme
@@ -61,6 +63,23 @@ import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.MintGreen
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
+
+/** "colors" / "editions" / "options" for the grid variant hint, pluralized. */
+fun variantNoun(axis: String, count: Int): String {
+    val base = when (axis) {
+        "Color" -> "color"
+        "Edition" -> "edition"
+        "Capacity" -> "capacity"
+        else -> "option"
+    }
+    return if (count == 1) {
+        base
+    } else if (base == "capacity") {
+        "capacities"
+    } else {
+        base + "s"
+    }
+}
 
 /** "12,473" is for receipts; cards say "12.5k". */
 fun formatCompactCount(n: Int): String = when {
@@ -324,6 +343,18 @@ fun ProductCard(
                 RatingBadge(rating = product.rating, reviewCount = product.reviewCount)
                 // The image badge already announces the deal; one badge per card.
                 PriceRow(product, showDiscountBadge = false)
+                // Amazon-style "N options" hint so variants are discoverable
+                // from the grid, not only on the base listing.
+                product.variantGroup?.let { group ->
+                    val count = remember(group) { FakeCatalog.variantsOf(group).size }
+                    if (count > 1) {
+                        Text(
+                            text = "$count ${variantNoun(product.variantAxis, count)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
     }
