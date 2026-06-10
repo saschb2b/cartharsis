@@ -206,5 +206,12 @@ Declined by owner: review sort/filter controls.
       opacity + springy scale on the active tab, dimmed inactive tabs; cart
       bounce-on-add retained
 
+## Phase 18 — Payment success chime
+- [x] Chime helper (SoundPool, sonification audio attributes) + success_chime in
+      res/raw; fires together with the haptic at checkmark stroke completion
+- [x] Source file was Ogg/FLAC, which SoundPool silently fails to load —
+      transcoded to Ogg/Vorbis; playback verified via the audio service's player
+      events on the emulator
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

@@ -39,6 +39,8 @@ app/src/main/java/com/cartharsis/
 ├── ShopViewModel.kt         # All app state: catalog, cart, wishlist, price drops,
 │                            #   orders, delivery sim, stats (AndroidViewModel)
 ├── Notifier.kt              # Notification channel + delivery/price-drop pings
+├── Chime.kt                 # SoundPool UI sounds (res/raw, Ogg/Vorbis only —
+│                            #   SoundPool can't decode Opus/FLAC)
 ├── data/
 │   ├── Models.kt            # Product, Review, CartItem, Order, OrderStatus,
 │   │                        #   Product.withPriceOverride (fake price drops),
@@ -95,8 +97,10 @@ app/src/main/java/com/cartharsis/
   one badge max per card. Shared shop components (cards, stepper, price row,
   section header) live in `ui/screens/Common.kt` — reuse, don't fork.
 - Reward moments (from the reward-psychology research pass): ceremony = gesture →
-  suspense → resolution (hold-to-pay → fake-labor lines → checkmark + haptic at
-  stroke completion). One big celebration per flow, scaled to the milestone;
+  suspense → resolution (hold-to-pay → fake-labor lines → checkmark + haptic +
+  chime at stroke completion). Sound, haptic, and visual fire at the same
+  instant — `Chime.play*()` sits next to `performHapticFeedback()`, never on
+  its own timeline. One big celebration per flow, scaled to the milestone;
   cumulative numbers tick up rather than appear; randomness stays decorative and
   free. Never: confirmshaming, loss-framed streaks, urgency that pressures the
   decision (post-commit anticipation countdowns are fine).

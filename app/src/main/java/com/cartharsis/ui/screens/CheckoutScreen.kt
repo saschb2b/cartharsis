@@ -75,6 +75,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.ProfileStore
@@ -259,9 +260,10 @@ fun CheckoutScreen(
                 } else {
                     AnimatedCheckmark(
                         onDrawn = {
-                            // Haptic fires at the exact moment the stroke completes,
-                            // then one breath before the celebration.
+                            // Haptic and chime fire at the exact moment the stroke
+                            // completes, then one breath before the celebration.
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            Chime.playSuccess()
                             scope.launch {
                                 delay(250)
                                 phase = CheckoutPhase.Success(viewModel.placeOrder())
