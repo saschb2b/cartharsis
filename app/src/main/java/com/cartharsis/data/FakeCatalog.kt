@@ -1442,6 +1442,48 @@ object FakeCatalog {
                 "wellness ritual without the gym membership — or the membership fee.",
             29_900, "Self-Care", 4.4, 3905, originalPriceCents = 39_900,
         ),
+
+        // Fitness — the home-setup gear trending right now.
+        product(
+            "StrideDesk Walking Pad", "🚶",
+            "Ten thousand steps under your desk.",
+            "A slim, foldable treadmill that slides under a standing desk and walks " +
+                "you through the workday at a gentle pace, with a remote and quiet " +
+                "motor. Steps you'd have taken anyway, now indoors and imaginary.",
+            29_900, "Fitness", 4.6, 12877, originalPriceCents = 36_900,
+        ),
+        product(
+            "PulseRecover Compression Boots", "🦵",
+            "The athlete recovery, at home.",
+            "Knee-high boots with sequential air compression that flush tired legs " +
+                "after a long run or a long day, with multiple modes and a quiet " +
+                "pump. Twenty minutes to fresh legs. Recovery from exertion not had.",
+            34_900, "Fitness", 4.7, 4622,
+        ),
+        product(
+            "ShiftBell Adjustable Kettlebell", "🏋️",
+            "Six kettlebells in one.",
+            "A single bell that dials from 5 to 18kg with a twist of the handle, " +
+                "saving a rack of iron and a corner of the room. Smooth swings, " +
+                "honest weight. The home gym you keep meaning to use.",
+            14_900, "Fitness", 4.7, 6105,
+        ),
+        product(
+            "BodyScan Smart Scale", "⚖️",
+            "Weight is just the first number.",
+            "A glass scale that reads body composition — fat, muscle, water, bone — " +
+                "and syncs the trend to your phone so you watch the line, not the " +
+                "day. Greets you each morning with data you didn't pay for.",
+            5_900, "Fitness", 4.5, 15330,
+        ),
+        product(
+            "Ruck Weighted Vest, 9kg", "🎽",
+            "Turn a walk into a workout.",
+            "A snug 9kg vest with evenly distributed plates and a no-bounce fit for " +
+                "rucking, walks, and bodyweight days. The simplest way to make any " +
+                "movement count. Adds load to your stride, not your statement.",
+            8_900, "Fitness", 4.6, 5471, originalPriceCents = 10_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
