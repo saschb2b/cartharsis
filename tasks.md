@@ -226,5 +226,28 @@ Declined by owner: review sort/filter controls.
       zero extra shade noise; same background-only policy
 - [x] CLAUDE.md tracking notes updated for the unbox beat
 
+## Phase 20 — Current-product catalog expansion (autopilot)
+- [x] 125 → 209 products; every category lifted to 10+, Tech to 26, 54 sale anchors
+- [x] Filled the "current real-life product" gap with invented brands per niche:
+      Tech (smart ring, e-reader, power station, AI glasses, action cam, Wi-Fi 7,
+      e-ink notebook, trackers, GaN charger, portable monitor); Audio (portable
+      speaker, soundbar, IEMs, bone-conduction, party speaker); Gaming (retro
+      handheld, racing wheel, chair, capture card, cozy + co-op titles); Kitchen
+      (40oz tumbler, nugget ice, pizza oven, blender, soda maker, gooseneck kettle);
+      Beauty (LED mask, multi-styler, gua sha, lip oil, SPF serum); Self-Care (red
+      light, sunrise alarm, neck/eye massagers, sauna blanket); Fitness (walking
+      pad, recovery boots, adjustable kettlebell, smart scale, weighted vest);
+      Snacks (freeze-dried candy, chili crisp, hot honey, electrolytes, kunafa bar,
+      matcha); Outdoors (e-scooter, solar panel, insulated bottle, trekking poles,
+      packable down); Pets (self-cleaning litter, GPS tracker, slow feeder, donut
+      bed, DNA kit); Fashion (parachute cargos, sling bag, shearling clogs, puffer
+      vest, wide-leg denim); Hobbies (bird-feeder cam, pottery wheel, diamond
+      painting, terrarium, brick bouquet, mushroom kit); Stationery (fineliners,
+      mechanical pencil, annotation kit, shimmer ink, brush markers); Home (video
+      doorbell, smart lock, e-ink calendar, LED strip, smart plugs); Chaos (plush
+      crocodile, Bigfoot statue, knife duck, 200 rubber ducks, sumo suits)
+- [x] Appended after Mystery Box so all existing product ids stay stable
+- [x] README product count + examples refreshed; one commit per category, tests green
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

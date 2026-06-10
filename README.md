@@ -21,7 +21,7 @@
 
 ## A real shop, selling nothing
 
-Browse 124 products across 15 categories, written like a real marketplace: invented brands, plausible specs, honest-looking prices. Phones, hi-fi, gaming gear, skincare, camping kit, fried chicken, a decorative sword, and one premium brick. Flash deals rotate, wishlist prices mysteriously drop, and the recommendation rabbit hole goes as deep as you want.
+Browse 200+ products across 15 categories, written like a real marketplace: invented brands, plausible specs, honest-looking prices. The shelves mirror what people actually doom-scroll into carts right now — a smart ring, an e-ink reader, a 40oz insulated tumbler, an LED face mask, an under-desk walking pad, a pizza oven, a self-cleaning litter box, freeze-dried candy, the viral pistachio-kunafa chocolate bar — alongside fried chicken, a decorative sword, and one premium brick. Flash deals rotate, wishlist prices mysteriously drop, and the recommendation rabbit hole goes as deep as you want.
 
 ## A checkout that feels like the real thing
 
