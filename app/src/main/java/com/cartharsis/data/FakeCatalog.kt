@@ -1711,6 +1711,49 @@ object FakeCatalog {
                 "grow indoors. Spores of satisfaction; zero actual mushrooms shipped.",
             2_200, "Hobbies", 4.6, 7219,
         ),
+
+        // Stationery — the journaling and annotation haul.
+        product(
+            "Fineliner Pen Set, 24 Colors", "🖊️",
+            "Bullet-journal spreads, sorted.",
+            "Twenty-four fine-tip pens in a gradient of colors that don't bleed " +
+                "through thin paper, perfect for headers, habit trackers, and " +
+                "doodles. The set that launches a thousand spreads you'll never fill.",
+            1_900, "Stationery", 4.8, 16433,
+        ),
+        product(
+            "Self-Sharpening Mechanical Pencil", "✏️",
+            "A point that never goes blunt.",
+            "A 0.5mm mechanical pencil whose lead rotates as you write to stay " +
+                "needle-sharp, with a cushioned grip and a break-resistant sleeve. " +
+                "The drafting cult favorite. Writes the to-do list it never delivers.",
+            1_400, "Stationery", 4.7, 8902,
+        ),
+        product(
+            "Book Annotation Kit", "📑",
+            "Mark up your novels like a scholar.",
+            "Pastel highlighters that won't ghost through pages, a wall of sticky " +
+                "tabs, and tiny page flags — the BookTok annotation starter every " +
+                "reader suddenly needs. Turns reading into a craft. Pages sold " +
+                "separately, and imaginarily.",
+            2_200, "Stationery", 4.8, 12715, originalPriceCents = 2_900,
+        ),
+        product(
+            "Shimmer Fountain Pen Ink", "🫗",
+            "Words that catch the light.",
+            "A bottle of richly saturated fountain-pen ink threaded with fine " +
+                "shimmer that settles into the strokes as they dry. Pairs with the " +
+                "brass pen you also won't receive. Sheens gloriously on paper unseen.",
+            1_600, "Stationery", 4.6, 4188,
+        ),
+        product(
+            "Brush Lettering Marker Set", "🖌️",
+            "Hand-lettering, starter to show-off.",
+            "Dual-tip brush markers with a flexible nib for thick-and-thin strokes " +
+                "and a practice pad with guides, in soft and bold colorways. The " +
+                "calligraphy habit you keep meaning to pick up. Strokes free, forever.",
+            2_400, "Stationery", 4.7, 6510,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
