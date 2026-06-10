@@ -1,6 +1,8 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
@@ -107,7 +109,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     }
     LaunchedEffect(celebrate) {
         if (celebrate) {
-            delay(2_800)
+            delay(3_800)
             celebrate = false
         }
     }
@@ -140,8 +142,29 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                 // decorative, stable per order so revisits keep the same ride.
                 val vehicle = remember(orderId) { if ((orderId * 31 + 7) % 8 == 0) "🚀" else "🛵" }
                 if (order.status == OrderStatus.DELIVERED) {
+                    // The haul: one emoji per ordered line. A Mystery Box shows
+                    // what it hypothetically held — that's the content you came
+                    // to see — rather than its own ❓.
+                    val haul = remember(order.id) {
+                        order.items.map { line ->
+                            if (line.product.id == FakeCatalog.mysteryBox.id) {
+                                FakeCatalog.mysteryRevealFor(order.id).emoji
+                            } else {
+                                line.product.emoji
+                            }
+                        }.take(7)
+                    }
+                    // `unboxed` (ViewModel) is the durable "opened ever" flag;
+                    // `revealing` is local so the burst plays only on the live
+                    // tap, never on a revisit.
+                    var revealing by remember(orderId) { mutableStateOf(false) }
+                    val phase = when {
+                        !unboxed -> UnboxPhase.Sealed
+                        revealing -> UnboxPhase.Revealing
+                        else -> UnboxPhase.Opened
+                    }
                     AnimatedContent(
-                        targetState = unboxed,
+                        targetState = phase,
                         label = "unbox",
                         transitionSpec = {
                             (
@@ -151,17 +174,21 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                 ) + fadeIn()
                                 ).togetherWith(fadeOut(tween(120)))
                         },
-                    ) { opened ->
-                        if (opened) {
-                            DeliveredCelebration(order, onShopMore)
-                        } else {
-                            SealedParcel(
+                    ) { ph ->
+                        when (ph) {
+                            UnboxPhase.Sealed -> SealedParcel(
                                 onUnbox = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    revealing = true
                                     viewModel.markUnboxed(order.id)
                                     celebrate = true
                                 },
                             )
+                            UnboxPhase.Revealing -> UnboxingReveal(
+                                haul = haul,
+                                onFinished = { revealing = false },
+                            )
+                            UnboxPhase.Opened -> DeliveredCelebration(order, onShopMore)
                         }
                     }
                 } else {
@@ -485,6 +512,97 @@ private fun ItemsCard(order: Order) {
             }
         }
     }
+}
+
+private enum class UnboxPhase { Sealed, Revealing, Opened }
+
+/**
+ * The missing middle of the unbox: the box bursts open, the haul erupts as
+ * big emoji and hangs proud for a beat, then floats up and evaporates into
+ * nothing — the dissolve itself is the punchline, handing off to the calm
+ * "nothing has arrived" truth. Hand-rolled from one 0→1 driver.
+ */
+@Composable
+private fun UnboxingReveal(haul: List<String>, onFinished: () -> Unit) {
+    val t = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        t.animateTo(1f, tween(durationMillis = 2_800, easing = LinearEasing))
+        onFinished()
+    }
+    val p = t.value
+    val burst = (p / 0.32f).coerceIn(0f, 1f)
+    val dissolve = ((p - 0.64f) / 0.36f).coerceIn(0f, 1f)
+
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        BoxWithConstraints(
+            Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .clearAndSetSemantics { contentDescription = "Unboxing your order" },
+        ) {
+            val w = maxWidth.value
+            val h = maxHeight.value
+            val boxX = w / 2f
+            val boxY = h * 0.64f
+            val rowY = h * 0.46f
+            val n = haul.size
+            val mid = (n - 1) / 2f
+            val spacing = if (n <= 1) 0f else minOf(64f, (w * 0.74f) / n)
+
+            // Celebratory headline; fades out as the haul evaporates.
+            Text(
+                text = "Ta-da! ✨",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 28.dp)
+                    .alpha(burst * (1f - dissolve)),
+            )
+
+            // The box, popping its lid as the haul leaves, then dissolving too.
+            Text(
+                text = "📦",
+                fontSize = 56.sp,
+                modifier = Modifier
+                    .offset(x = (boxX - 28f).dp, y = (boxY - 28f).dp)
+                    .scale(1f + 0.18f * easeOutBack((burst * 1.4f).coerceAtMost(1f)) * (1f - burst * 0.4f))
+                    .alpha(1f - dissolve),
+            )
+
+            haul.forEachIndexed { i, emoji ->
+                val targetX = boxX + (i - mid) * spacing
+                val arcLift = (mid - kotlin.math.abs(i - mid)) * 7f
+                val targetY = rowY - arcLift
+                val localBurst = easeOutBack(
+                    (((p - i * 0.05f) / 0.32f)).coerceIn(0f, 1f),
+                )
+                val x = boxX + (targetX - boxX) * localBurst
+                val y = boxY + (targetY - boxY) * localBurst - dissolve * 120f
+                val scale = 0.2f + 0.85f * localBurst.coerceIn(0f, 1f)
+                Text(
+                    text = emoji,
+                    fontSize = 46.sp,
+                    modifier = Modifier
+                        .offset(x = (x - 25f).dp, y = (y - 25f).dp)
+                        .scale(scale)
+                        .rotate((i - mid) * 7f)
+                        .alpha(1f - dissolve),
+                )
+            }
+        }
+    }
+}
+
+/** Overshoot ease — the springy pop that makes a reveal feel alive. */
+private fun easeOutBack(x: Float): Float {
+    val c1 = 1.70158f
+    val c3 = c1 + 1f
+    val u = x - 1f
+    return 1f + c3 * u * u * u + c1 * u * u
 }
 
 /** The parcel wiggles just enough to say "I'm waiting"; the tap is the payoff. */
