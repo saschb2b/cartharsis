@@ -181,6 +181,7 @@ object FakeCatalog {
         includes: List<String> = emptyList(),
         variantGroup: String? = null,
         variantLabel: String? = null,
+        variantAxis: String = "Color",
     ): Product {
         val id = nextId++
         return Product(
@@ -189,6 +190,7 @@ object FakeCatalog {
             includes = includes,
             variantGroup = variantGroup,
             variantLabel = variantLabel,
+            variantAxis = variantAxis,
         )
     }
 
@@ -1858,6 +1860,7 @@ object FakeCatalog {
                 "screen. The whole library, anywhere in the house. Travels nowhere, " +
                 "here.",
             39_900, "Gaming", 4.8, 24611, originalPriceCents = 44_900,
+            variantGroup = "meteor-swift", variantLabel = "Standard", variantAxis = "Edition",
         ),
         product(
             "Vortex Aurora Wireless Headset", "🎧",
@@ -2092,6 +2095,17 @@ object FakeCatalog {
                 "the touch, theoretical in the hand.",
             7_900, "Gaming", 4.8, 3677, originalPriceCents = 8_900,
             variantGroup = "meteor-pro-controller", variantLabel = "Sterling Silver",
+        ),
+        // Console edition variant — the standard/digital split (Switch-2 style),
+        // a separate listing that shares the Swift's Edition swatch row.
+        product(
+            "Meteor Swift — Digital Edition", "🎮",
+            "The same console, download-only.",
+            "The full Meteor Swift hardware without the game-card slot, for players " +
+                "who buy everything from the store. Lighter on the shelf and on the " +
+                "price. The library is digital; the delivery, nonexistent.",
+            34_900, "Gaming", 4.6, 9882,
+            variantGroup = "meteor-swift", variantLabel = "Digital", variantAxis = "Edition",
         ),
     )
 

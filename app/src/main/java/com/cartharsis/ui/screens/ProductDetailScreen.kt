@@ -501,18 +501,23 @@ private fun VariantPicker(axis: String, variants: List<Product>, selectedId: Int
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                     ) {
-                        Box(
-                            Modifier
-                                .size(14.dp)
-                                .clip(CircleShape)
-                                .background(swatchColor(v.variantLabel))
-                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
-                        )
+                        // A color dot only makes sense for the Color axis; an
+                        // Edition/Capacity swatch is just its label.
+                        if (axis == "Color") {
+                            Box(
+                                Modifier
+                                    .size(14.dp)
+                                    .clip(CircleShape)
+                                    .background(swatchColor(v.variantLabel))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                    .padding(end = 8.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                        }
                         Text(
                             text = v.variantLabel.orEmpty(),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                            modifier = Modifier.padding(start = 8.dp),
                         )
                     }
                 }
