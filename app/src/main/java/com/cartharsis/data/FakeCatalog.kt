@@ -1841,6 +1841,77 @@ object FakeCatalog {
                 "dignity. The single greatest purchase you will never unbox.",
             7_900, "Chaos", 4.7, 5288,
         ),
+
+        // Gaming — the current-gen console ecosystem and accessories.
+        product(
+            "Meteor Swift Hybrid Console", "🎮",
+            "Dock it for the TV, grab it for the couch.",
+            "A hybrid console that plays in 4K docked and snaps into a 7-inch OLED " +
+                "handheld in one motion, with detachable controllers and a 90Hz " +
+                "screen. The whole library, anywhere in the house. Travels nowhere, " +
+                "here.",
+            39_900, "Gaming", 4.8, 24611, originalPriceCents = 44_900,
+        ),
+        product(
+            "Vortex Aurora Wireless Headset", "🎧",
+            "Hear the footsteps before they hear you.",
+            "A low-latency wireless gaming headset with 50mm drivers, spatial audio, " +
+                "a flip-to-mute boom mic, and a 40-hour battery that recharges while " +
+                "you play. Plush enough for a raid night. Hears every gunshot that " +
+                "never fires.",
+            14_900, "Gaming", 4.7, 13402,
+        ),
+        product(
+            "Meteor Charge Base + Extra Controller", "🔋",
+            "A second pad, always topped up.",
+            "A spare wireless controller in midnight blue plus a magnetic dock that " +
+                "charges two pads to full in an hour and ends the dead-battery " +
+                "scramble mid-match. Co-op, sorted. The friend to use it with sold " +
+                "separately.",
+            9_400, "Gaming", 4.6, 7188, originalPriceCents = 11_900,
+        ),
+        product(
+            "Meteor 2TB Storage Expansion Card", "💾",
+            "Stop uninstalling to install.",
+            "A plug-and-play expansion card that doubles your console's storage at " +
+                "full internal speed — no enclosure, no fuss, just slot it in. Forty " +
+                "more games you'll mean to finish. Zero of them arriving.",
+            27_900, "Gaming", 4.7, 5530,
+        ),
+        product(
+            "Wisp Travel Case", "🧳",
+            "Armor for your handheld.",
+            "A hard-shell case molded for the Wisp, with a shock-absorbing liner, " +
+                "mesh pockets for cables and game cards, and a low-profile carry " +
+                "loop. Protects the handheld on every trip it won't be taking.",
+            2_900, "Gaming", 4.8, 9044,
+        ),
+        product(
+            "Vortex Arcade FightStick", "🕹️",
+            "Pull off the combo you keep dropping.",
+            "A tournament-grade arcade stick with a clicky lever, eight low-travel " +
+                "buttons, and swappable parts for the fighting-game faithful. Lap-" +
+                "sized and rock-solid. Lands the finisher in a match that never " +
+                "loads.",
+            19_900, "Gaming", 4.6, 4377,
+        ),
+        product(
+            "Meteor Vertical Cooling Stand", "🌀",
+            "Stand it up, cool it down, charge the pads.",
+            "A vertical stand with twin whisper-fans, two controller charging slots, " +
+                "and game-case storage that tidies the whole console corner. Keeps " +
+                "the system cool during marathons it'll never run.",
+            3_900, "Gaming", 4.5, 6622,
+        ),
+        product(
+            "Wisp Grip & Power Bank", "🔌",
+            "Doubles the battery, fixes the cramp.",
+            "A clip-on grip that wraps the handheld in ergonomic handles and a " +
+                "built-in battery for a full extra charge on the go, with " +
+                "pass-through play. The long flight's best friend. Boards no flight, " +
+                "naturally.",
+            4_400, "Gaming", 4.6, 5119, originalPriceCents = 5_400,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
