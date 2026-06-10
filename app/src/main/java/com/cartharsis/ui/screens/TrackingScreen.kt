@@ -75,8 +75,7 @@ import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
-import com.cartharsis.ui.theme.ElectricPurple
-import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.LocalSavingsColor
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,6 +205,7 @@ private fun CourierMap(progress: Float, onTheWay: Boolean, vehicle: String) {
             // The traveled part fills in solid — progress you can watch. Trail
             // and courier share the goal-gradient easing so they stay glued.
             val eased = (progress * progress + progress) / 2f
+            val routeColor = MaterialTheme.colorScheme.secondary
             Canvas(Modifier.fillMaxSize()) {
                 val path = Path().apply {
                     moveTo(size.width * 0.08f, size.height * 0.75f)
@@ -217,7 +217,7 @@ private fun CourierMap(progress: Float, onTheWay: Boolean, vehicle: String) {
                 }
                 drawPath(
                     path = path,
-                    color = ElectricPurple.copy(alpha = 0.35f),
+                    color = routeColor.copy(alpha = 0.35f),
                     style = Stroke(
                         width = 6f,
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 14f)),
@@ -229,7 +229,7 @@ private fun CourierMap(progress: Float, onTheWay: Boolean, vehicle: String) {
                     measure.getSegment(0f, measure.length * eased.coerceIn(0f, 1f), traveled, true)
                     drawPath(
                         path = traveled,
-                        color = ElectricPurple,
+                        color = routeColor,
                         style = Stroke(width = 9f, cap = StrokeCap.Round),
                     )
                 }
@@ -493,7 +493,11 @@ private fun ItemsCard(order: Order) {
             Row(Modifier.padding(top = 4.dp)) {
                 Text("Money kept", fontWeight = FontWeight.Bold)
                 Spacer(Modifier.weight(1f))
-                Text(formatPrice(order.totalCents), fontWeight = FontWeight.ExtraBold, color = MintGreen)
+                Text(
+                    text = formatPrice(order.totalCents),
+                    fontWeight = FontWeight.ExtraBold,
+                    color = LocalSavingsColor.current,
+                )
             }
         }
     }
@@ -651,7 +655,7 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
             Text(
                 text = "${animatedDollars(order.totalCents, delayMillis = 300)} still yours",
                 style = MaterialTheme.typography.headlineSmall,
-                color = MintGreen,
+                color = LocalSavingsColor.current,
                 modifier = Modifier.padding(top = 8.dp),
             )
             if (order.items.any { it.product.id == FakeCatalog.mysteryBox.id }) {

@@ -1,6 +1,5 @@
 package com.cartharsis.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,7 +90,7 @@ fun WishlistScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onBr
             val product = viewModel.displayProduct(base)
             val hasDrop = base.id in priceDrops
             Card(
-                modifier = Modifier.clickable { onProductClick(base.id) },
+                onClick = { onProductClick(base.id) },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Row(

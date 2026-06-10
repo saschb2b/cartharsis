@@ -10,6 +10,7 @@ val ElectricPurpleDim = Color(0xFFCFBCFF)
 val JuicyOrange = Color(0xFFFF7A1A)
 val JuicyOrangeDim = Color(0xFFFFC59E)
 val MintGreen = Color(0xFF00D9A6)
+val MintGreenDeep = Color(0xFF008066) // savings text on light cream — MintGreen is ~1.8:1 there
 val SkyBlue = Color(0xFF38B6FF)
 val LemonYellow = Color(0xFFFFC83D)
 

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -69,8 +70,7 @@ import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.withPriceOverride
-import com.cartharsis.ui.theme.JuicyOrange
-import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.LocalSavingsColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -200,9 +200,11 @@ fun ProductDetailScreen(
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable(onClickLabel = "Jump to reviews") {
-                        jumpToReviews()
-                    },
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clickable(onClickLabel = "Jump to reviews") {
+                            jumpToReviews()
+                        },
                 ) {
                     RatingStars(rating = product.rating, reviewCount = product.reviewCount)
                     Text(
@@ -219,7 +221,7 @@ fun ProductDetailScreen(
                             text = "You save ${formatPrice(original - product.priceCents)} " +
                                 "(and also the other ${formatPrice(product.priceCents)})",
                             style = MaterialTheme.typography.labelLarge,
-                            color = MintGreen,
+                            color = LocalSavingsColor.current,
                             fontWeight = FontWeight.Bold,
                         )
                     }
@@ -228,7 +230,7 @@ fun ProductDetailScreen(
                             text = "Only $left left in stock, allegedly",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = JuicyOrange,
+                            color = MaterialTheme.colorScheme.tertiary,
                         )
                     }
                 }
@@ -442,7 +444,7 @@ private fun BundleIncludesCard(includes: List<String>) {
                         text = "✓",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MintGreen,
+                        color = LocalSavingsColor.current,
                     )
                     Text(
                         text = line,
@@ -479,49 +481,57 @@ private fun VariantPicker(axis: String, variants: List<Product>, selectedId: Int
         ) {
             variants.forEach { v ->
                 val selected = v.id == selectedId
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.secondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surface
-                    },
-                    border = BorderStroke(
-                        width = if (selected) 2.dp else 1.dp,
-                        color = if (selected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.outlineVariant
-                        },
-                    ),
-                    modifier = Modifier.clickable(
-                        onClickLabel = "Choose ${v.variantLabel}",
-                        role = Role.RadioButton,
-                        onClick = { onSelect(v.id) },
-                    ),
+                // The visible pill stays compact; the surrounding box carries the
+                // 48dp touch target and the radio-group (selected) semantics.
+                Box(
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .selectable(
+                            selected = selected,
+                            role = Role.RadioButton,
+                            onClick = { onSelect(v.id) },
+                        ),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        },
+                        border = BorderStroke(
+                            width = if (selected) 2.dp else 1.dp,
+                            color = if (selected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            },
+                        ),
                     ) {
-                        // A color dot only makes sense for the Color axis; an
-                        // Edition/Capacity swatch is just its label.
-                        if (axis == "Color") {
-                            Box(
-                                Modifier
-                                    .size(14.dp)
-                                    .clip(CircleShape)
-                                    .background(swatchColor(v.variantLabel))
-                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                    .padding(end = 8.dp),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        ) {
+                            // A color dot only makes sense for the Color axis; an
+                            // Edition/Capacity swatch is just its label.
+                            if (axis == "Color") {
+                                Box(
+                                    Modifier
+                                        .size(14.dp)
+                                        .clip(CircleShape)
+                                        .background(swatchColor(v.variantLabel))
+                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                        .padding(end = 8.dp),
+                                )
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(
+                                text = v.variantLabel.orEmpty(),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                             )
-                            Spacer(Modifier.width(8.dp))
                         }
-                        Text(
-                            text = v.variantLabel.orEmpty(),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                        )
                     }
                 }
             }
@@ -804,7 +814,7 @@ private fun ReviewCard(author: String, rating: Int, text: String, ageLabel: Stri
                     Text(
                         text = "✓ Verified non-buyer",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MintGreen,
+                        color = LocalSavingsColor.current,
                     )
                 }
                 Text(

@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,7 +68,7 @@ import com.cartharsis.data.nextSavingsMilestone
 import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
-import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.LocalSavingsColor
 import kotlinx.coroutines.delay
 
 @Composable
@@ -325,8 +324,8 @@ private fun SavingsVault(centsKept: Long) {
         animationSpec = tween(durationMillis = 900, delayMillis = 250),
         label = "vaultFill",
     )
-    val liquidTop = MintGreen
-    val liquidBottom = MintGreen.copy(alpha = 0.65f)
+    val liquidTop = LocalSavingsColor.current
+    val liquidBottom = liquidTop.copy(alpha = 0.65f)
     val outline = MaterialTheme.colorScheme.outlineVariant
     val glass = MaterialTheme.colorScheme.surfaceVariant
 
@@ -401,14 +400,14 @@ private fun SavingsVault(centsKept: Long) {
                         text = "${formatPrice(next - centsKept)} to go",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = MintGreen,
+                        color = LocalSavingsColor.current,
                     )
                 } else {
                     Text(
                         text = "Top tier reached 🏔️",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = MintGreen,
+                        color = LocalSavingsColor.current,
                     )
                     Text(
                         text = "and still climbing",
@@ -543,7 +542,7 @@ private fun StatChip(emoji: String, value: String, label: String, modifier: Modi
 @Composable
 private fun OrderCard(order: com.cartharsis.data.Order, onOrderClick: (Int) -> Unit) {
     Card(
-        modifier = Modifier.clickable { onOrderClick(order.id) },
+        onClick = { onOrderClick(order.id) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -613,7 +612,7 @@ private fun OrderCard(order: com.cartharsis.data.Order, onOrderClick: (Int) -> U
                     text = formatPrice(order.totalCents),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MintGreen,
+                    color = LocalSavingsColor.current,
                 )
             }
         }

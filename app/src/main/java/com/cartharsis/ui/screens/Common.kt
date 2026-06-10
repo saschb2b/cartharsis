@@ -409,7 +409,8 @@ fun ProductCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = modifier,
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -465,9 +466,8 @@ fun ProductCard(
 @Composable
 fun MiniProductCard(product: Product, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .width(132.dp)
-            .clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = Modifier.width(132.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),

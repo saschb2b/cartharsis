@@ -5,7 +5,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+
+/**
+ * Extended color role for savings / money-kept accents (the one accent the
+ * conventions allow beside CTAs). Brand MintGreen reads fine on dark surfaces
+ * but fails text contrast on the light cream ones, so light theme deepens it.
+ * Decorative uses (confetti, shelf gradients, alpha washes) keep raw MintGreen.
+ */
+val LocalSavingsColor = staticCompositionLocalOf { MintGreen }
 
 private val DarkColorScheme = darkColorScheme(
     primary = HotPink,
@@ -52,9 +62,11 @@ private val LightColorScheme = lightColorScheme(
 // Dynamic color is deliberately off: the dopamine palette IS the brand.
 @Composable
 fun CartharsisTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        typography = Typography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalSavingsColor provides if (darkTheme) MintGreen else MintGreenDeep) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = Typography,
+            content = content,
+        )
+    }
 }

@@ -80,7 +80,7 @@ import com.cartharsis.data.ProfileStore
 import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
-import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.LocalSavingsColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -386,6 +386,7 @@ private fun AnimatedCheckmark(onDrawn: () -> Unit) {
         t.animateTo(1f, tween(durationMillis = 380, easing = FastOutSlowInEasing))
         onDrawn()
     }
+    val savings = LocalSavingsColor.current
     Canvas(
         Modifier
             .size(96.dp)
@@ -393,7 +394,7 @@ private fun AnimatedCheckmark(onDrawn: () -> Unit) {
     ) {
         val stroke = Stroke(width = 10f, cap = StrokeCap.Round)
         drawArc(
-            color = MintGreen,
+            color = savings,
             startAngle = -90f,
             sweepAngle = 360f * (t.value * 1.5f).coerceAtMost(1f),
             useCenter = false,
@@ -409,7 +410,7 @@ private fun AnimatedCheckmark(onDrawn: () -> Unit) {
             val measure = PathMeasure().apply { setPath(check, false) }
             val partial = Path()
             measure.getSegment(0f, measure.length * checkT, partial, true)
-            drawPath(partial, MintGreen, style = stroke)
+            drawPath(partial, savings, style = stroke)
         }
     }
 }
@@ -459,7 +460,7 @@ private fun SuccessScreen(
                 Text(
                     text = "${animatedDollars(it.totalCents, delayMillis = 400)} stays yours",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MintGreen,
+                    color = LocalSavingsColor.current,
                     modifier = Modifier.padding(top = 10.dp),
                 )
             }

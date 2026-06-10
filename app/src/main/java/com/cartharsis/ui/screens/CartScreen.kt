@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.formatPrice
-import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.LocalSavingsColor
 
 @Composable
 fun CartScreen(viewModel: ShopViewModel, onCheckout: () -> Unit, onBrowse: () -> Unit) {
@@ -148,9 +148,9 @@ private fun SummaryCard(cart: List<CartItem>, viewModel: ShopViewModel, onChecko
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             SummaryRow("Subtotal", formatPrice(total))
-            SummaryRow("Shipping (to nowhere)", "FREE", valueColor = MintGreen)
+            SummaryRow("Shipping (to nowhere)", "FREE", valueColor = LocalSavingsColor.current)
             if (dealSavings > 0) {
-                SummaryRow("Deal savings", "−${formatPrice(dealSavings)}", valueColor = MintGreen)
+                SummaryRow("Deal savings", "−${formatPrice(dealSavings)}", valueColor = LocalSavingsColor.current)
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -171,7 +171,7 @@ private fun SummaryCard(cart: List<CartItem>, viewModel: ShopViewModel, onChecko
                 Text(
                     text = "$0.00",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MintGreen,
+                    color = LocalSavingsColor.current,
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
