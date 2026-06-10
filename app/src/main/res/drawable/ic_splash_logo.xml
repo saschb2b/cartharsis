@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The splash mark: a shopping bag holding a heart — wanting things is free.
+     Hand-drawn for the dopamine palette; everything stays inside the 36dp-
+     radius circle the Android 12+ splash mask clips to. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Handle (drawn first so the bag body overlaps its ends). -->
+    <path
+        android:pathData="M45,52 V44 A9,9 0 0 1 63,44 V52"
+        android:strokeColor="#7C4DFF"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round" />
+    <!-- Bag body — a gentle trapezoid so it reads "bag", not "padlock". -->
+    <path
+        android:fillColor="#FF2E88"
+        android:pathData="M39,50 H69 C70.5,50 71.8,51.1 72,52.6 L74.6,71.5 C75.2,75.5 72.1,79 68,79 H40 C35.9,79 32.8,75.5 33.4,71.5 L36,52.6 C36.2,51.1 37.5,50 39,50 Z" />
+    <!-- The heart inside. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,59.5 C52.6,56.8 49,55.8 47.2,58.2 C45.4,60.6 46.8,63.4 54,68.5 C61.2,63.4 62.6,60.6 60.8,58.2 C59,55.8 55.4,56.8 54,59.5 Z" />
+</vector>

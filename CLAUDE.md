@@ -35,7 +35,11 @@ Single-activity Jetpack Compose app, MVVM, no DI framework.
 
 ```
 app/src/main/java/com/cartharsis/
-├── MainActivity.kt          # NavHost + bottom bar, notification permission request
+├── MainActivity.kt          # NavHost + bottom bar, notification permission
+│                            #   request, branded splash (core-splashscreen:
+│                            #   bag-with-heart mark on cream/night, held via
+│                            #   setKeepOnScreenCondition until the DataStore
+│                            #   profile loads — no white flash, no blank frame)
 ├── ShopViewModel.kt         # All app state: catalog, cart, wishlist, price drops,
 │                            #   orders, delivery sim, stats (AndroidViewModel)
 ├── Notifier.kt              # Notification channel + delivery/price-drop pings

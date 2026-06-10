@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Cartharsis" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Cartharsis" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Matches the Compose background so the frame between splash exit
+             and first composition is invisible in both light and dark. -->
+        <item name="android:windowBackground">@color/splash_background</item>
+    </style>
+
+    <!-- Cold-start splash: brand mark on the app's own background instead of
+         the default launcher icon on white. MainActivity installs this and
+         holds it until the DataStore profile arrives, so the splash hands
+         straight to real content — never to a blank window. -->
+    <style name="Theme.Cartharsis.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Cartharsis</item>
+    </style>
 </resources>

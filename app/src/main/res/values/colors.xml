@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- CreamBg from the Compose palette — the splash and the window behind
+         the first Compose frame share the app's real background, so cold
+         start never flashes white. values-night overrides with NightBg. -->
+    <color name="splash_background">#FFF7F2</color>
+</resources>

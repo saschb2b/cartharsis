@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.animation.DecelerateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -67,7 +69,24 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Hold the splash through the DataStore profile read so cold start
+        // hands straight from the brand mark to real content — the old flow
+        // flashed the default icon on white, then a blank window while
+        // `profile` was still null.
+        splash.setKeepOnScreenCondition { shopViewModel.profile.value == null }
+        // A soft exit: the splash lifts and fades instead of blinking off.
+        splash.setOnExitAnimationListener { provider ->
+            provider.view.animate()
+                .alpha(0f)
+                .scaleX(1.06f)
+                .scaleY(1.06f)
+                .setDuration(220)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction { provider.remove() }
+                .start()
+        }
         enableEdgeToEdge()
         Notifier.ensureChannels(this)
         Chime.init(this)

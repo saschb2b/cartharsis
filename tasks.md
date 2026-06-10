@@ -366,5 +366,16 @@ Declined by owner: review sort/filter controls.
       completion → celebration card keeps the "top pull" record
       (FakeCatalog.packRipFor, tested; verified live on emulator)
 
+## Phase 28 — Branded launch screen
+- [x] Replaced the default icon-on-white system splash with a branded one
+      (androidx core-splashscreen): hand-drawn bag-with-heart vector on the
+      app's cream/night background (values-night variant), gentle scale+fade
+      exit animation
+- [x] Splash held via setKeepOnScreenCondition until the DataStore profile
+      loads — kills both the white flash and the blank `profile == null`
+      window; Theme.Cartharsis windowBackground now matches the Compose
+      background for an invisible handoff
+- [x] Verified cold start on emulator in light and dark mode
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
