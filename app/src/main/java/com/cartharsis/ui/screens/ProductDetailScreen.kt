@@ -235,6 +235,10 @@ fun ProductDetailScreen(
                     }
                 }
 
+                if (product.isBundle) {
+                    BundleIncludesCard(product.includes)
+                }
+
                 DeliveryCard()
 
                 FilledTonalButton(
@@ -382,6 +386,43 @@ private fun DeliveryCard() {
             DeliveryLine("🚚", DELIVERY_PROMISE)
             DeliveryLine("💳", "$0.00 at checkout — Imagination Express accepted")
             DeliveryLine("🧘", "Returns unnecessary; nothing will arrive")
+        }
+    }
+}
+
+/** "What's included" — the bundle contents, Amazon's in-the-box list. */
+@Composable
+private fun BundleIncludesCard(includes: List<String>) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "📦 What's included",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            includes.forEach { line ->
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = "✓",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MintGreen,
+                    )
+                    Text(
+                        text = line,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
         }
     }
 }

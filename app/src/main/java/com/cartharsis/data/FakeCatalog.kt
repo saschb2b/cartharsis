@@ -178,11 +178,13 @@ object FakeCatalog {
         rating: Double,
         reviewCount: Int,
         originalPriceCents: Long? = null,
+        includes: List<String> = emptyList(),
     ): Product {
         val id = nextId++
         return Product(
             id, name, emoji, tagline, description, priceCents, category,
             rating, reviewCount, reviewsFor(id, category), originalPriceCents,
+            includes = includes,
         )
     }
 
@@ -1981,6 +1983,78 @@ object FakeCatalog {
                 "weather, and a career that rewards a clean apex. Pairs perfectly " +
                 "with a force-feedback wheel. The podium remains, as ever, imaginary.",
             5_900, "Gaming", 4.6, 21344,
+        ),
+
+        // Gaming — console bundles (separate listings + "What's included",
+        // Amazon-style). Each bundle price is honestly below the sum of its
+        // parts, so the savings shown are real, not a fabricated strikethrough.
+        product(
+            "Meteor Swift + Turbo Kart Bundle", "🎮",
+            "The console and the game everyone starts with.",
+            "The hybrid Meteor Swift paired with a full download of Turbo Kart " +
+                "Carnival — the pack-in bundle that is most people's first box. One " +
+                "price, one unboxing, zero of it arriving.",
+            42_900, "Gaming", 4.8, 18402, originalPriceCents = 45_800,
+            includes = listOf(
+                "Meteor Swift Hybrid Console",
+                "Turbo Kart Carnival (full game download)",
+                "Two detachable controllers + grip",
+            ),
+        ),
+        product(
+            "Meteor Swift + Extra Controller Bundle", "🎮",
+            "Co-op ready, straight out of the box.",
+            "The Meteor Swift with a second wireless controller in midnight blue and " +
+                "a magnetic charging dock, so the couch is two-player from minute " +
+                "one. The friend to play with is, as ever, sold separately.",
+            45_900, "Gaming", 4.7, 9120, originalPriceCents = 49_300,
+            includes = listOf(
+                "Meteor Swift Hybrid Console",
+                "Extra wireless controller (midnight blue)",
+                "Magnetic dual charging dock",
+            ),
+        ),
+        product(
+            "Meteor Swift Starter Kit", "🎮",
+            "Console plus the accessories you'd buy next.",
+            "The Meteor Swift bundled with the protection a new handheld needs — a " +
+                "hard travel case, a tempered-glass guard, and a spare cable. " +
+                "Everything to keep safe the device that never ships.",
+            41_900, "Gaming", 4.8, 6755, originalPriceCents = 44_700,
+            includes = listOf(
+                "Meteor Swift Hybrid Console",
+                "Hard-shell travel case",
+                "Tempered-glass screen protector",
+                "Extra USB-C charging cable",
+            ),
+        ),
+        product(
+            "Meteor Swift Everything Bundle", "🎮",
+            "Console, a game, and a year online.",
+            "The Meteor Swift with a full game of Pitch Legends 26 and a 12-month " +
+                "Meteor Online membership for the seasons your group chat will live " +
+                "in. The whole first year, packed into one box of nothing.",
+            47_900, "Gaming", 4.7, 5288, originalPriceCents = 51_700,
+            includes = listOf(
+                "Meteor Swift Hybrid Console",
+                "Pitch Legends 26 (full game)",
+                "12-month Meteor Online membership",
+                "Cloud-save expansion",
+            ),
+        ),
+        product(
+            "Meteor MK-II + Redline GT Bundle", "🎮",
+            "The 4K console, set up for the sim seat.",
+            "The flagship Meteor MK-II with a full download of Redline GT 5 and an " +
+                "extra controller — the home-console bundle built for the living " +
+                "room. Add a force-feedback wheel and the podium is yours, " +
+                "hypothetically.",
+            57_900, "Gaming", 4.8, 7611, originalPriceCents = 62_700,
+            includes = listOf(
+                "Meteor MK-II Console (2TB)",
+                "Redline GT 5 (full game)",
+                "Extra Meteor Pro Controller",
+            ),
         ),
     )
 

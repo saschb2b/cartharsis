@@ -15,9 +15,18 @@ data class Product(
     val reviews: List<Review>,
     /** When set, the product is "on sale" and this is the crossed-out price. */
     val originalPriceCents: Long? = null,
+    /**
+     * Bundle contents, one human line each ("Meteor Swift console", "Turbo Kart
+     * Carnival (full game)"). Empty for ordinary products; non-empty turns the
+     * listing into a bundle with a "What's included" card, mirroring how Amazon
+     * sells a console+game as its own listing.
+     */
+    val includes: List<String> = emptyList(),
 ) {
     val discountPercent: Int?
         get() = originalPriceCents?.let { ((1 - priceCents.toDouble() / it) * 100).toInt() }
+
+    val isBundle: Boolean get() = includes.isNotEmpty()
 }
 
 /** A review the user wrote themselves — the one voice the pool can't fake. */
