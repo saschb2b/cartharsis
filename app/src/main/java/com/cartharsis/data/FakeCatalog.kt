@@ -1357,6 +1357,48 @@ object FakeCatalog {
                 "timer. Your coffee phase, fully equipped, indefinitely deferred.",
             9_900, "Kitchen", 4.8, 7320, originalPriceCents = 12_900,
         ),
+
+        // Beauty — the routine upgrades all over your feed.
+        product(
+            "Lumi LED Face Mask", "💆",
+            "Salon light therapy at home.",
+            "A flexible silicone mask with red and near-infrared LEDs for a " +
+                "ten-minute glow session, clinically the kind of thing influencers " +
+                "swear by. Hands-free, cordless. The eerie glow is the whole vibe.",
+            27_900, "Beauty", 4.6, 8455, originalPriceCents = 34_900,
+        ),
+        product(
+            "AirStyle Multi-Styler", "💨",
+            "Dry, curl, and smooth — no extreme heat.",
+            "A styling wand that curls with airflow instead of scorching plates, " +
+                "with magnetic attachments for waves, volume, and a fast blow-dry. " +
+                "The viral one. Transforms your hair, leaves your wallet untouched.",
+            44_900, "Beauty", 4.7, 15602,
+        ),
+        product(
+            "Jade Gua Sha Sculpt Set", "🪨",
+            "The five-minute facial massage.",
+            "A genuine jade gua sha stone and a dual-ended roller for a morning " +
+                "de-puff and a nightly wind-down, with a guide card of the strokes. " +
+                "Cool to the touch, calming by design.",
+            2_900, "Beauty", 4.5, 6188,
+        ),
+        product(
+            "Plumping Lip Oil", "💋",
+            "Gloss that actually cares.",
+            "A non-sticky tinted lip oil with hyaluronic acid and a peppermint " +
+                "tingle that leaves lips fuller and glassy. Five sheer shades. The " +
+                "one in everyone's bag this season.",
+            2_400, "Beauty", 4.6, 19744,
+        ),
+        product(
+            "Invisible SPF50 Serum", "🧴",
+            "The sunscreen step you'll actually keep.",
+            "A weightless SPF50 PA++++ serum that vanishes with no white cast and no " +
+                "pilling under makeup, packed with niacinamide. The single best " +
+                "anti-aging habit, bottled. Protects skin; spares savings.",
+            3_400, "Beauty", 4.8, 22019,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
