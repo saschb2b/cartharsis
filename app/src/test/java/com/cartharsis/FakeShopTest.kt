@@ -44,6 +44,22 @@ class FakeShopTest {
     }
 
     @Test
+    fun `bundles list real contents and only ever show honest savings`() {
+        val bundles = FakeCatalog.products.filter { it.isBundle }
+        assertTrue("expected some bundles in the catalog", bundles.isNotEmpty())
+        bundles.forEach { b ->
+            // A bundle is two or more things, by definition.
+            assertTrue("${b.name} lists fewer than 2 items", b.includes.size >= 2)
+            // If it advertises a saving, the strikethrough must be a genuinely
+            // higher reference and the discount sane — never a fabricated deal.
+            b.originalPriceCents?.let { original ->
+                assertTrue("${b.name} strikethrough isn't a saving", original > b.priceCents)
+                assertTrue("${b.name} discount looks fabricated: ${b.discountPercent}", b.discountPercent!! in 1..40)
+            }
+        }
+    }
+
+    @Test
     fun `every browsable category is stocked deep enough to not look thin`() {
         // The "All" chip isn't a real category; every other one should fill
         // the grid. Locks in the catalog-depth pass against silent regressions.
