@@ -1534,6 +1534,49 @@ object FakeCatalog {
                 "aesthetic morning you keep saving to a folder.",
             3_400, "Snacks", 4.7, 8642,
         ),
+
+        // Outdoors — the commute-and-trail gear of the moment.
+        product(
+            "Glide E-Scooter", "🛴",
+            "Skip the traffic, fold the commute.",
+            "A folding electric scooter with a 40km range, hill-eating torque, " +
+                "puncture-proof tires, and a one-second fold for the train. App-" +
+                "locked and light enough to carry upstairs. The car-free errand, " +
+                "deferred.",
+            49_900, "Outdoors", 4.6, 7188, originalPriceCents = 59_900,
+        ),
+        product(
+            "SunFold 100W Solar Panel", "🌞",
+            "Sunlight in, devices charged.",
+            "A foldable 100W panel that unrolls at camp and feeds a power station or " +
+                "phones directly, weatherproof with a built-in kickstand. Off-grid " +
+                "power from a clear sky. Pairs with the Voltstack you also won't get.",
+            17_900, "Outdoors", 4.5, 2940,
+        ),
+        product(
+            "Summit 32oz Insulated Bottle", "🍶",
+            "Cold for 24 hours, rugged for years.",
+            "A double-wall stainless bottle with a leakproof lid, a chug spout and a " +
+                "straw cap in the box, and a powder coat that shrugs off drops. The " +
+                "trail-and-desk companion you'll never quite fill.",
+            3_900, "Outdoors", 4.8, 21055,
+        ),
+        product(
+            "Trail Carbon Trekking Poles", "🥾",
+            "Save your knees on the way down.",
+            "Featherweight carbon poles with quick-flip locks, cork grips that wick " +
+                "sweat, and snow baskets included, collapsing to fit a daypack. The " +
+                "descent gets kinder. The summit stays hypothetical.",
+            6_900, "Outdoors", 4.7, 4318,
+        ),
+        product(
+            "Featherlite Packable Down Jacket", "🧥",
+            "Real warmth that stuffs into its pocket.",
+            "An 800-fill down jacket that packs to the size of a grapefruit, blocks " +
+                "wind, and weighs almost nothing in the bag. The just-in-case layer " +
+                "for every trip. Warms the version of you that travels.",
+            12_900, "Outdoors", 4.8, 8807, originalPriceCents = 15_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
