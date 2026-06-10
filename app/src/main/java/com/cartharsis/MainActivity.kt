@@ -222,6 +222,7 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                 OrdersScreen(
                     viewModel = viewModel,
                     onOrderClick = { navController.navigate("tracking/$it") },
+                    onBrowse = { navController.navigate("home") { popUpTo("home") } },
                 )
             }
         }

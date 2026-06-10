@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -64,10 +66,17 @@ import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.MintGreen
 
 @Composable
-fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit) {
+fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit, onBrowse: () -> Unit = {}) {
     val orders by viewModel.orders.collectAsState()
     val streakDays by viewModel.streakDays.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()
+
+    // A brand-new user (never ordered) gets an inviting, value-first screen
+    // instead of a lonely $0 hero and an empty list.
+    if (stats.ordersPlaced == 0 && orders.isEmpty()) {
+        FirstVisit(onBrowse)
+        return
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -138,6 +147,77 @@ fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit) {
 
         items(orders, key = { it.id }) { order ->
             OrderCard(order, onOrderClick)
+        }
+    }
+}
+
+/**
+ * The empty state, onboarding the *value* (not the mechanics): a friendly
+ * pitch, a ghost preview of the kept-total hero you're about to start filling,
+ * and one CTA. Inviting "not yet," never lonely "nothing."
+ */
+@Composable
+private fun FirstVisit(onBrowse: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text("🧘", fontSize = 64.sp)
+        Text(
+            text = "Your impact starts here",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            text = "Every order here is money you didn't spend. Place your first " +
+                "one — it costs \$0.00 — and watch this fill up.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        // A ghost preview of the kept-total hero, so emptiness reads as "soon".
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 28.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(HotPink.copy(alpha = 0.25f), ElectricPurple.copy(alpha = 0.25f)),
+                    ),
+                )
+                .padding(horizontal = 20.dp, vertical = 22.dp),
+        ) {
+            Column {
+                Text(
+                    text = "MONEY YOU KEPT",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = "$0",
+                    fontSize = 52.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                )
+                Text(
+                    text = "soon: a flight, a vacation, a lot of coffees",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+        }
+        Button(
+            onClick = onBrowse,
+            modifier = Modifier.padding(top = 28.dp).height(50.dp),
+        ) {
+            Text("Browse the catalog →", fontWeight = FontWeight.Bold)
         }
     }
 }
