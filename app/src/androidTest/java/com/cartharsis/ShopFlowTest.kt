@@ -6,7 +6,6 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
@@ -46,8 +45,15 @@ class ShopFlowTest {
         }
         compose.onNodeWithText("Cartharsis").assertIsDisplayed()
 
-        // Open the first catalog product and add it to the cart.
-        compose.onAllNodesWithText("AuraPhone 17 Ultra Max").onFirst().performClick()
+        // The home grid is shuffled per open, so search to surface a known
+        // product deterministically (search results are unshuffled). A partial
+        // query avoids colliding with the product card's full-name text node.
+        compose.onNodeWithText("Search for things you'll never receive")
+            .performTextInput("Ultra Max")
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("AuraPhone 17 Ultra Max").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("AuraPhone 17 Ultra Max").performClick()
         compose.onNodeWithText("Add to cart").performClick()
 
         // Bottom bar → cart → checkout.
