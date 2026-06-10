@@ -2,6 +2,7 @@ package com.cartharsis
 
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.HomeShelf
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.UserReview
@@ -13,6 +14,7 @@ import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.homeGreeting
 import com.cartharsis.data.homeOrder
+import com.cartharsis.data.homeShelves
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.withPriceOverride
 import org.junit.Assert.assertEquals
@@ -136,6 +138,32 @@ class FakeShopTest {
         assertEquals(ordered, homeOrder(catalog, 123L))
         // Different seeds almost surely reorder a 200+ item list.
         assertTrue(homeOrder(catalog, 1L) != homeOrder(catalog, 2L))
+    }
+
+    @Test
+    fun `home shelves are full, non-repeating, daily-stable, and personalize`() {
+        val cat = FakeCatalog.products
+        val shelves = homeShelves(
+            cat, seed = 99L, recentlyViewedIds = emptyList(), wishlistIds = emptySet(),
+            hourOfDay = 14, epochDay = 20_000L,
+        )
+        // Up to `count` shelves, each filled (no thin rows), no product repeated
+        // down the page (deduped across shelves).
+        assertTrue(shelves.isNotEmpty() && shelves.size <= 5)
+        shelves.forEach { assertTrue("${it.title} too thin", it.products.size >= 4) }
+        val allIds = shelves.flatMap { it.products.map { p -> p.id } }
+        assertEquals("a product repeated across shelves", allIds.size, allIds.toSet().size)
+
+        // The daily collection is stable within a day regardless of open-seed...
+        val a = homeShelves(cat, 1L, emptyList(), emptySet(), 14, 20_000L).first()
+        val b = homeShelves(cat, 2L, emptyList(), emptySet(), 14, 20_000L).first()
+        assertEquals(a.title, b.title)
+        assertEquals(a.products.map { it.id }, b.products.map { it.id })
+
+        // ...and the personalized row appears only when there's history.
+        val titles = { s: List<HomeShelf> -> s.map { it.title } }
+        val withHistory = homeShelves(cat, 5L, listOf(cat[3].id, cat[7].id), setOf(cat[1].id), 14, 20_000L)
+        assertTrue(titles(withHistory).any { it.startsWith("Rediscover") })
     }
 
     @Test

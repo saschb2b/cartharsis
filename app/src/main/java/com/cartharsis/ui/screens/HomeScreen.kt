@@ -45,6 +45,7 @@ import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.homeGreeting
 import com.cartharsis.data.homeOrder
+import com.cartharsis.data.homeShelves
 import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
@@ -98,6 +99,19 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         // never leads with the same product twice; search stays stable.
         val ordered = if (query.isBlank()) homeOrder(collapsed, homeSeed) else collapsed
         ordered.map { it.withPriceOverride(priceDrops[it.id]) }
+    }
+
+    // Themed shelves, recomputed only when the seed changes (a fresh open), so
+    // they stay put while you browse but renew on every re-open.
+    val shelves = remember(homeSeed) {
+        homeShelves(
+            catalog = viewModel.catalog,
+            seed = homeSeed,
+            recentlyViewedIds = recentlyViewed,
+            wishlistIds = wishlist,
+            hourOfDay = hourOfDayFor(homeSeed),
+            epochDay = viewModel.todayEpochDayValue,
+        )
     }
 
     LazyVerticalGrid(
@@ -210,6 +224,29 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                             MiniProductCard(
                                 product = viewModel.displayProduct(recent),
                                 onClick = { onProductClick(recent.id) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Themed shelves — the freshness engine, default browse view only.
+        if (query.isBlank() && selectedCategory == "All") {
+            items(shelves, span = { GridItemSpan(maxLineSpan) }, key = { "shelf-${it.title}" }) { shelf ->
+                Column(Modifier.animateItem()) {
+                    SectionHeader(
+                        title = shelf.title,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        shelf.products.forEach { p ->
+                            MiniProductCard(
+                                product = viewModel.displayProduct(p),
+                                onClick = { onProductClick(p.id) },
                             )
                         }
                     }
