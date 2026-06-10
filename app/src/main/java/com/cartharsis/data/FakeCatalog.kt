@@ -1619,6 +1619,48 @@ object FakeCatalog {
                 "Answers the mystery. Becomes one, by never arriving.",
             9_900, "Pets", 4.6, 6077,
         ),
+
+        // Fashion — the silhouette everyone's wearing this season.
+        product(
+            "Parachute Cargo Pants", "👖",
+            "Billowy, pocketed, everywhere.",
+            "Lightweight ripstop cargos with a toggle hem, a relaxed parachute leg, " +
+                "and pockets for things you'll never carry. The pant that took over " +
+                "the feed. Looks effortless; arrives as effort, unrewarded.",
+            6_900, "Fashion", 4.6, 13420,
+        ),
+        product(
+            "Everyday Sling Bag", "🎒",
+            "Phone, keys, charger — across the chest.",
+            "A compact crossbody sling in water-repellent nylon with a magnetic " +
+                "buckle and just-enough organization for a daily carry or a travel " +
+                "day. Swings to the front in a second. Carries nothing, stylishly.",
+            4_400, "Fashion", 4.7, 16702, originalPriceCents = 5_900,
+        ),
+        product(
+            "Suede Shearling Clogs", "🥿",
+            "The cozy slip-on that goes outside.",
+            "Suede clogs with a contoured cork-latex footbed and a wool shearling " +
+                "lining, backless for the kick-on-and-go life. The comfort shoe that " +
+                "became a flex. Pairs with everything you won't be wearing it with.",
+            8_900, "Fashion", 4.7, 9531,
+        ),
+        product(
+            "Quilted Puffer Vest", "🦺",
+            "The layer that does all the work.",
+            "A lightly insulated quilted vest that throws over a hoodie or under a " +
+                "coat, with a stand collar and zip pockets. The transitional-weather " +
+                "MVP. Keeps your core warm in theory, your wallet warm in fact.",
+            7_900, "Fashion", 4.6, 7044,
+        ),
+        product(
+            "Wide-Leg Rigid Denim", "👖",
+            "Denim, finally relaxed.",
+            "A high-rise, wide-leg jean in rigid cotton that breaks in beautifully " +
+                "and puddles just right over a sneaker or a clog. The fit that " +
+                "retired the skinny. Sized true; shipped never.",
+            8_900, "Fashion", 4.5, 10288, originalPriceCents = 11_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
