@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -208,12 +207,7 @@ fun SectionHeader(
  * animates its width so multi-digit quantities don't jump the layout.
  */
 @Composable
-fun QuantityStepper(
-    quantity: Int,
-    onQuantityChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    min: Int = 1,
-) {
+fun QuantityStepper(quantity: Int, onQuantityChange: (Int) -> Unit, modifier: Modifier = Modifier, min: Int = 1) {
     Surface(
         shape = CircleShape,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -257,8 +251,11 @@ private fun StepButton(glyph: String, label: String, enabled: Boolean, onClick: 
         Text(
             text = glyph,
             style = MaterialTheme.typography.titleMedium,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            color = if (enabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+            },
             modifier = Modifier.clearAndSetSemantics { contentDescription = label },
         )
     }

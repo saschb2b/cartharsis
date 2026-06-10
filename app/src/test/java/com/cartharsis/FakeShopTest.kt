@@ -5,10 +5,10 @@ import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.UserReview
-import com.cartharsis.data.decodeUserReview
-import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.advanceStreak
+import com.cartharsis.data.decodeUserReview
 import com.cartharsis.data.effectiveStreak
+import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.plusProduct

@@ -25,11 +25,10 @@ private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
  */
 object WishlistStore {
 
-    suspend fun load(context: Context): Set<Int> =
-        context.dataStore.data.first()[WISHLIST_KEY]
-            .orEmpty()
-            .mapNotNull { it.toIntOrNull() }
-            .toSet()
+    suspend fun load(context: Context): Set<Int> = context.dataStore.data.first()[WISHLIST_KEY]
+        .orEmpty()
+        .mapNotNull { it.toIntOrNull() }
+        .toSet()
 
     suspend fun save(context: Context, ids: Set<Int>) {
         context.dataStore.edit { prefs ->
@@ -44,11 +43,10 @@ object WishlistStore {
  */
 object ReviewStore {
 
-    suspend fun load(context: Context): Map<Int, UserReview> =
-        context.dataStore.data.first()[USER_REVIEWS_KEY]
-            .orEmpty()
-            .mapNotNull(::decodeUserReview)
-            .associateBy { it.productId }
+    suspend fun load(context: Context): Map<Int, UserReview> = context.dataStore.data.first()[USER_REVIEWS_KEY]
+        .orEmpty()
+        .mapNotNull(::decodeUserReview)
+        .associateBy { it.productId }
 
     suspend fun save(context: Context, reviews: Map<Int, UserReview>) {
         context.dataStore.edit { prefs ->

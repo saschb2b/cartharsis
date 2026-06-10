@@ -34,10 +34,7 @@ import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.MintGreen
 
 @Composable
-fun OrdersScreen(
-    viewModel: ShopViewModel,
-    onOrderClick: (Int) -> Unit,
-) {
+fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit) {
     val orders by viewModel.orders.collectAsState()
     val streakDays by viewModel.streakDays.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()

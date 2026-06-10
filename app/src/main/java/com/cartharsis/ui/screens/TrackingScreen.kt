@@ -70,12 +70,7 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackingScreen(
-    viewModel: ShopViewModel,
-    orderId: Int,
-    onBack: () -> Unit,
-    onShopMore: () -> Unit,
-) {
+fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, onShopMore: () -> Unit) {
     val orders by viewModel.orders.collectAsState()
     val order = orders.firstOrNull { it.id == orderId } ?: return
 
@@ -197,6 +192,7 @@ private fun CourierMap(progress: Float, onTheWay: Boolean, vehicle: String) {
 private fun Courier(progress: Float, onTheWay: Boolean, vehicle: String) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val t = progress.coerceIn(0f, 1f)
+
         // Same cubic Bézier as the canvas path, evaluated at t.
         fun cubic(p0: Float, p1: Float, p2: Float, p3: Float): Float {
             val u = 1 - t
@@ -210,7 +206,9 @@ private fun Courier(progress: Float, onTheWay: Boolean, vehicle: String) {
                 animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
                 label = "bobValue",
             ).value
-        } else 0f
+        } else {
+            0f
+        }
         val x = cubic(0.08f, 0.35f, 0.6f, 0.92f) * maxWidth.value
         val y = cubic(0.75f, 0.15f, 1.0f, 0.3f) * maxHeight.value
         Text(
@@ -232,7 +230,9 @@ private fun HomePin(nearArrival: Boolean, modifier: Modifier = Modifier) {
             animationSpec = infiniteRepeatable(tween(450), RepeatMode.Reverse),
             label = "homeScale",
         ).value
-    } else 1f
+    } else {
+        1f
+    }
     Text("🏠", fontSize = 26.sp, modifier = modifier.scale(scale))
 }
 
@@ -351,7 +351,9 @@ private fun TrackerNode(status: OrderStatus, orderStatus: OrderStatus) {
             animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
             label = "nodeScale",
         ).value
-    } else 1f
+    } else {
+        1f
+    }
     val stateLabel = when {
         current -> "current"
         reached -> "done"
@@ -359,8 +361,11 @@ private fun TrackerNode(status: OrderStatus, orderStatus: OrderStatus) {
     }
     Surface(
         shape = CircleShape,
-        color = if (reached) MaterialTheme.colorScheme.primaryContainer
-        else MaterialTheme.colorScheme.surfaceVariant,
+        color = if (reached) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
         modifier = Modifier
             .size(40.dp)
             .scale(scale)

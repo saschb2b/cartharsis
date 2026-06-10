@@ -15,8 +15,7 @@ object NotificationPolicy {
     const val QUIET_START_HOUR = 22
     const val QUIET_END_HOUR = 8
 
-    fun isQuietHour(hourOfDay: Int): Boolean =
-        hourOfDay >= QUIET_START_HOUR || hourOfDay < QUIET_END_HOUR
+    fun isQuietHour(hourOfDay: Int): Boolean = hourOfDay >= QUIET_START_HOUR || hourOfDay < QUIET_END_HOUR
 
     /**
      * Delivery pings fire only when the app is in the background; in the
@@ -30,12 +29,7 @@ object NotificationPolicy {
      * Price-drop pings are the optional garnish, so every gate applies:
      * background only, daytime only, and at most one per cooldown window.
      */
-    fun shouldPingPriceDrop(
-        appVisible: Boolean,
-        hourOfDay: Int,
-        lastPingMillis: Long,
-        nowMillis: Long,
-    ): Boolean =
+    fun shouldPingPriceDrop(appVisible: Boolean, hourOfDay: Int, lastPingMillis: Long, nowMillis: Long): Boolean =
         !appVisible &&
             !isQuietHour(hourOfDay) &&
             nowMillis - lastPingMillis >= DROP_PING_COOLDOWN_MILLIS

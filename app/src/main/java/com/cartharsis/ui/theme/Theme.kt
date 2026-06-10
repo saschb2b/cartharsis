@@ -51,13 +51,10 @@ private val LightColorScheme = lightColorScheme(
 
 // Dynamic color is deliberately off: the dopamine palette IS the brand.
 @Composable
-fun CartharsisTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
+fun CartharsisTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

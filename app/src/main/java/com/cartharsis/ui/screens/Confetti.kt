@@ -36,11 +36,7 @@ private class Particle(random: Random) {
  * Scale [particleCount] with the size of the moment; sameness cheapens it.
  */
 @Composable
-fun ConfettiOverlay(
-    modifier: Modifier = Modifier,
-    durationMillis: Int = 3200,
-    particleCount: Int = 90,
-) {
+fun ConfettiOverlay(modifier: Modifier = Modifier, durationMillis: Int = 3200, particleCount: Int = 90) {
     val particles = remember { List(particleCount) { Particle(Random(it)) } }
     val progress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {

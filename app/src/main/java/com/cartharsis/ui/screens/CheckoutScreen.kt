@@ -67,7 +67,6 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -77,6 +76,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -209,7 +209,11 @@ fun CheckoutScreen(
                             // straight so the ceremony has stakes. The truth
                             // is the success screen's punchline.
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Total",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = formatPrice(viewModel.cartTotalCents(cart)),
@@ -293,11 +297,7 @@ fun CheckoutScreen(
  * springs back. Screen readers get a plain activate action instead.
  */
 @Composable
-private fun HoldToPlaceOrderButton(
-    totalCents: Long,
-    onPlaced: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modifier: Modifier = Modifier) {
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
@@ -379,8 +379,11 @@ private fun HoldToPlaceOrderButton(
         )
         Crossfade(targetState = showHoldHint, label = "holdHint") { hinting ->
             Text(
-                text = if (hinting) "Keep holding — commitment takes a second"
-                else "Hold to pay ${formatPrice(totalCents)}",
+                text = if (hinting) {
+                    "Keep holding — commitment takes a second"
+                } else {
+                    "Hold to pay ${formatPrice(totalCents)}"
+                },
                 fontWeight = FontWeight.Bold,
                 color = labelColor,
             )

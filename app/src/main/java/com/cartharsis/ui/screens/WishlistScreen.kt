@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,11 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 
 @Composable
-fun WishlistScreen(
-    viewModel: ShopViewModel,
-    onProductClick: (Int) -> Unit,
-    onBrowse: () -> Unit,
-) {
+fun WishlistScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onBrowse: () -> Unit) {
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     val haptics = LocalHapticFeedback.current

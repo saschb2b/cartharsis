@@ -36,9 +36,9 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -319,8 +319,11 @@ fun ProductDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            if (showAllReviews) "Show fewer reviews"
-                            else "Show all ${product.reviews.size} reviews",
+                            if (showAllReviews) {
+                                "Show fewer reviews"
+                            } else {
+                                "Show all ${product.reviews.size} reviews"
+                            },
                         )
                     }
                 }
@@ -338,12 +341,7 @@ fun ProductDetailScreen(
 
 /** Sticky buy bar: the purchase is always one thumb-reach away. */
 @Composable
-private fun BuyBar(
-    quantity: Int,
-    onQuantityChange: (Int) -> Unit,
-    justAdded: Boolean,
-    onAddToCart: () -> Unit,
-) {
+private fun BuyBar(quantity: Int, onQuantityChange: (Int) -> Unit, justAdded: Boolean, onAddToCart: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
@@ -623,17 +621,10 @@ private fun reviewAgeLabel(productId: Int, index: Int): String {
     return if (days < 14) "${days}d ago" else "${days / 7}w ago"
 }
 
-private fun reviewHelpfulCount(productId: Int, index: Int): Int =
-    (productId * 37 + index * 53) % 412 + 3
+private fun reviewHelpfulCount(productId: Int, index: Int): Int = (productId * 37 + index * 53) % 412 + 3
 
 @Composable
-private fun ReviewCard(
-    author: String,
-    rating: Int,
-    text: String,
-    ageLabel: String,
-    helpfulCount: Int,
-) {
+private fun ReviewCard(author: String, rating: Int, text: String, ageLabel: String, helpfulCount: Int) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -686,11 +677,7 @@ private fun ReviewCard(
 
 /** "Customers also bought" — nobody bought anything, but the rabbit hole must go on. */
 @Composable
-private fun AlsoBoughtRow(
-    viewModel: ShopViewModel,
-    current: Product,
-    onProductClick: (Int) -> Unit,
-) {
+private fun AlsoBoughtRow(viewModel: ShopViewModel, current: Product, onProductClick: (Int) -> Unit) {
     val suggestions = remember(current.id) {
         val sameCategory = viewModel.catalog
             .filter { it.id != current.id && it.category == current.category }

@@ -1,10 +1,6 @@
 package com.cartharsis.data
 
-data class Review(
-    val author: String,
-    val rating: Int,
-    val text: String,
-)
+data class Review(val author: String, val rating: Int, val text: String)
 
 data class Product(
     val id: Int,
@@ -25,12 +21,7 @@ data class Product(
 }
 
 /** A review the user wrote themselves — the one voice the pool can't fake. */
-data class UserReview(
-    val productId: Int,
-    val rating: Int,
-    val text: String,
-    val createdAtMillis: Long,
-)
+data class UserReview(val productId: Int, val rating: Int, val text: String, val createdAtMillis: Long)
 
 // Codec for DataStore string-set persistence. The separator is a control
 // character no soft keyboard produces, and the free-text field comes last
@@ -38,9 +29,12 @@ data class UserReview(
 private const val USER_REVIEW_SEP = '\u0001'
 
 fun encodeUserReview(review: UserReview): String = buildString {
-    append(review.productId); append(USER_REVIEW_SEP)
-    append(review.rating); append(USER_REVIEW_SEP)
-    append(review.createdAtMillis); append(USER_REVIEW_SEP)
+    append(review.productId)
+    append(USER_REVIEW_SEP)
+    append(review.rating)
+    append(USER_REVIEW_SEP)
+    append(review.createdAtMillis)
+    append(USER_REVIEW_SEP)
     append(review.text)
 }
 
@@ -55,10 +49,7 @@ fun decodeUserReview(encoded: String): UserReview? {
     )
 }
 
-data class CartItem(
-    val product: Product,
-    val quantity: Int,
-) {
+data class CartItem(val product: Product, val quantity: Int) {
     val totalCents: Long get() = product.priceCents * quantity
 }
 
@@ -88,11 +79,14 @@ data class Order(
  * anchor if the product was already on sale). Ignores non-drops.
  */
 fun Product.withPriceOverride(overrideCents: Long?): Product =
-    if (overrideCents == null || overrideCents >= priceCents) this
-    else copy(
-        priceCents = overrideCents,
-        originalPriceCents = maxOf(originalPriceCents ?: 0, priceCents),
-    )
+    if (overrideCents == null || overrideCents >= priceCents) {
+        this
+    } else {
+        copy(
+            priceCents = overrideCents,
+            originalPriceCents = maxOf(originalPriceCents ?: 0, priceCents),
+        )
+    }
 
 fun formatPrice(cents: Long): String {
     val dollars = cents / 100
@@ -138,6 +132,5 @@ fun effectiveStreak(savedDays: Int, lastEpochDay: Long, todayEpochDay: Long): In
     if (todayEpochDay - lastEpochDay > 1) 0 else savedDays
 
 /** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
-fun formatOrderDate(millis: Long): String =
-    java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
-        .format(java.util.Date(millis))
+fun formatOrderDate(millis: Long): String = java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
+    .format(java.util.Date(millis))

@@ -2,6 +2,7 @@ package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.IconButton
@@ -57,10 +57,7 @@ private val categoryEmoji = mapOf(
 )
 
 @Composable
-fun HomeScreen(
-    viewModel: ShopViewModel,
-    onProductClick: (Int) -> Unit,
-) {
+fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
     val flashDeal by viewModel.flashDeal.collectAsState()
     val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
@@ -72,14 +69,20 @@ fun HomeScreen(
 
     val products = remember(selectedCategory, query, priceDrops) {
         val inCategory =
-            if (selectedCategory == "All") viewModel.catalog
-            else viewModel.catalog.filter { it.category == selectedCategory }
+            if (selectedCategory == "All") {
+                viewModel.catalog
+            } else {
+                viewModel.catalog.filter { it.category == selectedCategory }
+            }
         val matching =
-            if (query.isBlank()) inCategory
-            else inCategory.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                    it.tagline.contains(query, ignoreCase = true) ||
-                    it.category.contains(query, ignoreCase = true)
+            if (query.isBlank()) {
+                inCategory
+            } else {
+                inCategory.filter {
+                    it.name.contains(query, ignoreCase = true) ||
+                        it.tagline.contains(query, ignoreCase = true) ||
+                        it.category.contains(query, ignoreCase = true)
+                }
             }
         matching.map { it.withPriceOverride(priceDrops[it.id]) }
     }

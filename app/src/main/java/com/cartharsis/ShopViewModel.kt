@@ -13,22 +13,22 @@ import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.Product
 import com.cartharsis.data.ReviewStore
 import com.cartharsis.data.StatsStore
-import com.cartharsis.data.UserReview
-import com.cartharsis.data.plusProduct
 import com.cartharsis.data.StreakStore
+import com.cartharsis.data.UserReview
 import com.cartharsis.data.WishlistStore
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.formatPrice
+import com.cartharsis.data.plusProduct
 import com.cartharsis.data.withPriceOverride
+import java.util.Calendar
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import kotlin.random.Random
 
 private const val FLASH_DEAL_SECONDS = 90
 private const val COURIER_TRIP_MILLIS = ShopViewModel.COURIER_TRIP_SECONDS * 1_000L
@@ -177,8 +177,7 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** The catalog product with any active price drop applied — use for display and cart adds. */
-    fun displayProduct(product: Product): Product =
-        product.withPriceOverride(_priceDrops.value[product.id])
+    fun displayProduct(product: Product): Product = product.withPriceOverride(_priceDrops.value[product.id])
 
     /** Remember that a product page was opened; newest first, capped at 10. */
     fun markViewed(productId: Int) {
@@ -222,8 +221,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setQuantity(productId: Int, quantity: Int) {
         _cart.update { items ->
-            if (quantity <= 0) items.filterNot { it.product.id == productId }
-            else items.map { if (it.product.id == productId) it.copy(quantity = quantity) else it }
+            if (quantity <= 0) {
+                items.filterNot { it.product.id == productId }
+            } else {
+                items.map { if (it.product.id == productId) it.copy(quantity = quantity) else it }
+            }
         }
     }
 
@@ -306,5 +308,4 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     /** Whether any of our UI is on screen; viewModelScope runs on Main, so reading this is safe. */
     private fun appInForeground(): Boolean =
         ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
-
 }

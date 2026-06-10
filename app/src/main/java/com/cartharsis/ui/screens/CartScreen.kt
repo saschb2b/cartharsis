@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,11 +37,7 @@ import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.MintGreen
 
 @Composable
-fun CartScreen(
-    viewModel: ShopViewModel,
-    onCheckout: () -> Unit,
-    onBrowse: () -> Unit,
-) {
+fun CartScreen(viewModel: ShopViewModel, onCheckout: () -> Unit, onBrowse: () -> Unit) {
     val cart by viewModel.cart.collectAsState()
 
     if (cart.isEmpty()) {
@@ -141,11 +136,7 @@ private fun CartLine(item: CartItem, viewModel: ShopViewModel) {
 }
 
 @Composable
-private fun SummaryCard(
-    cart: List<CartItem>,
-    viewModel: ShopViewModel,
-    onCheckout: () -> Unit,
-) {
+private fun SummaryCard(cart: List<CartItem>, viewModel: ShopViewModel, onCheckout: () -> Unit) {
     val total = viewModel.cartTotalCents(cart)
     val dealSavings = cart.sumOf { item ->
         item.product.originalPriceCents?.let { (it - item.product.priceCents) * item.quantity } ?: 0L
