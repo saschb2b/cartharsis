@@ -213,5 +213,18 @@ Declined by owner: review sort/filter controls.
       transcoded to Ogg/Vorbis; playback verified via the audio service's player
       events on the emulator
 
+## Phase 19 — Arrival reward beat (autopilot plan)
+- [x] Interactive unboxing: arrival presents a sealed, gently wiggling parcel
+      ("Tap to unbox"); the tap triggers the opening, haptic, confetti, and the
+      kept-money tick — celebration moves onto the user's action. Orders opened
+      from history skip to the opened state, no re-celebration
+- [ ] Mystery Box product (Chaos): unboxing reveals what would hypothetically
+      have been inside — an orderId-seeded catalog pick (decorative randomness,
+      never gates value); deterministic pick unit-tested
+- [ ] Courier-nearby notification at ~80% trip progress that posts under the same
+      id as the delivered one, so it updates in place — anticipation spike with
+      zero extra shade noise; same background-only policy
+- [ ] CLAUDE.md tracking notes updated for the unbox beat
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

@@ -2,13 +2,20 @@ package com.cartharsis.ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -48,12 +55,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -74,14 +84,15 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     val orders by viewModel.orders.collectAsState()
     val order = orders.firstOrNull { it.id == orderId } ?: return
 
-    // Celebrate the arrival only when it happens on screen — opening an
-    // already-delivered order from history shouldn't re-fire the party.
-    var sawInTransit by remember(orderId) { mutableStateOf(false) }
+    // An arrival watched live presents a sealed parcel and waits for the tap —
+    // the celebration belongs to the user's action, not to a state change.
+    // Orders already delivered when the screen opens start opened, so history
+    // never re-fires the party.
+    var unboxed by remember(orderId) { mutableStateOf(order.status == OrderStatus.DELIVERED) }
     var celebrate by remember(orderId) { mutableStateOf(false) }
-    if (order.status != OrderStatus.DELIVERED) sawInTransit = true
-    LaunchedEffect(order.status == OrderStatus.DELIVERED) {
-        if (order.status == OrderStatus.DELIVERED && sawInTransit) {
-            celebrate = true
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(celebrate) {
+        if (celebrate) {
             delay(2_800)
             celebrate = false
         }
@@ -115,7 +126,30 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                 // decorative, stable per order so revisits keep the same ride.
                 val vehicle = remember(orderId) { if ((orderId * 31 + 7) % 8 == 0) "🚀" else "🛵" }
                 if (order.status == OrderStatus.DELIVERED) {
-                    DeliveredCelebration(order, onShopMore)
+                    AnimatedContent(
+                        targetState = unboxed,
+                        label = "unbox",
+                        transitionSpec = {
+                            (
+                                scaleIn(
+                                    initialScale = 0.85f,
+                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                ) + fadeIn()
+                                ).togetherWith(fadeOut(tween(120)))
+                        },
+                    ) { opened ->
+                        if (opened) {
+                            DeliveredCelebration(order, onShopMore)
+                        } else {
+                            SealedParcel(
+                                onUnbox = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    unboxed = true
+                                    celebrate = true
+                                },
+                            )
+                        }
+                    }
                 } else {
                     CourierMap(
                         progress = if (order.status >= OrderStatus.ON_THE_WAY) order.progress else 0f,
@@ -435,6 +469,42 @@ private fun ItemsCard(order: Order) {
                 Spacer(Modifier.weight(1f))
                 Text(formatPrice(order.totalCents), fontWeight = FontWeight.ExtraBold, color = MintGreen)
             }
+        }
+    }
+}
+
+/** The parcel wiggles just enough to say "I'm waiting"; the tap is the payoff. */
+@Composable
+private fun SealedParcel(onUnbox: () -> Unit) {
+    val transition = rememberInfiniteTransition(label = "parcelWiggle")
+    val angle by transition.animateFloat(
+        initialValue = -4f,
+        targetValue = 4f,
+        animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
+        label = "parcelAngle",
+    )
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.clickable(onClickLabel = "Unbox your order", onClick = onUnbox),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("📦", fontSize = 64.sp, modifier = Modifier.rotate(angle))
+            Text(
+                text = "It's here.",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                text = "Tap to unbox",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f),
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
     }
 }
