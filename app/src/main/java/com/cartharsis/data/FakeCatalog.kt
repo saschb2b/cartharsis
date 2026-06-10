@@ -1132,6 +1132,89 @@ object FakeCatalog {
                 "of something. The idea is genuinely random.",
             1_999, "Chaos", 4.9, 9477,
         ),
+
+        // ---- Current-product expansion (appended; ids stay stable) ----
+        // Tech — the gadgets people actually doom-scroll into carts right now.
+        product(
+            "Halo Smart Ring", "💍",
+            "Your sleep score, on your finger.",
+            "A titanium ring that tracks sleep stages, heart-rate variability, and " +
+                "readiness, with a week of battery and no screen to distract you. " +
+                "Sizing kit ships first; the ring follows. Neither, here.",
+            29_900, "Tech", 4.6, 8124, originalPriceCents = 34_900,
+        ),
+        product(
+            "Leaflet Paper E-Reader", "📖",
+            "A whole library, glare-free.",
+            "A 7-inch warm-light e-ink display that reads like paper in direct sun, " +
+                "holds thousands of books, and goes weeks between charges. " +
+                "Waterproof for the bath you'll take with it.",
+            15_900, "Tech", 4.8, 14302,
+        ),
+        product(
+            "Voltstack 1000 Power Station", "🔋",
+            "Wall power, anywhere.",
+            "A 1,024Wh LiFePO4 battery with a silent inverter, fast 0–80% recharge " +
+                "in under an hour, and enough outlets to run a fridge, a laptop, and " +
+                "your anxiety about the next outage.",
+            79_900, "Tech", 4.7, 5230, originalPriceCents = 99_900,
+        ),
+        product(
+            "Vista AI Glasses", "👓",
+            "Look, capture, ask. Hands free.",
+            "Classic frames with an open-ear speaker, a discreet 12MP camera, and an " +
+                "assistant you talk to. Prescription-ready. Records the moment, " +
+                "delivers the nothing.",
+            29_900, "Tech", 4.4, 3611,
+        ),
+        product(
+            "Apex Action Cam 6", "🎥",
+            "5.3K, stabilized, unbreakable.",
+            "Gimbal-smooth 5.3K video, waterproof to 10m without a case, and a front " +
+                "screen for framing yourself. Mounts to everything you own. Films " +
+                "adventures that remain hypothetical.",
+            39_900, "Tech", 4.7, 9988,
+        ),
+        product(
+            "Nexus Mesh Wi-Fi 7 (3-Pack)", "📡",
+            "Dead zones, evicted.",
+            "Tri-band Wi-Fi 7 blanketing up to 600m² with seamless handoff, a " +
+                "six-stream backhaul, and an app that finally makes sense. No more " +
+                "walking to the router to apologize to it.",
+            34_900, "Tech", 4.6, 4177,
+        ),
+        product(
+            "Slate E-Ink Notebook", "📝",
+            "Paper that never runs out.",
+            "A 10.3-inch e-ink tablet with a pen that feels like a pencil, infinite " +
+                "notebooks, and zero notifications by design. Converts your scrawl " +
+                "to text. Organizes the thoughts; ships none of them.",
+            37_900, "Tech", 4.5, 2890, originalPriceCents = 44_900,
+        ),
+        product(
+            "FindIt Trackers (4-Pack)", "📍",
+            "Lose nothing. Find everything.",
+            "Coin-sized trackers for keys, bags, and the remote, with a year-long " +
+                "battery and a network of millions of phones quietly helping you " +
+                "look. Ironically, these will never arrive to be lost.",
+            9_900, "Tech", 4.5, 17640,
+        ),
+        product(
+            "Volt 100W GaN Charger", "🔌",
+            "One brick, every device.",
+            "Gallium-nitride internals shrink a 100W four-port charger to the size of " +
+                "a deck of cards — laptop, phone, tablet, and buds at once. The " +
+                "cable nest in your bag remains, sadly, real.",
+            5_900, "Tech", 4.8, 11233,
+        ),
+        product(
+            "Spectra Go 16\" Portable Monitor", "🖥️",
+            "A second screen that folds away.",
+            "A 16-inch 1440p OLED that runs off a single USB-C cable, with a built-in " +
+                "kickstand and a magnetic cover. Doubles your laptop anywhere. " +
+                "Currently doubling your desire and nothing else.",
+            22_900, "Tech", 4.6, 3052,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
