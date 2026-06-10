@@ -50,6 +50,8 @@ app/src/main/java/com/cartharsis/
 │   │                        #   variantsOf(group) for swatch siblings
 │   ├── Storefront.kt        # Pure per-open home variety: homeGreeting, homeOrder,
 │   │                        #   homeShelves (seeded, time-of-day, daily-stable)
+│   ├── Impact.kt            # Pure Orders payoff: keptEquivalent, savings
+│   │                        #   milestones, badges, newlyEarned
 │   ├── NotificationPolicy.kt # Pure when-to-ping rules (background-only, quiet
 │   │                        #   hours, price-drop cooldown)
 │   └── WishlistStore.kt     # DataStore persistence: wishlist, profile, stats,
@@ -65,7 +67,8 @@ app/src/main/java/com/cartharsis/
         ├── CartScreen.kt
         ├── CheckoutScreen.kt    # Fake payment → confetti success
         ├── TrackingScreen.kt    # Animated courier delivery simulation
-        └── OrdersScreen.kt      # Order history + "money not spent" stats
+        └── OrdersScreen.kt      # "Your impact" payoff: kept-money hero, savings
+        │                        #   vault, milestones, order trophies, empty state
 ```
 
 - One `ShopViewModel` (an `AndroidViewModel`, for notification context) scoped to
@@ -91,6 +94,16 @@ app/src/main/java/com/cartharsis/
   its own id/price/reviews, like Amazon's separate ASINs); the PDP shows a
   `variantAxis` swatch row ("Color"/"Edition") and swaps the displayed sibling
   in place via a local `selectedId`. Invariants are locked by FakeShopTest.
+- Orders = the "your impact" payoff screen (researched), not a dry list: a
+  full-width count-up hero of money kept with relatable equivalents ("≈ 2 movie
+  nights"), a hand-rolled filling savings vault toward the next milestone, a
+  trophy shelf of earned/locked badges, and order cards reframed as "you kept
+  $X". Big numbers auto-size (BasicText/TextAutoSize) and secondary stats wrap
+  (FlowRow) so nothing cramps on narrow phones. A brand-new user gets an inviting
+  value-first empty state with a ghost preview, not a lonely $0. A confetti+
+  haptic+chime fires only on a genuine in-session milestone crossing. The pure
+  logic (equivalents, milestones, badges, newlyEarned) lives in `data/Impact.kt`,
+  tested. Framing is always celebratory (what you kept), never loss-framed.
 - Dynamic storefront (researched): the home screen varies every open from a fixed
   catalog + one `ShopViewModel.homeSeed`, refreshed on app foreground (a
   ProcessLifecycle ON_START observer) so a genuine re-open is a fresh wander but

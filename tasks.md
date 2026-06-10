@@ -319,5 +319,25 @@ Declined by owner: review sort/filter controls.
 - [x] Verified on emulator across re-opens: greeting + grid + shelves change,
       daily collection stays stable within the day
 
+## Phase 25 — Orders "your impact" redesign (researched)
+- [x] Research: how impact/year-in-review screens turn stats into an emotional
+      payoff (hero number, equivalents, vault, ethical milestones, empty state,
+      responsive layouts). Behance link was JS-only; worked from broader research
+- [x] data/Impact.kt (pure, tested): keptEquivalent + keptInCoffees, savings
+      milestones + from-zero progress, badges, newlyEarned
+- [x] Hero: full-width warm-gradient count-up of money kept + relatable
+      equivalent line; auto-sizes (BasicText/TextAutoSize) so it never clips
+- [x] Cramp fix: secondary stats moved to a wrapping FlowRow (3-across → 2-up on
+      narrow phones) instead of the old squeezed 4-column row — verified at 600px
+- [x] Filling savings vault (hand-rolled Canvas jar) toward the next milestone
+- [x] Milestone trophy shelf: earned bright, locked faint "next up"; "N of 8"
+- [x] Order cards reframed as "you kept $X" with emoji collages
+- [x] Inviting first-visit empty state: value pitch + ghost-preview hero + Browse
+      CTA (new onBrowse nav) instead of a lonely $0
+- [x] Milestone-cross celebration (confetti+haptic+chime), only on a genuine
+      in-session crossing (tested newlyEarned)
+- [x] Tests 36 → 40; smoke test green; verified on emulator (normal + narrow,
+      empty state, vault, milestones)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
