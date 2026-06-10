@@ -1257,6 +1257,56 @@ object FakeCatalog {
                 "Wheels included. Regret not included.",
             29_900, "Audio", 4.6, 5118,
         ),
+
+        // Gaming — the gear and titles in everyone's cart this year.
+        product(
+            "Pocket Arcade Retro Handheld", "🕹️",
+            "Forty years of games, one pocket.",
+            "A clamshell handheld with a crisp 4-inch screen, clicky shoulder " +
+                "buttons, and enough power for the golden age of consoles. Twenty " +
+                "hours a charge. Nostalgia ships immediately; the device does not.",
+            13_900, "Gaming", 4.7, 11204, originalPriceCents = 16_900,
+        ),
+        product(
+            "Vortex Force Racing Wheel & Pedals", "🏎️",
+            "Feel every apex.",
+            "A direct-drive wheel with real force feedback, a metal pedal set with a " +
+                "load-cell brake, and a quick-release rim. Clamps to any desk. The " +
+                "podium remains, for now, theoretical.",
+            44_900, "Gaming", 4.8, 3877,
+        ),
+        product(
+            "Vortex Throne Gaming Chair", "🪑",
+            "Built for the twelve-hour session.",
+            "A high-back ergonomic chair with 4D armrests, a magnetic lumbar pillow, " +
+                "and cold-cure foam that survives marathons. Reclines to nap. " +
+                "Assembles into the throne your posture deserves.",
+            32_900, "Gaming", 4.6, 7740, originalPriceCents = 39_900,
+        ),
+        product(
+            "Vortex Stream Capture 4K", "🎙️",
+            "Go live without the dropped frames.",
+            "A pass-through capture card recording 4K60 HDR with near-zero latency " +
+                "over USB-C. Plug-and-play with the streaming apps. Broadcasts your " +
+                "gameplay to an audience as real as the gameplay.",
+            17_900, "Gaming", 4.5, 4012,
+        ),
+        product(
+            "Hearthvale", "🌾",
+            "Inherit a farm. Mend a town. Breathe.",
+            "A cozy farming-and-life sim where you grow crops, befriend a village, " +
+                "fish at dawn, and never once check your email. Hundreds of gentle " +
+                "hours. The calm is real even when the harvest isn't.",
+            3_400, "Gaming", 4.9, 41208,
+        ),
+        product(
+            "Skybound Survivors", "🪓",
+            "Build, explore, survive, repeat.",
+            "A co-op survival-craft adventure across floating islands: chop, mine, " +
+                "tame beasts, and raise a base with up to ten friends. Procedurally " +
+                "endless. Bonds forged here outlast the nothing that arrives.",
+            5_900, "Gaming", 4.7, 28533,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
