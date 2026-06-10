@@ -1754,6 +1754,51 @@ object FakeCatalog {
                 "calligraphy habit you keep meaning to pick up. Strokes free, forever.",
             2_400, "Stationery", 4.7, 6510,
         ),
+
+        // Home — the connected-home upgrades on every wishlist.
+        product(
+            "DoorWatch Video Doorbell", "🔔",
+            "See who's there from anywhere.",
+            "A 2K video doorbell with package detection, two-way talk, and on-device " +
+                "person alerts, wired or battery, with no monthly fee for local " +
+                "clips. Watches your porch faithfully — including the parcels that " +
+                "never come.",
+            12_900, "Home", 4.6, 10588, originalPriceCents = 15_900,
+        ),
+        product(
+            "BoltSmart Deadbolt Lock", "🔐",
+            "Leave the keys behind.",
+            "A retrofit smart deadbolt with a fingerprint pad, app unlock, and " +
+                "auto-lock when you leave, installing over your existing latch in " +
+                "minutes. Guards the door against everyone but the courier of " +
+                "nothing.",
+            16_900, "Home", 4.5, 6240,
+        ),
+        product(
+            "Almanac E-Ink Family Calendar", "🗓️",
+            "The whole household, one glance.",
+            "A wall-mounted e-ink display that syncs everyone's calendars, chores, " +
+                "and meal plans into a paper-like dashboard with no glare and no " +
+                "blue light. The command center for a life. Schedules nothing, " +
+                "beautifully.",
+            34_900, "Home", 4.4, 2877,
+        ),
+        product(
+            "Lumastrip LED Light Strip", "💡",
+            "Paint the room any color.",
+            "Sixteen million colors of app- and voice-controlled LED strip that " +
+                "cuts to length, syncs to music, and tucks behind the TV for that " +
+                "glow. The ambiance upgrade. Sets a mood for an evening in.",
+            3_400, "Home", 4.6, 22410,
+        ),
+        product(
+            "Switchlet Smart Plug, 4-Pack", "🔌",
+            "Make anything smart, instantly.",
+            "Four compact plugs that put lamps, fans, and the coffee maker on a " +
+                "schedule or a voice command, with energy monitoring per outlet. " +
+                "The easiest first step into a smart home. Powers nothing, on cue.",
+            2_900, "Home", 4.7, 18033, originalPriceCents = 3_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
