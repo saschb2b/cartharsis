@@ -1799,6 +1799,48 @@ object FakeCatalog {
                 "The easiest first step into a smart home. Powers nothing, on cue.",
             2_900, "Home", 4.7, 18033, originalPriceCents = 3_900,
         ),
+
+        // Chaos — the absurd-but-real novelties of the moment.
+        product(
+            "Giant Plush Crocodile, 2m", "🐊",
+            "Two meters of unconditional support.",
+            "A two-metre stuffed crocodile, alarmingly soft, that takes over a couch " +
+                "and starts a conversation. People genuinely buy these. Hugs back in " +
+                "spirit; arrives in none.",
+            5_900, "Chaos", 4.9, 16722,
+        ),
+        product(
+            "Bigfoot Garden Statue", "🦶",
+            "Cryptid lawn presence.",
+            "A weatherproof resin sasquatch, knee-high, peeking from the flowerbed to " +
+                "delight some neighbors and unsettle the rest. The yard art nobody " +
+                "asked for and everybody photographs. Stays a legend; never ships.",
+            3_900, "Chaos", 4.8, 8104,
+        ),
+        product(
+            "Duck With A Knife (Figurine)", "🦆",
+            "He has a knife. That's the product.",
+            "A small, sincere figurine of a duck holding a tiny knife. No backstory, " +
+                "no purpose, no notes. The internet's favorite menace, on your shelf. " +
+                "Threatens nothing, delivers nothing.",
+            1_500, "Chaos", 4.9, 24503,
+        ),
+        product(
+            "200 Rubber Ducks, Assorted", "🐤",
+            "Why two hundred? Why not.",
+            "A bulk bag of two hundred tiny rubber ducks in costumes — pirates, " +
+                "knights, dinosaurs — for desk armies, jeep-ducking, or sheer " +
+                "abundance. The quantity is the joke. The shipment is the punchline.",
+            2_400, "Chaos", 4.8, 9911, originalPriceCents = 2_900,
+        ),
+        product(
+            "Inflatable Sumo Suit (Pair)", "🤼",
+            "Two suits. One questionable evening.",
+            "A pair of self-inflating sumo costumes with padded gloves, ready for a " +
+                "backyard tournament nobody will forget. One size flattens all " +
+                "dignity. The single greatest purchase you will never unbox.",
+            7_900, "Chaos", 4.7, 5288,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
