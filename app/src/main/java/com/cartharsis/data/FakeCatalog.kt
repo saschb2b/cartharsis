@@ -2157,6 +2157,25 @@ object FakeCatalog {
     /** All sibling listings in a variant group, in catalog order. */
     fun variantsOf(group: String): List<Product> = products.filter { it.variantGroup == group }
 
+    /**
+     * Curated "frequently bought together" companions, by product name (names
+     * are stable and unique; ids shift as the catalog grows). The PDP shows the
+     * product plus these with an honest combined total — convenience, not a
+     * fabricated saving.
+     */
+    private val boughtTogetherByName: Map<String, List<String>> = mapOf(
+        "Meteor Swift Hybrid Console" to listOf("Meteor Pro Controller", "Turbo Kart Carnival"),
+        "Meteor MK-II Console" to listOf("Vortex Aurora Wireless Headset", "Meteor 2TB Storage Expansion Card"),
+        "Orbit One Console" to listOf("Orbit Glide Controller", "Vortex Aurora Wireless Headset"),
+        "Wisp Handheld" to listOf("Wisp Travel Case", "Wisp Grip & Power Bank"),
+        "AuraPhone 17 Ultra Max" to listOf("Volt 100W GaN Charger", "FindIt Trackers (4-Pack)"),
+        "Espresso Machine, Barista-Grade" to listOf("Gooseneck Pour-Over Kettle", "Quench 40oz Tumbler"),
+    )
+
+    /** The companion products bought alongside [product], in listed order. */
+    fun boughtTogether(product: Product): List<Product> =
+        boughtTogetherByName[product.name].orEmpty().mapNotNull { name -> products.firstOrNull { it.name == name } }
+
     /** The one product whose unboxing reveals what would have been inside. */
     val mysteryBox: Product = products.first { it.name == "Mystery Box" }
 

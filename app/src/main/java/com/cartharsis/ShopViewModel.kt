@@ -253,6 +253,15 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _cartPulse.update { it + 1 }
     }
 
+    /** "Add all to cart" for the frequently-bought-together set — one cart pulse. */
+    fun addAllToCart(products: List<Product>) {
+        if (products.isEmpty()) return
+        _cart.update { cart ->
+            products.fold(cart) { acc, p -> acc.plusProduct(displayProduct(p), 1) }
+        }
+        _cartPulse.update { it + 1 }
+    }
+
     fun setQuantity(productId: Int, quantity: Int) {
         _cart.update { items ->
             if (quantity <= 0) {

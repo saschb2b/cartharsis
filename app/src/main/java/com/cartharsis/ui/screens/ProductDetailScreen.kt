@@ -286,6 +286,23 @@ fun ProductDetailScreen(
                 )
                 SpecRows(product)
 
+                FrequentlyBoughtTogether(
+                    viewModel = viewModel,
+                    current = base,
+                    onProductClick = onProductClick,
+                    onAddAll = { set ->
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.addAllToCart(set)
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Added all ${set.size} to cart. Still \$0.00. 🛒",
+                                actionLabel = "View cart",
+                            )
+                            if (result == SnackbarResult.ActionPerformed) onViewCart()
+                        }
+                    },
+                )
+
                 val userReviews by viewModel.userReviews.collectAsState()
                 val ownReview = userReviews[product.id]
                 var editingReview by remember(productId) { mutableStateOf(false) }
@@ -820,6 +837,69 @@ private fun ReviewCard(author: String, rating: Int, text: String, ageLabel: Stri
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp),
             )
+        }
+    }
+}
+
+/**
+ * "Frequently bought together" — the curated cross-sell, Amazon-style: the
+ * product plus its companions, an honest combined total (no fabricated
+ * saving), and one tap to add them all.
+ */
+@Composable
+private fun FrequentlyBoughtTogether(
+    viewModel: ShopViewModel,
+    current: Product,
+    onProductClick: (Int) -> Unit,
+    onAddAll: (List<Product>) -> Unit,
+) {
+    val companions = remember(current.id) { FakeCatalog.boughtTogether(current) }
+    if (companions.isEmpty()) return
+    val set = remember(current.id) { (listOf(current) + companions).map { viewModel.displayProduct(it) } }
+    val total = set.sumOf { it.priceCents }
+
+    Column {
+        SectionHeader(title = "Frequently bought together", modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            set.forEachIndexed { index, item ->
+                if (index > 0) {
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                MiniProductCard(
+                    product = item,
+                    // The first tile is the product you're already on.
+                    onClick = { if (item.id != current.id) onProductClick(item.id) },
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Total: ",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = formatPrice(total),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+            )
+        }
+        Button(
+            onClick = { onAddAll(set) },
+            modifier = Modifier.fillMaxWidth().height(48.dp).padding(top = 8.dp),
+        ) {
+            Text("Add all ${set.size} to cart", fontWeight = FontWeight.Bold)
         }
     }
 }
