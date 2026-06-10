@@ -75,6 +75,43 @@ class FakeShopTest {
     }
 
     @Test
+    fun `collapseVariants keeps one rep per group and leaves singles alone`() {
+        val all = FakeCatalog.products
+        val collapsed = FakeCatalog.collapseVariants(all)
+        // Every variant group is now represented exactly once...
+        all.mapNotNull { it.variantGroup }.toSet().forEach { group ->
+            assertEquals("group $group not collapsed to one", 1, collapsed.count { it.variantGroup == group })
+        }
+        // ...by its base (lowest id), and non-variant products all survive.
+        all.filter { it.variantGroup != null }.groupBy { it.variantGroup }.forEach { (group, members) ->
+            val rep = collapsed.first { it.variantGroup == group }
+            assertEquals("group $group rep isn't the base", members.minByOrNull { it.id }!!.id, rep.id)
+        }
+        assertEquals(all.count { it.variantGroup == null }, collapsed.count { it.variantGroup == null })
+    }
+
+    @Test
+    fun `collapseVariants surfaces the matched sibling when the base is absent`() {
+        // Simulate a search that matched only one non-base colorway.
+        val redOnly = FakeCatalog.products.filter { it.variantLabel == "Volcanic Red" }
+        assertEquals(1, redOnly.size)
+        assertEquals(redOnly, FakeCatalog.collapseVariants(redOnly))
+    }
+
+    @Test
+    fun `frequently-bought-together companions all resolve to real products`() {
+        val hubs = FakeCatalog.products.filter { FakeCatalog.boughtTogether(it).isNotEmpty() }
+        assertTrue("no FBT sets wired up", hubs.isNotEmpty())
+        hubs.forEach { hub ->
+            val companions = FakeCatalog.boughtTogether(hub)
+            // A typo'd companion name silently drops out; require all to resolve
+            // and none to be the product itself.
+            assertTrue("${hub.name} has unresolved companions", companions.size >= 2)
+            assertTrue("${hub.name} lists itself", companions.none { it.id == hub.id })
+        }
+    }
+
+    @Test
     fun `every browsable category is stocked deep enough to not look thin`() {
         // The "All" chip isn't a real category; every other one should fill
         // the grid. Locks in the catalog-depth pass against silent regressions.

@@ -2158,6 +2158,22 @@ object FakeCatalog {
     fun variantsOf(group: String): List<Product> = products.filter { it.variantGroup == group }
 
     /**
+     * Collapse variant siblings to one entry per group for grid/search display
+     * (Amazon-style: one card with swatches). The representative is the group's
+     * base — its lowest id — or, when the base isn't present (e.g. a search that
+     * only matched one color), the lowest-id sibling that is. Order preserved;
+     * non-variant products pass through untouched.
+     */
+    fun collapseVariants(items: List<Product>): List<Product> {
+        if (items.none { it.variantGroup != null }) return items
+        val repId = items
+            .filter { it.variantGroup != null }
+            .groupBy { it.variantGroup }
+            .mapValues { (_, members) -> members.minByOrNull { it.id }!!.id }
+        return items.filter { it.variantGroup == null || repId[it.variantGroup] == it.id }
+    }
+
+    /**
      * Curated "frequently bought together" companions, by product name (names
      * are stable and unique; ids shift as the catalog grows). The PDP shows the
      * product plus these with an honest combined total — convenience, not a
