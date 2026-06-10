@@ -35,6 +35,15 @@ class FakeShopTest {
     }
 
     @Test
+    fun `product names are unique`() {
+        // Names feed search and the by-name Mystery Box lookup; a collision
+        // would make that lookup ambiguous and confuse results.
+        val names = FakeCatalog.products.map { it.name }
+        val dupes = names.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
+        assertTrue("duplicate product names: $dupes", dupes.isEmpty())
+    }
+
+    @Test
     fun `every browsable category is stocked deep enough to not look thin`() {
         // The "All" chip isn't a real category; every other one should fill
         // the grid. Locks in the catalog-depth pass against silent regressions.
