@@ -357,6 +357,63 @@ class FakeShopTest {
     }
 
     @Test
+    fun `card pull reveal is deterministic, game-matched, and for card games only`() {
+        val pack = FakeCatalog.products.first { it.variantGroup == "critters-emberglow" }
+        val pull = FakeCatalog.cardPullFor(7, pack)
+        // Stable per (order, product), so revisiting the screen keeps the answer.
+        assertEquals(pull, FakeCatalog.cardPullFor(7, pack))
+        assertTrue(pull != null && pull.name.isNotBlank() && pull.rarity.isNotBlank())
+        // Every trading-card game product pulls something...
+        FakeCatalog.products
+            .filter { it.category == "Trading Cards" && it.variantGroup != null }
+            .forEach { assertTrue("${it.name} pulled nothing", FakeCatalog.cardPullFor(3, it) != null) }
+        // ...and different orders eventually pull different cards.
+        assertTrue((1..20).map { FakeCatalog.cardPullFor(it, pack) }.toSet().size > 1)
+        // Accessories and non-card variant groups never pull.
+        val sleeves = FakeCatalog.products.first { it.name.startsWith("Dragonhide") }
+        assertEquals(null, FakeCatalog.cardPullFor(7, sleeves))
+        val controller = FakeCatalog.products.first { it.variantGroup == "meteor-pro-controller" }
+        assertEquals(null, FakeCatalog.cardPullFor(7, controller))
+    }
+
+    @Test
+    fun `pack rip deals a full pack, chase card last, deterministically`() {
+        val pack = FakeCatalog.products.first { it.variantGroup == "duelbound-eclipse" }
+        val rip = FakeCatalog.packRipFor(11, pack)
+        // Stable per (order, product) so a re-render never reshuffles the pack.
+        assertEquals(rip, FakeCatalog.packRipFor(11, pack))
+        assertTrue(rip != null && rip.size == 5)
+        // The chase card is dealt last — commons first, payoff at the back —
+        // and the commons are distinct and never duplicate the chase.
+        assertEquals(FakeCatalog.cardPullFor(11, pack), rip!!.last())
+        val commons = rip.dropLast(1)
+        assertEquals(commons.size, commons.toSet().size)
+        assertTrue(commons.none { it == rip.last() })
+        // Every card-game product deals a pack; nothing else ever does.
+        FakeCatalog.products
+            .filter { it.category == "Trading Cards" && it.variantGroup != null }
+            .forEach { assertTrue("${it.name} dealt no pack", FakeCatalog.packRipFor(2, it) != null) }
+        val binder = FakeCatalog.products.first { it.name.startsWith("Cardkeeper") }
+        assertEquals(null, FakeCatalog.packRipFor(11, binder))
+    }
+
+    @Test
+    fun `trading-card grids lead with the entry-price pack, not the sealed display`() {
+        val groups = FakeCatalog.products
+            .filter { it.category == "Trading Cards" && it.variantGroup != null }
+            .groupBy { it.variantGroup!! }
+        assertTrue("expected several card series", groups.size >= 6)
+        groups.forEach { (group, members) ->
+            // Formats span pack → display → tin/box on the Format axis...
+            assertTrue("$group has too few formats", members.size >= 3)
+            assertTrue("$group is not on the Format axis", members.all { it.variantAxis == "Format" })
+            // ...and the grid representative (lowest id) is the cheapest way in.
+            val rep = members.minByOrNull { it.id }!!
+            assertEquals("$group leads with the wrong format", members.minOf { it.priceCents }, rep.priceCents)
+        }
+    }
+
+    @Test
     fun `the low-star satire actually appears somewhere in the catalog`() {
         val allShown = FakeCatalog.products.flatMap { it.reviews }
         assertTrue(allShown.any { it.rating <= 3 })

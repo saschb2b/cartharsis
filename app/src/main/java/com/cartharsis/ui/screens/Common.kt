@@ -82,6 +82,7 @@ fun variantNoun(axis: String, count: Int): String {
         "Color" -> "color"
         "Edition" -> "edition"
         "Capacity" -> "capacity"
+        "Format" -> "format"
         else -> "option"
     }
     return if (count == 1) {

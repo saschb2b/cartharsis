@@ -97,6 +97,21 @@ app/src/main/java/com/cartharsis/
   its own id/price/reviews, like Amazon's separate ASINs); the PDP shows a
   `variantAxis` swatch row ("Color"/"Edition") and swaps the displayed sibling
   in place via a local `selectedId`. Invariants are locked by FakeShopTest.
+- Trading cards: three invented games (Pocket Critters, Duelbound, Manaforge),
+  each in two collectible series. Per series the formats — booster pack, sealed
+  display, tin, collector box — are variant siblings on the "Format" axis, so
+  the grid leads with the cheap entry pack (locked by test) and the PDP flips
+  formats in place; tins/collector boxes are bundles. A delivered card order
+  unboxes into the pack-rip ceremony (modeled on the genre's best opener):
+  present the booster, drag across the foil to tear it (haptic ticks, spring-
+  back on release, taps work too), tap through four seeded commons, then the
+  chase card last — face-down under a building glow — and the flip lands with
+  confetti + haptic + chime together (the flow's one big celebration; the
+  parcel tap deliberately doesn't fire it for card orders).
+  `FakeCatalog.packRipFor` deals the pack (commons + chase last, seeded per
+  order/product, tested); the celebration card keeps the "top pull" line as
+  the permanent record. Decorative randomness in the Mystery Box mold — shown
+  only after delivery, never as a pre-purchase odds tease.
 - Orders = the "your impact" payoff screen (researched), not a dry list: a
   full-width count-up hero of money kept with relatable equivalents ("≈ 2 movie
   nights"), a hand-rolled filling savings vault toward the next milestone, and

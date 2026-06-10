@@ -104,7 +104,7 @@ fun homeShelves(
             it.category in setOf("Kitchen", "Beauty", "Self-Care", "Snacks", "Fitness")
         }
         hourOfDay >= 22 || hourOfDay < 5 -> "Night owl finds 🌙" to catalog.filter {
-            it.category in setOf("Gaming", "Snacks", "Self-Care", "Tech", "Audio")
+            it.category in setOf("Gaming", "Snacks", "Self-Care", "Tech", "Audio", "Trading Cards")
         }
         else -> "Afternoon finds 🛍️" to catalog
     }
@@ -116,6 +116,7 @@ fun homeShelves(
         "Treat yourself 💎" to catalog.sortedByDescending { it.priceCents }.take(40),
         "Trending right now 🔥" to catalog,
         "Weekend wander 🎢" to catalog.filter { it.category in setOf("Chaos", "Hobbies", "Snacks") },
+        "Collector's corner 🎴" to catalog.filter { it.category in setOf("Trading Cards", "Hobbies") },
         "Tiny luxuries 🤏" to catalog.filter { it.priceCents in 2_000..6_000 },
         "The deep cuts 🕳️" to catalog.sortedByDescending { it.id }.take(70),
         "One of each 🗂️" to catalog.groupBy { it.category }.values.mapNotNull { it.shuffled(rng).firstOrNull() },

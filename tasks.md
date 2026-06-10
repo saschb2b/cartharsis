@@ -346,5 +346,25 @@ Declined by owner: review sort/filter controls.
 - [x] Orders keeps hero + savings vault + a slim "🏆 Milestones · N of M ›"
       entry row; the milestone-cross celebration still fires on Orders
 
+## Phase 27 — Trading cards (collectibles)
+- [x] New "Trading Cards" category: three invented games (Pocket Critters,
+      Duelbound, Manaforge), two series each, sold as packs / sealed displays /
+      tins / collector boxes — formats are Format-axis variant siblings, tins
+      and boxes are honest bundles; plus binder/sleeves/deck-box accessories
+      wired into frequently-bought-together
+- [x] Collector-voice review pool; "Collector's corner 🎴" home shelf; Trading
+      Cards joins the night-owl shelf set
+- [x] Pack-rip payoff: a seeded chase-card "top pull" revealed on the unbox
+      screen for delivered card orders (FakeCatalog.cardPullFor, Mystery Box
+      mold — post-delivery only, gates nothing)
+- [x] Tests: pull determinism/game-matching/card-only + grids lead with the
+      entry-price pack, not the $150 display
+- [x] Pack-rip ceremony v2 (modeled on Pokémon TCG Pocket's staging): card
+      orders unbox into a presented booster → drag-to-tear foil (haptic ticks,
+      spring-back, tap fallback) → tap through 4 seeded commons → chase card
+      last, face-down under a glow → 3D flip with confetti+haptic+chime at
+      completion → celebration card keeps the "top pull" record
+      (FakeCatalog.packRipFor, tested; verified live on emulator)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

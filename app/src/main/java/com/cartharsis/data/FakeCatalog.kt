@@ -13,12 +13,15 @@ package com.cartharsis.data
  * The first 27 products predate the catalog expansion and keep their listing
  * order so persisted wishlist ids stay pointing at the same products.
  */
+/** A fantasy chase card "pulled" from a delivered trading-card order. */
+data class CardPull(val emoji: String, val name: String, val rarity: String)
+
 object FakeCatalog {
 
     val categories = listOf(
         "All", "Tech", "Audio", "Gaming", "Home", "Kitchen", "Fashion", "Beauty",
         "Self-Care", "Fitness", "Snacks", "Outdoors", "Pets", "Hobbies",
-        "Stationery", "Chaos",
+        "Trading Cards", "Stationery", "Chaos",
     )
 
     private val genericPool = listOf(
@@ -130,6 +133,12 @@ object FakeCatalog {
             Review("Diego A.", 5, "My craft room has space for this and infinitely many other nothings."),
             Review("Petra N.", 4, "The instructions were blank, but so was the kit. Consistent."),
             Review("Callum S.", 5, "First hobby I've never abandoned."),
+        ),
+        "Trading Cards" to listOf(
+            Review("Kenji T.", 5, "Pulled the chase card on my first imaginary pack. The odds love me here."),
+            Review("Maddie R.", 5, "Mint condition forever. Nothing grades higher than a card that doesn't exist."),
+            Review("Lukas B.", 4, "Sealed product never loses value if it never arrives. I'm an investor now."),
+            Review("Aria S.", 5, "Completed the whole set in one evening. My binder is empty. Both feel true."),
         ),
         "Stationery" to listOf(
             Review("June P.", 5, "Writes like a dream, which is where I use it."),
@@ -2150,6 +2159,307 @@ object FakeCatalog {
                 "Orbit Glide Controller",
             ),
         ),
+
+        // ---- Trading Cards ----
+        // Three invented games, each in collectible series. Per series the
+        // formats (pack → display → tin/box) are Format-axis variant siblings,
+        // so the PDP flips between them and the grid leads with the cheap
+        // entry pack. Tins and collector boxes are bundles ("What's
+        // included"), priced honestly below their parts. As everywhere:
+        // listings deadpan-sincere, satire stays in the frame.
+
+        // Pocket Critters TCG — series: Emberglow, Abyssal Tides.
+        product(
+            "Pocket Critters: Emberglow Booster Pack", "🎴",
+            "Eleven cards. One spark of maybe.",
+            "An 11-card booster from the Emberglow expansion — 203 critters of " +
+                "the volcanic valley, a reverse-holo in every pack, and a rare or " +
+                "better guaranteed. The wrapper art alone is worth keeping.",
+            449, "Trading Cards", 4.8, 21458,
+            variantGroup = "critters-emberglow", variantLabel = "Booster Pack",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Emberglow Booster Display", "📦",
+            "Thirty-six packs, factory sealed.",
+            "A sealed display of 36 Emberglow boosters straight from the case — " +
+                "the classic way to chase a full set. Pull rates feel kinder by " +
+                "the dozen, and the box stores the binder overflow afterward.",
+            13_999, "Trading Cards", 4.9, 3211, originalPriceCents = 16_164,
+            variantGroup = "critters-emberglow", variantLabel = "Display (36 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Emberglow Collector Tin", "🎁",
+            "Four packs and a holo, in keepsake metal.",
+            "An embossed tin with the Emberwing art lid, four Emberglow boosters " +
+                "inside, and an exclusive holo promo you can't pull from packs. " +
+                "The tin outlives the cards; the cards never arrive at all.",
+            2_199, "Trading Cards", 4.7, 6840,
+            includes = listOf(
+                "4 Emberglow booster packs",
+                "Emberwing holo promo card",
+                "Embossed storage tin with art lid",
+                "Card divider set",
+            ),
+            variantGroup = "critters-emberglow", variantLabel = "Collector Tin",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Emberglow Elite Collector Box", "🧰",
+            "The whole hobby in one lid-lift.",
+            "Nine boosters, a full-art promo, and the accessories a serious " +
+                "collection runs on — sleeves, dividers, condition counters, and " +
+                "a set guide. The box every Emberglow shelf is built around.",
+            4_999, "Trading Cards", 4.9, 4102, originalPriceCents = 5_890,
+            includes = listOf(
+                "9 Emberglow booster packs",
+                "Full-art Emberwing promo card",
+                "65 art sleeves + 4 dividers",
+                "Acrylic condition counters + flip die",
+                "Collector's guide to the Emberglow set",
+            ),
+            variantGroup = "critters-emberglow", variantLabel = "Elite Box",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Abyssal Tides Booster Pack", "🎴",
+            "The deep-sea set, eleven cards down.",
+            "An 11-card booster from Abyssal Tides — 198 critters of the trench, " +
+                "glow-foil treatment on the deep dwellers, and a rare or better " +
+                "in every pack. Best opened with the lights off.",
+            449, "Trading Cards", 4.8, 17204,
+            variantGroup = "critters-abyssal", variantLabel = "Booster Pack",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Abyssal Tides Booster Display", "📦",
+            "A sealed case-fresh dive, 36 packs deep.",
+            "The full sealed display of 36 Abyssal Tides boosters. Enough glow-" +
+                "foil to read by, statistically — and the sturdiest shelf piece " +
+                "the set ships in, for collections that stay sealed.",
+            14_499, "Trading Cards", 4.8, 2380,
+            variantGroup = "critters-abyssal", variantLabel = "Display (36 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Pocket Critters: Abyssal Tides Premium Collection", "🧰",
+            "Six packs, two promos, one oversized legend.",
+            "Six Abyssal Tides boosters with two exclusive holo promos, an " +
+                "oversized Tidelord Mawra display card, and a sticker sheet for " +
+                "the laptop the hobby quietly takes over.",
+            3_999, "Trading Cards", 4.7, 3055,
+            includes = listOf(
+                "6 Abyssal Tides booster packs",
+                "2 exclusive holo promo cards",
+                "Oversized Tidelord Mawra display card",
+                "Abyssal Tides sticker sheet",
+            ),
+            variantGroup = "critters-abyssal", variantLabel = "Premium Collection",
+            variantAxis = "Format",
+        ),
+
+        // Duelbound TCG — series: Forbidden Archive, Crimson Eclipse.
+        product(
+            "Duelbound: Forbidden Archive Booster Pack", "🃏",
+            "Nine cards from the sealed stacks.",
+            "A 9-card booster from the Forbidden Archive set — banished spells, " +
+                "vault guardians, and a guaranteed foil in every pack. The " +
+                "archive is forbidden; the shipping, nonexistent.",
+            429, "Trading Cards", 4.7, 19034,
+            variantGroup = "duelbound-archive", variantLabel = "Booster Pack",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Forbidden Archive Booster Display", "📦",
+            "Twenty-four packs, one sealed shelf of secrets.",
+            "The sealed 24-pack display of Forbidden Archive, case-fresh with " +
+                "the wax untouched. The format the tournament crowd splits four " +
+                "ways and the collectors never open at all.",
+            8_999, "Trading Cards", 4.8, 2744, originalPriceCents = 10_296,
+            variantGroup = "duelbound-archive", variantLabel = "Display (24 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Forbidden Archive Mega Tin", "🎁",
+            "Three mega packs in vault-grade metal.",
+            "The annual mega tin with the vault-door art lid: three 16-card " +
+                "mega packs, dividers, and one of three secret-rare promos " +
+                "sealed inside. Which one? The tin isn't telling.",
+            2_199, "Trading Cards", 4.8, 7912,
+            includes = listOf(
+                "3 Forbidden Archive mega packs (16 cards each)",
+                "1 of 3 secret-rare promo cards",
+                "Vault-door art tin",
+                "4 card dividers",
+            ),
+            variantGroup = "duelbound-archive", variantLabel = "Mega Tin",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Forbidden Archive Secret Chest", "🧰",
+            "The collector's cut of the archive.",
+            "Eight boosters, two chest-exclusive ghost-foil promos, and a " +
+                "numbered art print, latched inside a keepsake chest. The set's " +
+                "ceiling, boxed — opened once, remembered indefinitely.",
+            4_499, "Trading Cards", 4.9, 3168, originalPriceCents = 5_220,
+            includes = listOf(
+                "8 Forbidden Archive booster packs",
+                "2 chest-exclusive ghost-foil promos",
+                "Numbered art print",
+                "Latched keepsake chest",
+            ),
+            variantGroup = "duelbound-archive", variantLabel = "Secret Chest",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Crimson Eclipse Booster Pack", "🃏",
+            "The midnight set, nine cards at a time.",
+            "A 9-card booster from Crimson Eclipse — eclipse dragons, blood-moon " +
+                "rituals, and a foil in every pack, with red-foil chase cards " +
+                "that catch light the way regret catches Sundays.",
+            429, "Trading Cards", 4.7, 14881,
+            variantGroup = "duelbound-eclipse", variantLabel = "Booster Pack",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Crimson Eclipse Booster Display", "📦",
+            "The full eclipse, sealed: 24 packs.",
+            "A sealed display of 24 Crimson Eclipse boosters. The red-foil " +
+                "pull rates are the forum's favorite argument; the sealed box " +
+                "is the only answer everyone respects.",
+            8_499, "Trading Cards", 4.7, 1932,
+            variantGroup = "duelbound-eclipse", variantLabel = "Display (24 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Duelbound: Crimson Eclipse Collector's Vault", "🧰",
+            "Seven packs and the moon itself.",
+            "Seven Crimson Eclipse boosters with an alternate-art promo, a " +
+                "metal field center piece shaped like the eclipse, and sleeves " +
+                "to match. The vault locks; the contents were never in it.",
+            4_999, "Trading Cards", 4.8, 2451,
+            includes = listOf(
+                "7 Crimson Eclipse booster packs",
+                "Alternate-art Eclipse Devourer promo",
+                "Metal eclipse field center piece",
+                "60 blood-moon sleeves",
+            ),
+            variantGroup = "duelbound-eclipse", variantLabel = "Collector's Vault",
+            variantAxis = "Format",
+        ),
+
+        // Manaforge — series: Ashveil, The Verdant Throne.
+        product(
+            "Manaforge: Ashveil Play Booster", "🔮",
+            "Fourteen cards from the burned plane.",
+            "A 14-card play booster from the Ashveil set — draftable, " +
+                "collectible, and carrying a foil in every third pack. The " +
+                "plane burned so the deck-building could begin.",
+            549, "Trading Cards", 4.8, 16772,
+            variantGroup = "manaforge-ashveil", variantLabel = "Play Booster",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: Ashveil Booster Display", "📦",
+            "Thirty play boosters, draft night settled.",
+            "The sealed 30-pack Ashveil display — three full draft pods or one " +
+                "very honest month of pack-a-day discipline. Case-fresh, foil " +
+                "odds as printed, delivery as imagined.",
+            14_999, "Trading Cards", 4.9, 2807, originalPriceCents = 16_470,
+            variantGroup = "manaforge-ashveil", variantLabel = "Display (30 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: Ashveil Bundle", "🎁",
+            "Eight packs and the table setup to match.",
+            "Eight Ashveil play boosters with twenty full-art mana cards, an " +
+                "oversized spindown life die, a promo Archmage, and the set-art " +
+                "storage box the whole pile lives in afterward.",
+            4_499, "Trading Cards", 4.8, 5230,
+            includes = listOf(
+                "8 Ashveil play boosters",
+                "20 full-art mana cards",
+                "Oversized spindown life die",
+                "Promo: Archmage of the Ashveil",
+                "Set-art storage box",
+            ),
+            variantGroup = "manaforge-ashveil", variantLabel = "Bundle",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: Ashveil Collector Booster", "✨",
+            "Fifteen cards, all of them shiny.",
+            "The premium pack: fifteen Ashveil cards where every slot is foil, " +
+                "extended-art, or rarer — including a shot at the serialized " +
+                "Archmage, 1 of 500. The pack you open slowly, hypothetically.",
+            2_499, "Trading Cards", 4.7, 4915,
+            variantGroup = "manaforge-ashveil", variantLabel = "Collector Booster",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: The Verdant Throne Play Booster", "🔮",
+            "Fourteen cards from the overgrown court.",
+            "A 14-card play booster from The Verdant Throne — a kingdom " +
+                "reclaimed by forest, court intrigue at sorcery speed, and a " +
+                "foil every third pack. The throne grows back; the cards don't.",
+            549, "Trading Cards", 4.8, 12490,
+            variantGroup = "manaforge-verdant", variantLabel = "Play Booster",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: The Verdant Throne Booster Display", "📦",
+            "Thirty packs of the forest court, sealed.",
+            "The sealed 30-pack display of The Verdant Throne. Draft it, vault " +
+                "it, or shelve it next to Ashveil and call the shelf a format. " +
+                "Sealed is a lifestyle; so is nothing arriving.",
+            15_499, "Trading Cards", 4.8, 2114,
+            variantGroup = "manaforge-verdant", variantLabel = "Display (30 Packs)",
+            variantAxis = "Format",
+        ),
+        product(
+            "Manaforge: The Verdant Throne Bundle", "🎁",
+            "The set, the dice, the box it lives in.",
+            "Eight Verdant Throne play boosters, twenty full-art mana cards, a " +
+                "moss-green spindown die, and a promo of the Throne itself in " +
+                "the keepsake box the kingdom is stored in.",
+            4_699, "Trading Cards", 4.7, 3866,
+            includes = listOf(
+                "8 The Verdant Throne play boosters",
+                "20 full-art mana cards",
+                "Moss-green oversized spindown die",
+                "Promo: The Verdant Throne, Reborn",
+                "Keepsake storage box",
+            ),
+            variantGroup = "manaforge-verdant", variantLabel = "Bundle",
+            variantAxis = "Format",
+        ),
+
+        // Trading-card accessories (the hobby around the hobby).
+        product(
+            "Cardkeeper Zip Binder (480 Slots)", "📒",
+            "Every pull, side-loaded and safe.",
+            "A zip-closed 480-slot binder with side-loading pockets, acid-free " +
+                "archival pages, and a spine that lies flat at any page. Fits " +
+                "standard sleeves; survives being shown to everyone you know.",
+            2_499, "Trading Cards", 4.9, 11203,
+        ),
+        product(
+            "Dragonhide Matte Sleeves (100-Pack)", "🛡️",
+            "Shuffle-feel of legend, glare of none.",
+            "One hundred matte sleeves at 90 microns — opaque backs, " +
+                "tournament-legal, and a shuffle feel the table will ask about. " +
+                "Sized for every standard card you'll never receive.",
+            999, "Trading Cards", 4.8, 24580,
+        ),
+        product(
+            "Vaultline Magnetic Deck Box", "🗃️",
+            "A hundred sleeved cards, click-shut.",
+            "A 100-card deck box in soft-touch shell with self-aligning " +
+                "magnetic closure and a separate lid well for dice and tokens. " +
+                "Guards the deck on every trip it won't be taking.",
+            1_999, "Trading Cards", 4.8, 8347,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
@@ -2186,6 +2496,12 @@ object FakeCatalog {
         "Wisp Handheld" to listOf("Wisp Travel Case", "Wisp Grip & Power Bank"),
         "AuraPhone 17 Ultra Max" to listOf("Volt 100W GaN Charger", "FindIt Trackers (4-Pack)"),
         "Espresso Machine, Barista-Grade" to listOf("Gooseneck Pour-Over Kettle", "Quench 40oz Tumbler"),
+        "Pocket Critters: Emberglow Booster Pack" to
+            listOf("Dragonhide Matte Sleeves (100-Pack)", "Cardkeeper Zip Binder (480 Slots)"),
+        "Duelbound: Forbidden Archive Booster Pack" to
+            listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
+        "Manaforge: Ashveil Play Booster" to
+            listOf("Vaultline Magnetic Deck Box", "Dragonhide Matte Sleeves (100-Pack)"),
     )
 
     /** The companion products bought alongside [product], in listed order. */
@@ -2203,6 +2519,99 @@ object FakeCatalog {
     fun mysteryRevealFor(orderId: Int): Product {
         val candidates = products.filterNot { it.id == mysteryBox.id }
         return candidates[(orderId * 37 + 11) % candidates.size]
+    }
+
+    /**
+     * The chase cards of each trading-card game, keyed by the game prefix of
+     * its variant groups ("critters-emberglow" → "critters"). Shown as the
+     * "top pull" when a delivered order contained that game's product — the
+     * pack-rip moment, after the courier, like the Mystery Box reveal.
+     */
+    private val cardPullPools: Map<String, List<CardPull>> = mapOf(
+        "critters" to listOf(
+            CardPull("🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs"),
+            CardPull("🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs"),
+            CardPull("⚡", "Voltifox", "Holo rare · 1 in 96 packs"),
+            CardPull("🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs"),
+            CardPull("🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common"),
+        ),
+        "duelbound" to listOf(
+            CardPull("👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs"),
+            CardPull("🐍", "Serpent of the Sealed Vault", "Ultimate foil · 1 in 480 packs"),
+            CardPull("🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs"),
+            CardPull("🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs"),
+        ),
+        "manaforge" to listOf(
+            CardPull("🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500"),
+            CardPull("🌋", "Caldera Sovereign", "Borderless mythic · 1 in 640 packs"),
+            CardPull("🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs"),
+            CardPull("⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs"),
+        ),
+    )
+
+    /**
+     * The hypothetical best card inside [product] for [orderId]: a seeded,
+     * stable pick from the matching game's chase pool, or null when the
+     * product isn't a trading-card game item (accessories included). Same
+     * rules as the Mystery Box: decorative, free, gates nothing.
+     */
+    fun cardPullFor(orderId: Int, product: Product): CardPull? {
+        val game = product.variantGroup?.substringBefore('-') ?: return null
+        val pool = cardPullPools[game] ?: return null
+        return pool[Math.floorMod(orderId * 31 + product.id * 7 + 5, pool.size)]
+    }
+
+    /**
+     * The rest of the pack: per-game commons and uncommons that pad the rip
+     * out before the chase card. Each pool holds 8 so a coprime index step
+     * keeps any four picks distinct.
+     */
+    private val cardCommonPools: Map<String, List<CardPull>> = mapOf(
+        "critters" to listOf(
+            CardPull("🐭", "Nibbletuft", "Common"),
+            CardPull("🐛", "Larvalume", "Common"),
+            CardPull("🐸", "Paddlehop", "Common"),
+            CardPull("🐦", "Chirplet", "Common"),
+            CardPull("🦔", "Bramblepin", "Common"),
+            CardPull("🐑", "Cloudlamb", "Common"),
+            CardPull("🐌", "Glimmersnail", "Uncommon"),
+            CardPull("🦉", "Duskhoot", "Uncommon"),
+        ),
+        "duelbound" to listOf(
+            CardPull("🕯️", "Vault Candle", "Common"),
+            CardPull("🪦", "Tombstone Sentry", "Common"),
+            CardPull("📜", "Scroll of Echoes", "Common"),
+            CardPull("🗝️", "Key to the Lower Stacks", "Common"),
+            CardPull("⚱️", "Sealed Urn", "Common"),
+            CardPull("🌫️", "Shade of the Reading Room", "Common"),
+            CardPull("🦇", "Crypt Flitter", "Uncommon"),
+            CardPull("🕸️", "Warding Web", "Uncommon"),
+        ),
+        "manaforge" to listOf(
+            CardPull("💧", "Mana Droplet", "Common"),
+            CardPull("🪨", "Forge Stone", "Common"),
+            CardPull("🔥", "Cinder Wisp", "Common"),
+            CardPull("🍃", "Leaf of the Throne", "Common"),
+            CardPull("🧪", "Alchemist's Vial", "Common"),
+            CardPull("🛡️", "Wovenroot Shield", "Common"),
+            CardPull("🗡️", "Ashveil Blade", "Uncommon"),
+            CardPull("✨", "Spark of Convergence", "Uncommon"),
+        ),
+    )
+
+    /**
+     * The whole pack for the rip ceremony: four seeded, distinct commons and
+     * the chase card dealt last — commons first, the payoff at the back, the
+     * way the genre's best openers stage it. Stable per (order, product);
+     * null for anything that isn't a trading-card game product.
+     */
+    fun packRipFor(orderId: Int, product: Product): List<CardPull>? {
+        val chase = cardPullFor(orderId, product) ?: return null
+        val game = product.variantGroup!!.substringBefore('-')
+        val pool = cardCommonPools.getValue(game)
+        val start = Math.floorMod(orderId * 13 + product.id * 3, pool.size)
+        // Step 3 is coprime with the pool size, so the four picks are distinct.
+        return List(4) { pool[(start + it * 3) % pool.size] } + chase
     }
 
     /** Products eligible for the rotating flash deal slot. */

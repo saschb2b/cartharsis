@@ -2,6 +2,7 @@ package com.cartharsis.ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -9,6 +10,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -18,6 +20,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -48,8 +51,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,26 +63,41 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.CardPull
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
+import com.cartharsis.ui.theme.ElectricPurple
+import com.cartharsis.ui.theme.HotPink
+import com.cartharsis.ui.theme.JuicyOrange
+import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.LocalSavingsColor
+import com.cartharsis.ui.theme.SkyBlue
+import kotlin.math.abs
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,12 +159,23 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                             }
                         }.take(7)
                     }
+                    // A trading-card order unboxes into the pack-rip ceremony
+                    // (tear the foil, tap through the commons, flip the chase)
+                    // instead of the generic haul burst.
+                    val rip = remember(order.id) {
+                        order.items.firstNotNullOfOrNull { line ->
+                            FakeCatalog.packRipFor(order.id, line.product)?.let { cards ->
+                                line.product.variantGroup!!.substringBefore('-') to cards
+                            }
+                        }
+                    }
                     // `unboxed` (ViewModel) is the durable "opened ever" flag;
                     // `revealing` is local so the burst plays only on the live
                     // tap, never on a revisit.
                     var revealing by remember(orderId) { mutableStateOf(false) }
                     val phase = when {
                         !unboxed -> UnboxPhase.Sealed
+                        revealing && rip != null -> UnboxPhase.Ripping
                         revealing -> UnboxPhase.Revealing
                         else -> UnboxPhase.Opened
                     }
@@ -165,8 +197,20 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     revealing = true
                                     viewModel.markUnboxed(order.id)
+                                    // Card orders save the burst for the chase
+                                    // flip — one big celebration per flow.
+                                    if (rip == null) celebrate = true
+                                },
+                            )
+                            UnboxPhase.Ripping -> PackRipReveal(
+                                game = rip!!.first,
+                                cards = rip.second,
+                                onChaseRevealed = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    Chime.playSuccess()
                                     celebrate = true
                                 },
+                                onFinished = { revealing = false },
                             )
                             UnboxPhase.Revealing -> UnboxingReveal(
                                 haul = haul,
@@ -503,7 +547,7 @@ private fun ItemsCard(order: Order) {
     }
 }
 
-private enum class UnboxPhase { Sealed, Revealing, Opened }
+private enum class UnboxPhase { Sealed, Ripping, Revealing, Opened }
 
 /**
  * The missing middle of the unbox: the box bursts open, the haul erupts as
@@ -674,9 +718,492 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
                     modifier = Modifier.padding(top = 2.dp),
                 )
             }
+            // The pack-rip moment for trading-card orders: a seeded chase-card
+            // "pull", revealed only here — after the courier, never before.
+            val pull = remember(order.id) {
+                order.items.firstNotNullOfOrNull { FakeCatalog.cardPullFor(order.id, it.product) }
+            }
+            if (pull != null) {
+                Text(
+                    text = "Your top pull, hypothetically:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                Text(
+                    text = "${pull.emoji} ${pull.name}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+                Text(
+                    text = "${pull.rarity} · mint forever",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
             Button(onClick = onShopMore, modifier = Modifier.padding(top = 16.dp)) {
                 Text("Shop the next nothing", fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+// ---- The pack rip ----
+// A trading-card order doesn't dump its haul; it stages it the way the
+// genre's best opener does: present the pack, make the player tear the foil
+// themselves, deal the commons one tap at a time, and save the chase card
+// for last behind a glow and a flip. Gesture → suspense → resolution; the
+// confetti, haptic, and chime all fire together at the flip's completion.
+
+private data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
+
+private fun packTheme(game: String): PackTheme = when (game) {
+    "critters" -> PackTheme("Pocket Critters", "🐲", listOf(JuicyOrange, HotPink))
+    "duelbound" -> PackTheme("Duelbound", "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
+    else -> PackTheme("Manaforge", "🔮", listOf(SkyBlue, ElectricPurple))
+}
+
+@Composable
+private fun PackRipReveal(game: String, cards: List<CardPull>, onChaseRevealed: () -> Unit, onFinished: () -> Unit) {
+    val theme = remember(game) { packTheme(game) }
+    var torn by remember { mutableStateOf(false) }
+    AnimatedContent(
+        targetState = torn,
+        label = "rip",
+        transitionSpec = {
+            (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut(tween(120)))
+        },
+    ) { isTorn ->
+        if (!isTorn) {
+            BoosterPackTear(theme, onTorn = { torn = true })
+        } else {
+            CardStackReveal(theme, cards, onChaseRevealed, onFinished)
+        }
+    }
+}
+
+/**
+ * Stage one: the sealed booster, bobbing gently, opened by dragging across
+ * the foil. The tear follows the finger with a haptic tick at every fifth;
+ * letting go early springs it shut. Taps nudge the tear too, so the moment
+ * never gates on a gesture someone can't make.
+ */
+@Composable
+private fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    var dragging by remember { mutableStateOf(false) }
+    var tearTarget by remember { mutableFloatStateOf(0f) }
+    var lastTick by remember { mutableIntStateOf(0) }
+    var done by remember { mutableStateOf(false) }
+    val tear by animateFloatAsState(
+        targetValue = tearTarget,
+        animationSpec = if (dragging) snap() else spring(stiffness = Spring.StiffnessMedium),
+        label = "tear",
+    )
+    val fly = remember { Animatable(0f) }
+
+    fun advanceTear(by: Float) {
+        if (done) return
+        tearTarget = (tearTarget + by).coerceIn(0f, 1f)
+        val tick = (tearTarget * 5).toInt()
+        if (tick > lastTick) {
+            lastTick = tick
+            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+        if (tearTarget >= 1f) done = true
+    }
+
+    LaunchedEffect(done) {
+        if (done) {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            fly.animateTo(1f, tween(durationMillis = 420, easing = FastOutSlowInEasing))
+            delay(180)
+            onTorn()
+        }
+    }
+
+    val idle = rememberInfiniteTransition(label = "packIdle")
+    val bob by idle.animateFloat(
+        initialValue = -1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1700, easing = LinearEasing), RepeatMode.Reverse),
+        label = "bob",
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(230.dp, 330.dp)
+                .graphicsLayer {
+                    if (!done) {
+                        translationY = bob * 5.dp.toPx() * (1f - tear)
+                        rotationZ = bob * 1.2f * (1f - tear)
+                    }
+                }
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragging = true },
+                        onDragCancel = {
+                            dragging = false
+                            if (!done) tearTarget = 0f
+                        },
+                        onDragEnd = {
+                            dragging = false
+                            if (!done) tearTarget = 0f
+                        },
+                        // One committed swipe across the pack completes the
+                        // tear — the divisor stays well under the pack width
+                        // so the gesture never falls just short and snaps back.
+                    ) { _, dragAmount -> advanceTear(abs(dragAmount) / (size.width * 0.7f)) }
+                }
+                .clickable(onClickLabel = "Rip the pack open") {
+                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    advanceTear(0.34f)
+                },
+        ) {
+            // Pack body — everything below the tear line.
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Brush.linearGradient(theme.wrapper)),
+            ) {
+                // The exposed inner foil, waiting under the strip.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .background(Color.Black.copy(alpha = 0.35f)),
+                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.matchParentSize().padding(top = 46.dp),
+                ) {
+                    Text(theme.emoji, fontSize = 76.sp)
+                    Text(
+                        text = theme.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Text(
+                        text = "BOOSTER PACK",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+                // Bottom crimp.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(14.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(Color.Black.copy(alpha = 0.18f)),
+                )
+            }
+            // The foil strip that tears away.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp)
+                    .graphicsLayer {
+                        translationX = tear * 12.dp.toPx() + fly.value * 360.dp.toPx()
+                        translationY = -fly.value * 160.dp.toPx()
+                        rotationZ = fly.value * 24f
+                        alpha = 1f - fly.value * 0.9f
+                    }
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(Brush.linearGradient(theme.wrapper))
+                    .background(Color.White.copy(alpha = 0.12f)),
+            ) {
+                Text(
+                    text = "✂ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.75f),
+                    maxLines = 1,
+                    modifier = Modifier.align(Alignment.BottomStart).padding(start = 10.dp, bottom = 2.dp),
+                )
+            }
+            // The tear itself: a jagged white edge chasing the finger.
+            Canvas(Modifier.matchParentSize()) {
+                if (tear > 0.01f) {
+                    val y = 46.dp.toPx()
+                    val jag = 3.dp.toPx()
+                    val path = Path().apply {
+                        moveTo(0f, y)
+                        var x = 0f
+                        var up = true
+                        while (x < size.width * tear) {
+                            x += 9.dp.toPx()
+                            lineTo(minOf(x, size.width * tear), if (up) y - jag else y + jag)
+                            up = !up
+                        }
+                    }
+                    drawPath(path, Color.White, style = Stroke(width = 2.5f, cap = StrokeCap.Round))
+                }
+            }
+        }
+        Text(
+            text = if (done) "Ripped!" else "Swipe across the foil to rip it open",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(top = 12.dp)
+                .alpha(if (done) 1f else 0.55f + 0.45f * (1f - abs(bob))),
+        )
+    }
+}
+
+/**
+ * Stage two: the cards, dealt one tap at a time — commons up front, the
+ * chase card last, face-down under a building glow. The flip is the
+ * resolution: confetti, haptic, and chime fire together as it lands.
+ */
+@Composable
+private fun CardStackReveal(
+    theme: PackTheme,
+    cards: List<CardPull>,
+    onChaseRevealed: () -> Unit,
+    onFinished: () -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
+    var index by remember { mutableIntStateOf(0) }
+    var chaseFlipped by remember { mutableStateOf(false) }
+    val exit = remember { Animatable(0f) }
+    val flip = remember { Animatable(0f) }
+    val isChase = index == cards.lastIndex
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(350.dp)
+                .clickable(
+                    onClickLabel = when {
+                        !isChase -> "Next card"
+                        !chaseFlipped -> "Flip the last card"
+                        else -> "Continue"
+                    },
+                ) {
+                    when {
+                        !isChase -> scope.launch {
+                            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            exit.animateTo(1f, tween(durationMillis = 230, easing = FastOutSlowInEasing))
+                            index += 1
+                            exit.snapTo(0f)
+                        }
+                        !chaseFlipped -> scope.launch {
+                            flip.animateTo(180f, tween(durationMillis = 540, easing = FastOutSlowInEasing))
+                            chaseFlipped = true
+                            onChaseRevealed()
+                        }
+                        else -> onFinished()
+                    }
+                },
+        ) {
+            if (isChase) ChaseGlow(flipped = chaseFlipped)
+            // The next card peeking from behind; the chase always peeks face-down.
+            if (!isChase) {
+                RipCardFace(
+                    card = cards[index + 1],
+                    theme = theme,
+                    faceDown = index + 1 == cards.lastIndex,
+                    modifier = Modifier.scale(0.92f).alpha(0.65f),
+                )
+            }
+            if (!isChase) {
+                RipCardFace(
+                    card = cards[index],
+                    theme = theme,
+                    faceDown = false,
+                    modifier = Modifier.graphicsLayer {
+                        translationY = -exit.value * 850f
+                        rotationZ = -exit.value * 13f
+                        alpha = 1f - exit.value * 0.5f
+                    },
+                )
+            } else {
+                Box(
+                    Modifier.graphicsLayer {
+                        rotationY = flip.value
+                        cameraDistance = 16f * density
+                    },
+                ) {
+                    if (flip.value < 90f) {
+                        RipCardFace(cards[index], theme, faceDown = true)
+                    } else {
+                        Box(Modifier.graphicsLayer { rotationY = 180f }) {
+                            RipCardFace(cards[index], theme, faceDown = false, holo = true)
+                        }
+                    }
+                }
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(top = 10.dp),
+        ) {
+            cards.indices.forEach { i ->
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (i < index || (i == index && (!isChase || chaseFlipped))) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            },
+                        ),
+                )
+            }
+        }
+        when {
+            !isChase -> Text(
+                text = "Tap for the next card",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 10.dp),
+            )
+            !chaseFlipped -> Text(
+                text = "The last one feels heavier. Tap to flip.",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 10.dp),
+            )
+            else -> Button(onClick = onFinished, modifier = Modifier.padding(top = 10.dp)) {
+                Text("Take your haul", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+/** The pulsing halo that says "this one matters" before the chase flip. */
+@Composable
+private fun ChaseGlow(flipped: Boolean) {
+    val t = rememberInfiniteTransition(label = "glow")
+    val pulse by t.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.12f,
+        animationSpec = infiniteRepeatable(tween(850, easing = LinearEasing), RepeatMode.Reverse),
+        label = "pulse",
+    )
+    Canvas(Modifier.size(340.dp).scale(if (flipped) pulse * 1.12f else pulse)) {
+        drawCircle(
+            Brush.radialGradient(
+                listOf(LemonYellow.copy(alpha = if (flipped) 0.5f else 0.32f), Color.Transparent),
+            ),
+        )
+    }
+}
+
+/** One card of the rip: emoji art on the front, wrapper-branded back. */
+@Composable
+private fun RipCardFace(
+    card: CardPull,
+    theme: PackTheme,
+    faceDown: Boolean,
+    modifier: Modifier = Modifier,
+    holo: Boolean = false,
+) {
+    Box(
+        modifier = modifier
+            .size(220.dp, 308.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Brush.linearGradient(theme.wrapper))
+            .padding(7.dp),
+    ) {
+        if (faceDown) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color.Black.copy(alpha = 0.22f)),
+            ) {
+                Text(theme.emoji, fontSize = 56.sp, modifier = Modifier.alpha(0.5f))
+                Text(
+                    text = "✦",
+                    fontSize = 22.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.TopStart).padding(10.dp),
+                )
+                Text(
+                    text = "✦",
+                    fontSize = 22.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(MaterialTheme.colorScheme.surface),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.matchParentSize().padding(horizontal = 12.dp),
+                ) {
+                    Text(card.emoji, fontSize = 64.sp)
+                    Text(
+                        text = card.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                    Text(
+                        text = card.rarity,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                if (holo) HoloSheen()
+            }
+        }
+    }
+}
+
+/** The diagonal gloss sweep that makes the chase card read as foil. */
+@Composable
+private fun HoloSheen() {
+    val t = rememberInfiniteTransition(label = "sheen")
+    val x by t.animateFloat(
+        initialValue = -0.6f,
+        targetValue = 1.6f,
+        animationSpec = infiniteRepeatable(tween(1700, easing = LinearEasing)),
+        label = "sheenX",
+    )
+    Canvas(Modifier.fillMaxSize()) {
+        drawRect(
+            Brush.linearGradient(
+                0.0f to Color.Transparent,
+                0.42f to Color.Transparent,
+                0.5f to Color.White.copy(alpha = 0.3f),
+                0.58f to Color.Transparent,
+                1.0f to Color.Transparent,
+                start = Offset(size.width * (x - 0.5f), 0f),
+                end = Offset(size.width * (x + 0.5f), size.height),
+            ),
+        )
     }
 }
