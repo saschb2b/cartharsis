@@ -1307,6 +1307,56 @@ object FakeCatalog {
                 "endless. Bonds forged here outlast the nothing that arrives.",
             5_900, "Gaming", 4.7, 28533,
         ),
+
+        // Kitchen — the viral countertop wave.
+        product(
+            "Quench 40oz Tumbler", "🥤",
+            "Hydration as a personality.",
+            "A 40oz vacuum-insulated stainless tumbler that keeps ice for 24 hours, " +
+                "fits any cupholder, and comes in a color you'll defend to friends. " +
+                "Handle, straw, and a faint sense of belonging included.",
+            4_500, "Kitchen", 4.8, 38716, originalPriceCents = 5_500,
+        ),
+        product(
+            "Frostbite Nugget Ice Maker", "🧊",
+            "The good ice. The chewable ice.",
+            "A countertop maker that produces a pound of soft, chewable nugget ice " +
+                "in fifteen minutes and keeps it coming. Self-cleaning, side-tank " +
+                "fill. The ice you'd switch dentists for.",
+            34_900, "Kitchen", 4.7, 12905,
+        ),
+        product(
+            "Vesuvio Portable Pizza Oven", "🍕",
+            "900°F. Sixty-second Neapolitan.",
+            "A gas-fired stone-floor oven that hits pizzeria temperatures on a " +
+                "balcony and bakes a leopard-spotted crust in a minute. Folds flat " +
+                "for storage. The first burnt pie is a rite you'll skip.",
+            29_900, "Kitchen", 4.8, 6633, originalPriceCents = 34_900,
+        ),
+        product(
+            "Cyclone Pro Blender", "🥤",
+            "Pulverizes everything but your resolve.",
+            "A 1,500W blender with aircraft-grade blades that turn frozen fruit, " +
+                "nuts, and ice into silk, plus presets for smoothies, soups, and " +
+                "nut butter. Loud enough to wake intentions. Quiet on delivery.",
+            19_900, "Kitchen", 4.7, 9844,
+        ),
+        product(
+            "Fizz Sparkling Water Maker", "🫧",
+            "Bubbles on tap, bottles in the bin.",
+            "Carbonates tap water in seconds with a twist, dialing fizz from gentle " +
+                "to aggressive, on a CO2 cylinder that lasts months. Saves a " +
+                "mountain of plastic and, here, a mountain of money.",
+            8_900, "Kitchen", 4.6, 14077,
+        ),
+        product(
+            "Gooseneck Pour-Over Kettle", "☕",
+            "Precision for the morning ritual.",
+            "A variable-temperature electric kettle with a counterweighted gooseneck " +
+                "spout for a controlled pour, a 60-minute hold, and a built-in " +
+                "timer. Your coffee phase, fully equipped, indefinitely deferred.",
+            9_900, "Kitchen", 4.8, 7320, originalPriceCents = 12_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
