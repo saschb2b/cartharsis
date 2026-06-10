@@ -40,12 +40,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -115,20 +113,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Order #${order.id}") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text(
-                            "←",
-                            fontSize = 22.sp,
-                            modifier = Modifier.clearAndSetSemantics { contentDescription = "Back" },
-                        )
-                    }
-                },
-            )
-        },
+        topBar = { NestedTopBar(onBack = onBack, title = "Order #${order.id}") },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             Column(

@@ -36,13 +36,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -131,20 +129,7 @@ fun CheckoutScreen(
                 return
             }
             Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Checkout") },
-                        navigationIcon = {
-                            IconButton(onClick = onBack) {
-                                Text(
-                                    "←",
-                                    fontSize = 22.sp,
-                                    modifier = Modifier.clearAndSetSemantics { contentDescription = "Back" },
-                                )
-                            }
-                        },
-                    )
-                },
+                topBar = { NestedTopBar(onBack = onBack, title = "Checkout") },
                 bottomBar = {
                     val total = viewModel.cartTotalCents(cart)
                     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {

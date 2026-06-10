@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
@@ -24,10 +25,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -265,6 +270,70 @@ fun SectionHeader(
             TextButton(onClick = onAction) { Text(actionLabel) }
         }
     }
+}
+
+/**
+ * The back affordance, hand-rolled to the Material spec (a left-pointing
+ * arrow: 24dp glyph, ~2dp rounded strokes) so we get the canonical Material
+ * icon without pulling in the material-icons artifact. Kept decorative; the
+ * "Back" label lives on the enclosing button via [clearAndSetSemantics].
+ */
+@Composable
+fun BackArrowIcon(modifier: Modifier = Modifier, tint: Color = MaterialTheme.colorScheme.onSurface) {
+    Canvas(
+        modifier
+            .size(24.dp)
+            .clearAndSetSemantics { contentDescription = "Back" },
+    ) {
+        val w = size.width
+        val h = size.height
+        val stroke = w * 0.083f // 2dp on a 24dp glyph, per the Material spec
+        val tip = Offset(w * 0.16f, h * 0.5f)
+        drawLine(
+            color = tint,
+            start = Offset(w * 0.90f, h * 0.5f),
+            end = tip,
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+        drawLine(tint, tip, Offset(w * 0.42f, h * 0.27f), strokeWidth = stroke, cap = StrokeCap.Round)
+        drawLine(tint, tip, Offset(w * 0.42f, h * 0.73f), strokeWidth = stroke, cap = StrokeCap.Round)
+    }
+}
+
+/**
+ * One top app bar for every nested (pushed) screen — a standard-height
+ * Material small top app bar with a clearly identifiable back button in a
+ * full 48dp touch target, an optional title, and an optional actions slot.
+ * Decision surfaces stay calm: title in [MaterialTheme.typography.titleLarge],
+ * the bar tinted to [containerColor] (surface by default).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NestedTopBar(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor),
+        navigationIcon = {
+            IconButton(onClick = onBack) { BackArrowIcon() }
+        },
+        actions = actions,
+    )
 }
 
 /**

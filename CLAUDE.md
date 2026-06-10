@@ -133,7 +133,13 @@ app/src/main/java/com/cartharsis/
   surfaces (PDP buy box, cart summary, checkout, tracking). The accent palette
   is reserved for primary CTAs and savings; prices render in ink (onSurface),
   one badge max per card. Shared shop components (cards, stepper, price row,
-  section header) live in `ui/screens/Common.kt` — reuse, don't fork.
+  section header, and the `NestedTopBar` worn by every pushed screen) live in
+  `ui/screens/Common.kt` — reuse, don't fork. Nested (pushed) screens — PDP,
+  checkout, tracking — get a standard Material small top app bar via
+  `NestedTopBar`: a clearly identifiable back button (a hand-rolled Material-spec
+  arrow, `BackArrowIcon`, in a full 48dp touch target — no material-icons
+  dependency), an optional title, and an actions slot. Don't reintroduce bare
+  `Text("←")` glyph back buttons.
 - Reward moments (from the reward-psychology research pass): ceremony = gesture →
   suspense → resolution (hold-to-pay → fake-labor lines → checkmark + haptic +
   chime at stroke completion). Sound, haptic, and visual fire at the same
