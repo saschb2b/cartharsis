@@ -1399,6 +1399,49 @@ object FakeCatalog {
                 "anti-aging habit, bottled. Protects skin; spares savings.",
             3_400, "Beauty", 4.8, 22019,
         ),
+
+        // Self-Care — the at-home recovery and wind-down wave.
+        product(
+            "Glow Red Light Panel", "🔴",
+            "Ten minutes of warm, red calm.",
+            "A panel of red and near-infrared light for a daily session said to ease " +
+                "tired muscles and skin, on a stand or wall mount with a built-in " +
+                "timer. The glow you bask in. Recovery, plugged in.",
+            18_900, "Self-Care", 4.5, 5277,
+        ),
+        product(
+            "Dawn Sunrise Alarm Clock", "🌅",
+            "Wake to light, not a jolt.",
+            "A bedside lamp that brightens like a real sunrise over thirty minutes " +
+                "and eases you down at night, with gentle soundscapes and no blue " +
+                "light. Mornings stop being an ambush. Stays on your nightstand of " +
+                "the mind.",
+            6_900, "Self-Care", 4.7, 9460, originalPriceCents = 8_900,
+        ),
+        product(
+            "Knead Shiatsu Neck Massager", "💆",
+            "Unknots the day in ten minutes.",
+            "A U-shaped massager with rotating heated nodes that drape over your neck " +
+                "and shoulders, hands-free, with adjustable intensity. The desk-job " +
+                "antidote. Kneads away tension; adds none to your balance.",
+            5_900, "Self-Care", 4.6, 13288,
+        ),
+        product(
+            "Heated Eye Massager", "😌",
+            "A spa mask for screen-tired eyes.",
+            "A cordless mask with gentle heat, air-pressure kneading, and calming " +
+                "tracks for a fifteen-minute reset before sleep. Folds flat for " +
+                "travel. Closes the eyes; opens nothing in your cart but joy.",
+            4_400, "Self-Care", 4.5, 7012,
+        ),
+        product(
+            "Infrared Sauna Blanket", "♨️",
+            "A sauna you wrap yourself in.",
+            "A far-infrared blanket that delivers a deep, sweaty session on your own " +
+                "couch, with a waterproof inner layer and a simple controller. The " +
+                "wellness ritual without the gym membership — or the membership fee.",
+            29_900, "Self-Care", 4.4, 3905, originalPriceCents = 39_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
