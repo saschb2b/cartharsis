@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.Product
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.ElectricPurple
@@ -55,6 +56,23 @@ private val categoryEmoji = mapOf(
     "Self-Care" to "🧖", "Fitness" to "🏋️", "Snacks" to "🍜", "Outdoors" to "⛺",
     "Pets" to "🐾", "Hobbies" to "🎨", "Stationery" to "🖋️", "Chaos" to "🦖",
 )
+
+/**
+ * Collapse variant siblings to one card per group (Amazon-style: one result
+ * with swatches, the card's "N colors" hint signaling the rest). The
+ * representative is the group's base — its lowest id — or, if the base didn't
+ * match the query, the lowest-id sibling that did (so a search for one color
+ * still surfaces that color). Order is preserved; non-variant products pass
+ * through untouched.
+ */
+private fun collapseVariants(products: List<Product>): List<Product> {
+    if (products.none { it.variantGroup != null }) return products
+    val repId = products
+        .filter { it.variantGroup != null }
+        .groupBy { it.variantGroup }
+        .mapValues { (_, members) -> members.minByOrNull { it.id }!!.id }
+    return products.filter { it.variantGroup == null || repId[it.variantGroup] == it.id }
+}
 
 @Composable
 fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
@@ -84,7 +102,7 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                         it.category.contains(query, ignoreCase = true)
                 }
             }
-        matching.map { it.withPriceOverride(priceDrops[it.id]) }
+        collapseVariants(matching).map { it.withPriceOverride(priceDrops[it.id]) }
     }
 
     LazyVerticalGrid(
