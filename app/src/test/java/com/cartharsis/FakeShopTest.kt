@@ -35,6 +35,16 @@ class FakeShopTest {
     }
 
     @Test
+    fun `every browsable category is stocked deep enough to not look thin`() {
+        // The "All" chip isn't a real category; every other one should fill
+        // the grid. Locks in the catalog-depth pass against silent regressions.
+        FakeCatalog.categories.filterNot { it == "All" }.forEach { category ->
+            val count = FakeCatalog.products.count { it.category == category }
+            assertTrue("$category has only $count products", count >= 8)
+        }
+    }
+
+    @Test
     fun `deal candidates are discounted and discount percent is sane`() {
         assertTrue(FakeCatalog.dealCandidates.isNotEmpty())
         FakeCatalog.dealCandidates.forEach { product ->
