@@ -2555,10 +2555,10 @@ object FakeCatalog {
      * product isn't a trading-card game item (accessories included). Same
      * rules as the Mystery Box: decorative, free, gates nothing.
      */
-    fun cardPullFor(orderId: Int, product: Product): CardPull? {
+    fun cardPullFor(orderId: Int, product: Product, packIndex: Int = 0): CardPull? {
         val game = product.variantGroup?.substringBefore('-') ?: return null
         val pool = cardPullPools[game] ?: return null
-        return pool[Math.floorMod(orderId * 31 + product.id * 7 + 5, pool.size)]
+        return pool[Math.floorMod(orderId * 31 + product.id * 7 + packIndex * 17 + 5, pool.size)]
     }
 
     /**
@@ -2602,14 +2602,16 @@ object FakeCatalog {
     /**
      * The whole pack for the rip ceremony: four seeded, distinct commons and
      * the chase card dealt last — commons first, the payoff at the back, the
-     * way the genre's best openers stage it. Stable per (order, product);
-     * null for anything that isn't a trading-card game product.
+     * way the genre's best openers stage it. Stable per (order, product,
+     * pack); [packIndex] varies the deal so a multi-pack order doesn't rip
+     * the same five cards twice. Null for anything that isn't a trading-card
+     * game product.
      */
-    fun packRipFor(orderId: Int, product: Product): List<CardPull>? {
-        val chase = cardPullFor(orderId, product) ?: return null
+    fun packRipFor(orderId: Int, product: Product, packIndex: Int = 0): List<CardPull>? {
+        val chase = cardPullFor(orderId, product, packIndex) ?: return null
         val game = product.variantGroup!!.substringBefore('-')
         val pool = cardCommonPools.getValue(game)
-        val start = Math.floorMod(orderId * 13 + product.id * 3, pool.size)
+        val start = Math.floorMod(orderId * 13 + product.id * 3 + packIndex * 5, pool.size)
         // Step 3 is coprime with the pool size, so the four picks are distinct.
         return List(4) { pool[(start + it * 3) % pool.size] } + chase
     }

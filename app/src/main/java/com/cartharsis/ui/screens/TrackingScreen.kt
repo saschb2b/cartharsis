@@ -161,13 +161,18 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                     }
                     // A trading-card order unboxes into the pack-rip ceremony
                     // (tear the foil, tap through the commons, flip the chase)
-                    // instead of the generic haul burst.
-                    val rip = remember(order.id) {
-                        order.items.firstNotNullOfOrNull { line ->
-                            FakeCatalog.packRipFor(order.id, line.product)?.let { cards ->
-                                line.product.variantGroup!!.substringBefore('-') to cards
+                    // instead of the generic haul burst. Every pack gets its
+                    // own rip — one per quantity of each card line, each with
+                    // its own deal — capped so the ceremony stays a ceremony.
+                    val ripPacks = remember(order.id) {
+                        order.items
+                            .flatMap { line -> List(line.quantity) { i -> line.product to i } }
+                            .mapNotNull { (product, i) ->
+                                FakeCatalog.packRipFor(order.id, product, i)?.let { cards ->
+                                    product.variantGroup!!.substringBefore('-') to cards
+                                }
                             }
-                        }
+                            .take(MAX_PACK_RIPS)
                     }
                     // `unboxed` (ViewModel) is the durable "opened ever" flag;
                     // `revealing` is local so the burst plays only on the live
@@ -175,7 +180,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                     var revealing by remember(orderId) { mutableStateOf(false) }
                     val phase = when {
                         !unboxed -> UnboxPhase.Sealed
-                        revealing && rip != null -> UnboxPhase.Ripping
+                        revealing && ripPacks.isNotEmpty() -> UnboxPhase.Ripping
                         revealing -> UnboxPhase.Revealing
                         else -> UnboxPhase.Opened
                     }
@@ -199,19 +204,38 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     viewModel.markUnboxed(order.id)
                                     // Card orders save the burst for the chase
                                     // flip — one big celebration per flow.
-                                    if (rip == null) celebrate = true
+                                    if (ripPacks.isEmpty()) celebrate = true
                                 },
                             )
-                            UnboxPhase.Ripping -> PackRipReveal(
-                                game = rip!!.first,
-                                cards = rip.second,
-                                onChaseRevealed = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    Chime.playSuccess()
-                                    celebrate = true
-                                },
-                                onFinished = { revealing = false },
-                            )
+                            UnboxPhase.Ripping -> {
+                                var packIdx by remember(order.id) { mutableIntStateOf(0) }
+                                val lastPack = packIdx == ripPacks.lastIndex
+                                AnimatedContent(
+                                    targetState = packIdx,
+                                    label = "packQueue",
+                                    transitionSpec = {
+                                        (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f))
+                                            .togetherWith(fadeOut(tween(120)))
+                                    },
+                                ) { idx ->
+                                    PackRipReveal(
+                                        game = ripPacks[idx].first,
+                                        cards = ripPacks[idx].second,
+                                        packNumber = idx + 1,
+                                        packCount = ripPacks.size,
+                                        onChaseRevealed = {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            Chime.playSuccess()
+                                            // Every chase lands with haptic+chime;
+                                            // the confetti is the finale's.
+                                            if (lastPack) celebrate = true
+                                        },
+                                        onFinished = {
+                                            if (lastPack) revealing = false else packIdx += 1
+                                        },
+                                    )
+                                }
+                            }
                             UnboxPhase.Revealing -> UnboxingReveal(
                                 haul = haul,
                                 onFinished = { revealing = false },
@@ -757,6 +781,9 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
 // for last behind a glow and a flip. Gesture → suspense → resolution; the
 // confetti, haptic, and chime all fire together at the flip's completion.
 
+/** Rips per order, max — enough to feel abundant, few enough to stay a ceremony. */
+private const val MAX_PACK_RIPS = 3
+
 private data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
 
 private fun packTheme(game: String): PackTheme = when (game) {
@@ -766,20 +793,42 @@ private fun packTheme(game: String): PackTheme = when (game) {
 }
 
 @Composable
-private fun PackRipReveal(game: String, cards: List<CardPull>, onChaseRevealed: () -> Unit, onFinished: () -> Unit) {
+private fun PackRipReveal(
+    game: String,
+    cards: List<CardPull>,
+    packNumber: Int,
+    packCount: Int,
+    onChaseRevealed: () -> Unit,
+    onFinished: () -> Unit,
+) {
     val theme = remember(game) { packTheme(game) }
     var torn by remember { mutableStateOf(false) }
-    AnimatedContent(
-        targetState = torn,
-        label = "rip",
-        transitionSpec = {
-            (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut(tween(120)))
-        },
-    ) { isTorn ->
-        if (!isTorn) {
-            BoosterPackTear(theme, onTorn = { torn = true })
-        } else {
-            CardStackReveal(theme, cards, onChaseRevealed, onFinished)
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        if (packCount > 1) {
+            Text(
+                text = "Pack $packNumber of $packCount",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        AnimatedContent(
+            targetState = torn,
+            label = "rip",
+            transitionSpec = {
+                (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut(tween(120)))
+            },
+        ) { isTorn ->
+            if (!isTorn) {
+                BoosterPackTear(theme, onTorn = { torn = true })
+            } else {
+                CardStackReveal(
+                    theme = theme,
+                    cards = cards,
+                    finishLabel = if (packNumber < packCount) "Rip the next pack" else "Take your haul",
+                    onChaseRevealed = onChaseRevealed,
+                    onFinished = onFinished,
+                )
+            }
         }
     }
 }
@@ -971,6 +1020,7 @@ private fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
 private fun CardStackReveal(
     theme: PackTheme,
     cards: List<CardPull>,
+    finishLabel: String,
     onChaseRevealed: () -> Unit,
     onFinished: () -> Unit,
 ) {
@@ -1086,7 +1136,7 @@ private fun CardStackReveal(
                 modifier = Modifier.padding(top = 10.dp),
             )
             else -> Button(onClick = onFinished, modifier = Modifier.padding(top = 10.dp)) {
-                Text("Take your haul", fontWeight = FontWeight.Bold)
+                Text(finishLabel, fontWeight = FontWeight.Bold)
             }
         }
     }

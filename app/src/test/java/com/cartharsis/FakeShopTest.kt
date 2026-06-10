@@ -398,6 +398,21 @@ class FakeShopTest {
     }
 
     @Test
+    fun `multi-pack orders deal each pack differently but still deterministically`() {
+        val pack = FakeCatalog.products.first { it.variantGroup == "duelbound-eclipse" }
+        val first = FakeCatalog.packRipFor(11, pack, packIndex = 0)!!
+        val second = FakeCatalog.packRipFor(11, pack, packIndex = 1)!!
+        // A second pack of the same product is a fresh deal — different chase,
+        // different commons — not the same five cards twice.
+        assertTrue("pack 2 dealt identically to pack 1", first != second)
+        assertTrue(first.last() != second.last())
+        // Still seeded: the same pack index always re-deals the same cards.
+        assertEquals(second, FakeCatalog.packRipFor(11, pack, packIndex = 1))
+        // And the default index is pack 0, so older call sites keep their deal.
+        assertEquals(first, FakeCatalog.packRipFor(11, pack))
+    }
+
+    @Test
     fun `trading-card grids lead with the entry-price pack, not the sealed display`() {
         val groups = FakeCatalog.products
             .filter { it.category == "Trading Cards" && it.variantGroup != null }
