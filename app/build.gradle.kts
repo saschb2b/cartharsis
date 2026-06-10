@@ -37,6 +37,12 @@ android {
     buildFeatures {
         compose = true
     }
+    lint {
+        // New warnings fail the build; the baseline absorbs the historical
+        // ones (dependency-version advisories) so only regressions bite.
+        warningsAsErrors = true
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {
