@@ -94,6 +94,17 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     val unboxed = order.id in unboxedOrders
     var celebrate by remember(orderId) { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
+    // A soft tick when a stage flips while watching — progress you can feel.
+    // Arrival stays silent here; its moment belongs to the unbox tap.
+    var lastStatus by remember(orderId) { mutableStateOf(order.status) }
+    LaunchedEffect(order.status) {
+        if (order.status != lastStatus) {
+            lastStatus = order.status
+            if (order.status != OrderStatus.DELIVERED) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+        }
+    }
     LaunchedEffect(celebrate) {
         if (celebrate) {
             delay(2_800)
