@@ -1577,6 +1577,48 @@ object FakeCatalog {
                 "for every trip. Warms the version of you that travels.",
             12_900, "Outdoors", 4.8, 8807, originalPriceCents = 15_900,
         ),
+
+        // Pets — the smart-pet gear owners obsess over now.
+        product(
+            "PurrClean Self-Cleaning Litter Box", "🐈",
+            "Scoop nothing, ever again.",
+            "An enclosed litter robot that sifts and seals after every visit, tracks " +
+                "your cat's habits in an app, and warns you before it's full. The " +
+                "chore, automated away. The cat remains skeptical. So does delivery.",
+            49_900, "Pets", 4.6, 9233, originalPriceCents = 59_900,
+        ),
+        product(
+            "Roam GPS Pet Tracker", "📡",
+            "Always know where they wandered.",
+            "A lightweight collar tag with live GPS, a virtual fence that alerts you " +
+                "at the edge, and activity tracking, all on a clip that lasts days. " +
+                "Peace of mind for an escape artist who, here, never escapes.",
+            8_900, "Pets", 4.5, 11604,
+        ),
+        product(
+            "Slow-Feeder Puzzle Bowl", "🦴",
+            "Dinner that takes more than four seconds.",
+            "A maze-bottom bowl that turns gulped meals into a ten-minute foraging " +
+                "puzzle, easing bloat and boredom in one dishwasher-safe dish. " +
+                "Engages the brain at mealtime. The meal, naturally, is imaginary.",
+            1_900, "Pets", 4.7, 14288,
+        ),
+        product(
+            "Calming Donut Pet Bed", "🛏️",
+            "A nest they'll never leave.",
+            "A plush faux-fur donut bed with raised rims for head-resting and a " +
+                "machine-washable cover, sized for cats and small dogs who like to " +
+                "curl. The coziest spot in the house, theoretically arriving.",
+            4_400, "Pets", 4.8, 18950,
+        ),
+        product(
+            "Dog DNA Breed & Health Kit", "🧬",
+            "Finally settle the 'what is he' debate.",
+            "A cheek-swab kit that maps your dog's breed mix, traits, and genetic " +
+                "health markers, with a report you'll read aloud to everyone. " +
+                "Answers the mystery. Becomes one, by never arriving.",
+            9_900, "Pets", 4.6, 6077,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
