@@ -60,6 +60,21 @@ class FakeShopTest {
     }
 
     @Test
+    fun `variant groups are well-formed`() {
+        val grouped = FakeCatalog.products.filter { it.variantGroup != null }
+        assertTrue("expected some variant siblings", grouped.isNotEmpty())
+        grouped.groupBy { it.variantGroup }.forEach { (group, members) ->
+            // A real variant set is 2+ siblings on a single shared axis, each
+            // with a distinct label, so the swatch row reads cleanly.
+            assertTrue("group $group has one member", members.size >= 2)
+            assertEquals("group $group mixes axes", 1, members.map { it.variantAxis }.toSet().size)
+            val labels = members.map { it.variantLabel }
+            assertTrue("group $group has a null label", labels.none { it == null })
+            assertEquals("group $group repeats a label", labels.size, labels.toSet().size)
+        }
+    }
+
+    @Test
     fun `every browsable category is stocked deep enough to not look thin`() {
         // The "All" chip isn't a real category; every other one should fill
         // the grid. Locks in the catalog-depth pass against silent regressions.
