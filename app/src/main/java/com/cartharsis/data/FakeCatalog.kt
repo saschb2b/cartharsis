@@ -1215,6 +1215,48 @@ object FakeCatalog {
                 "Currently doubling your desire and nothing else.",
             22_900, "Tech", 4.6, 3052,
         ),
+
+        // Audio — the speakers and buds that fill carts now.
+        product(
+            "Pebble Go Portable Speaker", "🔈",
+            "Pocket-sized, room-filling.",
+            "A palm-sized Bluetooth speaker with surprising low end, IP67 dust and " +
+                "water proofing, 14 hours of playback, and a strap for the shower " +
+                "rail. Pairs two for stereo. Plays nothing, beautifully.",
+            12_900, "Audio", 4.7, 16842, originalPriceCents = 15_900,
+        ),
+        product(
+            "Crescent Cinema Soundbar 5.1", "📻",
+            "Your TV finally sounds like the movie.",
+            "A 5.1 Dolby Atmos bar with a wireless subwoofer and up-firing drivers " +
+                "that bounce sound off the ceiling. One cable to the TV, one app for " +
+                "the rest. The explosions are immersive and imaginary.",
+            49_900, "Audio", 4.8, 4521, originalPriceCents = 59_900,
+        ),
+        product(
+            "Crescent Reference IEMs", "🎶",
+            "Studio detail, in your ears.",
+            "Triple balanced-armature in-ear monitors with a detachable braided " +
+                "cable and foam tips that vanish into your ears. Hears every layer " +
+                "of the mix. Delivers every layer of nothing.",
+            17_900, "Audio", 4.6, 2733,
+        ),
+        product(
+            "OpenRun Bone-Conduction Headphones", "🦴",
+            "Music and the world, at once.",
+            "Open-ear bone-conduction headphones that leave your ears free for " +
+                "traffic and conversation, sweat-proof for runs, with an eight-hour " +
+                "battery. Built for the marathon you're thinking about.",
+            15_900, "Audio", 4.5, 6390,
+        ),
+        product(
+            "BoomTower 200W Party Speaker", "🔊",
+            "The neighbors will remember this.",
+            "A 200W floor speaker with a thumping woofer, a light show synced to the " +
+                "beat, a karaoke mic input, and a battery that outlasts the party. " +
+                "Wheels included. Regret not included.",
+            29_900, "Audio", 4.6, 5118,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
