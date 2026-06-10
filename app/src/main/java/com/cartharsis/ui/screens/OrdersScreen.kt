@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -30,8 +33,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -47,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.badges
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.keptEquivalent
@@ -88,6 +94,16 @@ fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit) {
                 itemsBought = stats.itemsBought,
                 streakDays = streakDays,
             )
+        }
+
+        if (stats.ordersPlaced > 0) {
+            item {
+                MilestoneShelf(
+                    ordersPlaced = stats.ordersPlaced,
+                    centsKept = stats.centsKept,
+                    streakDays = streakDays,
+                )
+            }
         }
 
         if (orders.isEmpty()) {
@@ -302,6 +318,72 @@ private fun SecondaryStats(ordersPlaced: Int, itemsBought: Int, streakDays: Int)
             if (streakDays == 1) "day resisted" else "days resisted",
             Modifier.weight(1f),
         )
+    }
+}
+
+/**
+ * The trophy shelf: earned milestones in full color, not-yet-earned ones shown
+ * faint as "next up" — a forward pull, never a loss frame.
+ */
+@Composable
+private fun MilestoneShelf(ordersPlaced: Int, centsKept: Long, streakDays: Int) {
+    val all = remember(ordersPlaced, centsKept, streakDays) { badges(ordersPlaced, centsKept, streakDays) }
+    val earned = all.count { it.earned }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+            Text(
+                text = "Milestones",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "$earned of ${all.size}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            all.forEach { badge -> BadgePill(badge) }
+        }
+    }
+}
+
+@Composable
+private fun BadgePill(badge: com.cartharsis.data.Badge) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (badge.earned) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        },
+    ) {
+        Column(
+            modifier = Modifier.width(92.dp).padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = if (badge.earned) badge.emoji else "🔒",
+                fontSize = 26.sp,
+                modifier = if (badge.earned) Modifier else Modifier.alpha(0.6f),
+            )
+            Text(
+                text = badge.label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (badge.earned) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (badge.earned) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                },
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp),
+                maxLines = 2,
+            )
+        }
     }
 }
 
