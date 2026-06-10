@@ -249,5 +249,24 @@ Declined by owner: review sort/filter controls.
 - [x] Appended after Mystery Box so all existing product ids stay stable
 - [x] README product count + examples refreshed; one commit per category, tests green
 
+## Phase 21 — Current-gen console ecosystem (autopilot)
+- [x] Gaming 14 → 30 products: filled the bare accessory shelf around the existing
+      flagship console + handhelds
+- [x] Hardware/accessories: dock+handheld hybrid console (Switch archetype), wireless
+      gaming headset, extra-controller + charging-dock bundle, 2TB storage expansion
+      card, handheld travel case, arcade fightstick, vertical cooling/charging stand,
+      clip-on handheld grip + power bank
+- [x] Immersion/streaming: console-tethered VR headset, USB broadcast mic, LCD-key
+      stream control pad
+- [x] Library: 5 titles across the genres people search for — Ashen Banner
+      (soulslike), Override: Tactical (hero shooter), Nightshift Anomaly (co-op
+      horror), Pitch Legends 26 (annual sports), Redline GT 5 (sim racer, pairs with
+      the Vortex Force wheel)
+- [x] Brands stay coherent (Meteor console family, Vortex peripherals, Wisp handheld);
+      ids appended so existing state stays stable; 209 → 225 products; tests green
+- Proposal (needs owner call): a second/rival console brand and console+game starter
+      bundles would add realism, but the bundle concept needs a data-model change and
+      a rival ecosystem is a judgment call on how far to mirror the real duopoly.
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
