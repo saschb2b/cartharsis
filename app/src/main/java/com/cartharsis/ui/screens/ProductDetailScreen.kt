@@ -2,6 +2,8 @@ package com.cartharsis.ui.screens
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -51,16 +53,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Product
 import com.cartharsis.data.UserReview
 import com.cartharsis.data.fakeStockLeft
@@ -91,7 +96,14 @@ fun ProductDetailScreen(
     onBuyNow: () -> Unit,
     onViewCart: () -> Unit = {},
 ) {
-    val base: Product = viewModel.catalog.firstOrNull { it.id == productId } ?: return
+    // A tapped variant swatch swaps the displayed sibling in place (each is its
+    // own listing), so selection lives here rather than re-navigating.
+    var selectedId by remember(productId) { mutableIntStateOf(productId) }
+    val base: Product = viewModel.catalog.firstOrNull { it.id == selectedId }
+        ?: viewModel.catalog.firstOrNull { it.id == productId } ?: return
+    val variants = remember(base.variantGroup) {
+        base.variantGroup?.let { FakeCatalog.variantsOf(it) } ?: emptyList()
+    }
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     val product = base.withPriceOverride(priceDrops[base.id])
@@ -114,7 +126,7 @@ fun ProductDetailScreen(
         }
     }
 
-    LaunchedEffect(productId) { viewModel.markViewed(productId) }
+    LaunchedEffect(selectedId) { viewModel.markViewed(selectedId) }
     LaunchedEffect(justAdded) {
         if (justAdded) {
             delay(1_500)
@@ -233,6 +245,20 @@ fun ProductDetailScreen(
                             color = JuicyOrange,
                         )
                     }
+                }
+
+                if (variants.size > 1) {
+                    VariantPicker(
+                        axis = base.variantAxis,
+                        variants = variants,
+                        selectedId = base.id,
+                        onSelect = { id ->
+                            if (id != base.id) {
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                selectedId = id
+                            }
+                        },
+                    )
                 }
 
                 if (product.isBundle) {
@@ -425,6 +451,83 @@ private fun BundleIncludesCard(includes: List<String>) {
             }
         }
     }
+}
+
+/** Amazon-style variant swatch row: "Color: Volcanic Red" + tappable pills. */
+@Composable
+private fun VariantPicker(axis: String, variants: List<Product>, selectedId: Int, onSelect: (Int) -> Unit) {
+    val selectedLabel = variants.firstOrNull { it.id == selectedId }?.variantLabel.orEmpty()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row {
+            Text(
+                text = "$axis: ",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = selectedLabel,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            variants.forEach { v ->
+                val selected = v.id == selectedId
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                    border = BorderStroke(
+                        width = if (selected) 2.dp else 1.dp,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        },
+                    ),
+                    modifier = Modifier.clickable(
+                        onClickLabel = "Choose ${v.variantLabel}",
+                        role = Role.RadioButton,
+                        onClick = { onSelect(v.id) },
+                    ),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        Box(
+                            Modifier
+                                .size(14.dp)
+                                .clip(CircleShape)
+                                .background(swatchColor(v.variantLabel))
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+                        )
+                        Text(
+                            text = v.variantLabel.orEmpty(),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun swatchColor(label: String?): androidx.compose.ui.graphics.Color = when {
+    label == null -> androidx.compose.ui.graphics.Color.Gray
+    label.contains("Black", true) -> androidx.compose.ui.graphics.Color(0xFF1A1A1A)
+    label.contains("Red", true) -> androidx.compose.ui.graphics.Color(0xFFE53935)
+    label.contains("Blue", true) -> androidx.compose.ui.graphics.Color(0xFF3949AB)
+    label.contains("Silver", true) -> androidx.compose.ui.graphics.Color(0xFFB0BEC5)
+    else -> androidx.compose.ui.graphics.Color.Gray
 }
 
 @Composable

@@ -22,6 +22,17 @@ data class Product(
      * sells a console+game as its own listing.
      */
     val includes: List<String> = emptyList(),
+    /**
+     * Variant grouping, mirroring Amazon's swatch selector. Products sharing a
+     * [variantGroup] are siblings (e.g. controller colors); [variantLabel] and
+     * [variantAxis] name the swatch ("Volcanic Red" under the "Color" axis).
+     * Each variant stays its own listing — own id, price, reviews — so the
+     * cart, search, and reveal all keep working; the PDP just swaps between
+     * siblings in place.
+     */
+    val variantGroup: String? = null,
+    val variantLabel: String? = null,
+    val variantAxis: String = "Color",
 ) {
     val discountPercent: Int?
         get() = originalPriceCents?.let { ((1 - priceCents.toDouble() / it) * 100).toInt() }

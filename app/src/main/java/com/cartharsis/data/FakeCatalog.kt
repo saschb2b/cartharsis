@@ -179,12 +179,16 @@ object FakeCatalog {
         reviewCount: Int,
         originalPriceCents: Long? = null,
         includes: List<String> = emptyList(),
+        variantGroup: String? = null,
+        variantLabel: String? = null,
     ): Product {
         val id = nextId++
         return Product(
             id, name, emoji, tagline, description, priceCents, category,
             rating, reviewCount, reviewsFor(id, category), originalPriceCents,
             includes = includes,
+            variantGroup = variantGroup,
+            variantLabel = variantLabel,
         )
     }
 
@@ -542,6 +546,7 @@ object FakeCatalog {
             "Hall-effect sticks that never drift, four remappable back paddles, " +
                 "adjustable trigger stops, and 40 hours per charge.",
             6_900, "Gaming", 4.7, 13208,
+            variantGroup = "meteor-pro-controller", variantLabel = "Carbon Black",
         ),
         product(
             "Emberfall: Complete Edition", "🐉",
@@ -2056,9 +2061,44 @@ object FakeCatalog {
                 "Extra Meteor Pro Controller",
             ),
         ),
+
+        // Gaming — Meteor Pro Controller colorways (variant siblings of the
+        // base black controller above; the PDP shows a Color swatch row). Each
+        // is its own listing, like Amazon's separate-ASIN colors; the limited
+        // editions cost a touch more.
+        product(
+            "Meteor Pro Controller — Volcanic Red", "🎮",
+            "Built for the long session, dressed to be seen.",
+            "The same drift-free Hall-effect sticks, back paddles, and 40-hour " +
+                "battery, in a molten red finish with matching thumbsticks. The " +
+                "colorway that photographs best and arrives least.",
+            7_400, "Gaming", 4.7, 5102,
+            variantGroup = "meteor-pro-controller", variantLabel = "Volcanic Red",
+        ),
+        product(
+            "Meteor Pro Controller — Starlight Blue", "🎮",
+            "Built for the long session, finished in cosmos.",
+            "Drift-free Hall-effect sticks, remappable paddles, and a 40-hour " +
+                "battery in a deep starlight-blue fade. Quietly the best-looking pad " +
+                "in the lineup. Quietly never delivered.",
+            7_400, "Gaming", 4.8, 4488,
+            variantGroup = "meteor-pro-controller", variantLabel = "Starlight Blue",
+        ),
+        product(
+            "Meteor Pro Controller — Sterling Silver", "🎮",
+            "Built for the long session, plated for the shelf.",
+            "The pro controller in a brushed sterling finish with metallic face " +
+                "buttons — the limited edition that sells out on sight. Premium to " +
+                "the touch, theoretical in the hand.",
+            7_900, "Gaming", 4.8, 3677, originalPriceCents = 8_900,
+            variantGroup = "meteor-pro-controller", variantLabel = "Sterling Silver",
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
+
+    /** All sibling listings in a variant group, in catalog order. */
+    fun variantsOf(group: String): List<Product> = products.filter { it.variantGroup == group }
 
     /** The one product whose unboxing reveals what would have been inside. */
     val mysteryBox: Product = products.first { it.name == "Mystery Box" }
