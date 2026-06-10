@@ -149,6 +149,16 @@ class FakeShopTest {
     }
 
     @Test
+    fun `mystery reveal is deterministic, in-catalog, and never the box itself`() {
+        (1..50).forEach { orderId ->
+            val pick = FakeCatalog.mysteryRevealFor(orderId)
+            assertEquals(pick, FakeCatalog.mysteryRevealFor(orderId))
+            assertTrue(pick in FakeCatalog.products)
+            assertTrue(pick.id != FakeCatalog.mysteryBox.id)
+        }
+    }
+
+    @Test
     fun `the low-star satire actually appears somewhere in the catalog`() {
         val allShown = FakeCatalog.products.flatMap { it.reviews }
         assertTrue(allShown.any { it.rating <= 3 })

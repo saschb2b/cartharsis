@@ -1124,9 +1124,30 @@ object FakeCatalog {
                 "gift tag for your message. It is exactly what it sounds like.",
             1_500, "Chaos", 4.8, 7621,
         ),
+        product(
+            "Mystery Box", "❓",
+            "Contents: unknown. Delivery: known.",
+            "A sealed box packed by someone sworn to secrecy. What was inside is " +
+                "revealed only on arrival, which is to say: nothing, plus the idea " +
+                "of something. The idea is genuinely random.",
+            1_999, "Chaos", 4.9, 9477,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
+
+    /** The one product whose unboxing reveals what would have been inside. */
+    val mysteryBox: Product = products.first { it.name == "Mystery Box" }
+
+    /**
+     * What the Mystery Box hypothetically contained: an orderId-seeded catalog
+     * pick, stable per order so revisits keep the same answer, never the box
+     * itself. Decorative randomness — it gates nothing and costs nothing.
+     */
+    fun mysteryRevealFor(orderId: Int): Product {
+        val candidates = products.filterNot { it.id == mysteryBox.id }
+        return candidates[(orderId * 37 + 11) % candidates.size]
+    }
 
     /** Products eligible for the rotating flash deal slot. */
     val dealCandidates: List<Product> = products.filter { it.originalPriceCents != null }

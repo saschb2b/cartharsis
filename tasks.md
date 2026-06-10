@@ -218,7 +218,7 @@ Declined by owner: review sort/filter controls.
       ("Tap to unbox"); the tap triggers the opening, haptic, confetti, and the
       kept-money tick — celebration moves onto the user's action. Orders opened
       from history skip to the opened state, no re-celebration
-- [ ] Mystery Box product (Chaos): unboxing reveals what would hypothetically
+- [x] Mystery Box product (Chaos): unboxing reveals what would hypothetically
       have been inside — an orderId-seeded catalog pick (decorative randomness,
       never gates value); deterministic pick unit-tested
 - [ ] Courier-nearby notification at ~80% trip progress that posts under the same

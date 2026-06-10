@@ -70,6 +70,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.formatOrderDate
@@ -537,6 +538,22 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
                 color = MintGreen,
                 modifier = Modifier.padding(top = 8.dp),
             )
+            if (order.items.any { it.product.id == FakeCatalog.mysteryBox.id }) {
+                val reveal = remember(order.id) { FakeCatalog.mysteryRevealFor(order.id) }
+                Text(
+                    text = "Inside the Mystery Box, hypothetically:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                Text(
+                    text = "${reveal.emoji} ${reveal.name}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
             Button(onClick = onShopMore, modifier = Modifier.padding(top = 16.dp)) {
                 Text("Shop the next nothing", fontWeight = FontWeight.Bold)
             }
