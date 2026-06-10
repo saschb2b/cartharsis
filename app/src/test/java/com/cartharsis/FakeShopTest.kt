@@ -11,6 +11,8 @@ import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
+import com.cartharsis.data.homeGreeting
+import com.cartharsis.data.homeOrder
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.withPriceOverride
 import org.junit.Assert.assertEquals
@@ -109,6 +111,31 @@ class FakeShopTest {
             assertTrue("${hub.name} has unresolved companions", companions.size >= 2)
             assertTrue("${hub.name} lists itself", companions.none { it.id == hub.id })
         }
+    }
+
+    @Test
+    fun `home greeting is deterministic per seed and time-bucketed`() {
+        // Same inputs → same line (stable within a session).
+        assertEquals(homeGreeting(42L, 9), homeGreeting(42L, 9))
+        // Each time bucket draws from its own pool, so morning != night for a
+        // shared seed (the pools are disjoint).
+        listOf(8 to 23, 14 to 2, 20 to 3).forEach { (day, night) ->
+            assertTrue(homeGreeting(7L, day) != homeGreeting(7L, night))
+        }
+        // Never blank, for any hour.
+        (0..23).forEach { h -> assertTrue(homeGreeting(1L, h).isNotBlank()) }
+    }
+
+    @Test
+    fun `home order is a deterministic permutation of the catalog`() {
+        val catalog = FakeCatalog.products
+        val ordered = homeOrder(catalog, 123L)
+        assertEquals("not a permutation", catalog.toSet(), ordered.toSet())
+        assertEquals(catalog.size, ordered.size)
+        // Same seed → same order; the shuffle is reproducible within a session.
+        assertEquals(ordered, homeOrder(catalog, 123L))
+        // Different seeds almost surely reorder a 200+ item list.
+        assertTrue(homeOrder(catalog, 1L) != homeOrder(catalog, 2L))
     }
 
     @Test

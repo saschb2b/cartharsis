@@ -43,11 +43,14 @@ import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.formatPrice
+import com.cartharsis.data.homeGreeting
+import com.cartharsis.data.homeOrder
 import com.cartharsis.data.withPriceOverride
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.MintGreen
+import java.util.Calendar
 
 /** Chip icons: a category you can recognize before you can read it. */
 private val categoryEmoji = mapOf(
@@ -57,6 +60,10 @@ private val categoryEmoji = mapOf(
     "Pets" to "🐾", "Hobbies" to "🎨", "Stationery" to "🖋️", "Chaos" to "🦖",
 )
 
+/** The wall-clock hour the seed was captured at — drives time-of-day greetings. */
+private fun hourOfDayFor(seedMillis: Long): Int =
+    Calendar.getInstance().apply { timeInMillis = seedMillis }.get(Calendar.HOUR_OF_DAY)
+
 @Composable
 fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
@@ -65,10 +72,11 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
+    val homeSeed by viewModel.homeSeed.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
     var query by remember { mutableStateOf("") }
 
-    val products = remember(selectedCategory, query, priceDrops) {
+    val products = remember(selectedCategory, query, priceDrops, homeSeed) {
         val inCategory =
             if (selectedCategory == "All") {
                 viewModel.catalog
@@ -85,7 +93,11 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                         it.category.contains(query, ignoreCase = true)
                 }
             }
-        FakeCatalog.collapseVariants(matching).map { it.withPriceOverride(priceDrops[it.id]) }
+        val collapsed = FakeCatalog.collapseVariants(matching)
+        // Browse surfaces (no active search) reshuffle each open so the grid
+        // never leads with the same product twice; search stays stable.
+        val ordered = if (query.isBlank()) homeOrder(collapsed, homeSeed) else collapsed
+        ordered.map { it.withPriceOverride(priceDrops[it.id]) }
     }
 
     LazyVerticalGrid(
@@ -103,8 +115,11 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
+                    val greeting = remember(homeSeed) {
+                        homeGreeting(homeSeed, hourOfDayFor(homeSeed))
+                    }
                     Text(
-                        text = "Add to cart. Feel better. Buy nothing.",
+                        text = greeting,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

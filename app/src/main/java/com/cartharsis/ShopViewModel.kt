@@ -3,6 +3,7 @@ package com.cartharsis
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import com.cartharsis.data.CartItem
@@ -103,6 +104,19 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private var nextOrderId = 1
 
     /**
+     * Seed for the home screen's per-open variety (greeting, grid order,
+     * shelves). Refreshed each time the app comes to the foreground — a genuine
+     * re-open — but never on internal navigation, so the layout doesn't reshuffle
+     * under you mid-browse. A fresh wander every time you come back to soothe the
+     * urge; the same wander while you're in it.
+     */
+    private val _homeSeed = MutableStateFlow(System.currentTimeMillis())
+    val homeSeed: StateFlow<Long> = _homeSeed.asStateFlow()
+
+    /** Epoch day, for collections that stay stable within a day but renew at midnight. */
+    val todayEpochDayValue: Long get() = todayEpochDay()
+
+    /**
      * When the last wishlist-drop notification fired. Seeded with "now" so the
      * first ping can come no sooner than one full cooldown after launch — the
      * app never chases someone who just put it down.
@@ -110,6 +124,15 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private var lastDropPingMillis = System.currentTimeMillis()
 
     init {
+        // Refresh the home seed each time the app returns to the foreground, so
+        // every re-open is a fresh wander. The very first ON_START (right after
+        // launch) reseeds the init value with the real open time. Internal
+        // navigation never triggers this, so browsing stays stable.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_START) _homeSeed.value = System.currentTimeMillis()
+            },
+        )
         // Restore the wishlist; wanting survives process death even if orders don't.
         viewModelScope.launch {
             val saved = WishlistStore.load(getApplication())
