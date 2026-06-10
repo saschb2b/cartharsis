@@ -1484,6 +1484,56 @@ object FakeCatalog {
                 "movement count. Adds load to your stride, not your statement.",
             8_900, "Fitness", 4.6, 5471, originalPriceCents = 10_900,
         ),
+
+        // Snacks — the foods your feed won't stop showing you.
+        product(
+            "Freeze-Dried Candy Crunch Mix", "🍬",
+            "Your favorite candy, now a crunchy puff.",
+            "Classic chewy candies freeze-dried until they balloon into airy, " +
+                "shatter-crisp puffs with the flavor turned all the way up. The " +
+                "sound is half the fun. A whole bag, zero dentist visits.",
+            1_900, "Snacks", 4.7, 18204,
+        ),
+        product(
+            "Sichuan Chili Crisp Jar", "🌶️",
+            "Put it on literally everything.",
+            "Crunchy chili oil layered with garlic, shallot, and a numbing Sichuan " +
+                "tingle — equally at home on dumplings, eggs, ice cream, or a spoon. " +
+                "The jar that disappears in a week. This one disappears faster.",
+            1_200, "Snacks", 4.9, 26611,
+        ),
+        product(
+            "Hot Honey Drizzle", "🍯",
+            "Sweet, then a slow burn.",
+            "Wildflower honey infused with chili for the drizzle that makes pizza, " +
+                "fried chicken, and cheese boards sing. Sticky, glossy, dangerously " +
+                "versatile. Pairs with everything you're not actually eating.",
+            1_400, "Snacks", 4.8, 11290,
+        ),
+        product(
+            "Electrolyte Hydration Mix, 30-Stick", "⚡",
+            "Water, but it finally works.",
+            "Single-serve sticks with a high-sodium electrolyte ratio and no sugar, " +
+                "for mornings, workouts, and the day after. Citrus-salty and weirdly " +
+                "craveable. Hydrates the idea of you.",
+            2_900, "Snacks", 4.6, 14855, originalPriceCents = 3_500,
+        ),
+        product(
+            "Pistachio Kunafa Chocolate Bar", "🍫",
+            "The viral bar, fully loaded.",
+            "A thick chocolate bar stuffed with pistachio cream and crispy shredded " +
+                "kunafa pastry — the one that broke the internet and sold out " +
+                "everywhere. Snaps loud, eats rich. Sold out here too, technically.",
+            2_200, "Snacks", 4.8, 33107,
+        ),
+        product(
+            "Ceremonial Matcha Starter Kit", "🍵",
+            "The slow, green morning ritual.",
+            "Stone-ground ceremonial matcha with a bamboo whisk, a sifter, and a " +
+                "measuring scoop, for a frothy bowl that's calmer than coffee. The " +
+                "aesthetic morning you keep saving to a folder.",
+            3_400, "Snacks", 4.7, 8642,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
