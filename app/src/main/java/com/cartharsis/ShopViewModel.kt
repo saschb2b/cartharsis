@@ -21,6 +21,7 @@ import com.cartharsis.data.WishlistStore
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.formatPrice
+import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.withPriceOverride
 import java.util.Calendar
@@ -115,6 +116,21 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Epoch day, for collections that stay stable within a day but renew at midnight. */
     val todayEpochDayValue: Long get() = todayEpochDay()
+
+    /** Badge ids the Orders screen has already shown; null until its first visit. */
+    private var seenBadgeIds: Set<String>? = null
+
+    /**
+     * Badges newly earned since the last Orders visit. Empty on the first visit
+     * of a session — so an existing collection (stats persist across launches,
+     * this state doesn't) never re-celebrates on every open; only a genuine
+     * in-session crossing does.
+     */
+    fun consumeNewlyEarnedBadges(earnedIds: Set<String>): Set<String> {
+        val result = newlyEarned(seenBadgeIds, earnedIds)
+        seenBadgeIds = earnedIds
+        return result
+    }
 
     /**
      * When the last wishlist-drop notification fired. Seeded with "now" so the

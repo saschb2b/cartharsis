@@ -58,6 +58,15 @@ fun savingsMilestoneProgress(cents: Long): Float {
 /** An earned-or-not achievement on the milestone shelf. */
 data class Badge(val id: String, val emoji: String, val label: String, val earned: Boolean)
 
+/**
+ * Badge ids in [current] that weren't in [previous] — the ones to celebrate.
+ * Empty when [previous] is null (the first observation of a session) so an
+ * already-earned collection never re-fires on every app launch; only a genuine
+ * in-session crossing does.
+ */
+fun newlyEarned(previous: Set<String>?, current: Set<String>): Set<String> =
+    if (previous == null) emptySet() else current - previous
+
 /** All badges in a stable order; [earned] reflects current stats. Celebrate on cross. */
 fun badges(ordersPlaced: Int, centsKept: Long, streakDays: Int): List<Badge> = listOf(
     Badge("first", "🌱", "First order", ordersPlaced >= 1),

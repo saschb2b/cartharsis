@@ -33,9 +33,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -49,10 +52,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.badges
 import com.cartharsis.data.formatOrderDate
@@ -64,6 +70,7 @@ import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.MintGreen
+import kotlinx.coroutines.delay
 
 @Composable
 fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit, onBrowse: () -> Unit = {}) {
@@ -78,6 +85,43 @@ fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit, onBrowse
         return
     }
 
+    // Celebrate a freshly-crossed milestone — and only that. One burst, scaled
+    // to the moment, fired with haptic + chime together (per the reward rules).
+    val haptics = LocalHapticFeedback.current
+    val earnedIds = remember(stats, streakDays) {
+        badges(stats.ordersPlaced, stats.centsKept, streakDays).filter { it.earned }.map { it.id }.toSet()
+    }
+    var celebrate by remember { mutableStateOf(false) }
+    LaunchedEffect(earnedIds) {
+        if (viewModel.consumeNewlyEarnedBadges(earnedIds).isNotEmpty()) {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            Chime.playSuccess()
+            celebrate = true
+            delay(2_800)
+            celebrate = false
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        OrdersList(
+            orders = orders,
+            stats = stats,
+            streakDays = streakDays,
+            onOrderClick = onOrderClick,
+        )
+        if (celebrate) {
+            ConfettiOverlay(Modifier.fillMaxSize())
+        }
+    }
+}
+
+@Composable
+private fun OrdersList(
+    orders: List<com.cartharsis.data.Order>,
+    stats: com.cartharsis.data.StatsStore.Stats,
+    streakDays: Int,
+    onOrderClick: (Int) -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),

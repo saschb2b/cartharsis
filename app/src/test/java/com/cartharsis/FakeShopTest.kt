@@ -19,6 +19,7 @@ import com.cartharsis.data.homeShelves
 import com.cartharsis.data.keptEquivalent
 import com.cartharsis.data.keptInCoffees
 import com.cartharsis.data.lastSavingsMilestone
+import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.nextSavingsMilestone
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.savingsMilestoneProgress
@@ -194,6 +195,17 @@ class FakeShopTest {
         assertEquals(0.5f, savingsMilestoneProgress(25_000), 0.001f) // $250 toward the $500 goal
         assertTrue(savingsMilestoneProgress(30_000) in 0f..1f)
         assertEquals(1f, savingsMilestoneProgress(9_000_000), 0.001f) // capped past the top
+    }
+
+    @Test
+    fun `newly earned fires only on a genuine in-session crossing`() {
+        // First observation of a session (previous == null) celebrates nothing,
+        // so an existing collection doesn't re-fire on every launch.
+        assertTrue(newlyEarned(null, setOf("first", "kept100")).isEmpty())
+        // No change → nothing.
+        assertTrue(newlyEarned(setOf("first"), setOf("first")).isEmpty())
+        // A real crossing → just the new ones.
+        assertEquals(setOf("kept100"), newlyEarned(setOf("first"), setOf("first", "kept100")))
     }
 
     @Test
