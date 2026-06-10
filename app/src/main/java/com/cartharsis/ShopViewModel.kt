@@ -311,11 +311,20 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             updateOrder(orderId) { it.copy(status = OrderStatus.ON_THE_WAY) }
             val stepMillis = 250L
             var elapsed = 0L
+            var nearbyPinged = false
             while (elapsed < COURIER_TRIP_MILLIS) {
                 delay(stepMillis)
                 elapsed += stepMillis
                 val progress = (elapsed.toFloat() / COURIER_TRIP_MILLIS).coerceAtMost(1f)
                 updateOrder(orderId) { it.copy(progress = progress) }
+                // Anticipation peaks before arrival: one nearby ping on the
+                // final approach, background-only like every delivery ping.
+                if (!nearbyPinged && progress >= 0.8f &&
+                    NotificationPolicy.shouldPingDelivery(appInForeground())
+                ) {
+                    nearbyPinged = true
+                    Notifier.notifyCourierNearby(getApplication(), orderId)
+                }
             }
             updateOrder(orderId) { it.copy(status = OrderStatus.DELIVERED, progress = 1f) }
             val delivered = _orders.value.firstOrNull { it.id == orderId } ?: return@launch

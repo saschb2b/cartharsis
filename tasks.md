@@ -221,10 +221,10 @@ Declined by owner: review sort/filter controls.
 - [x] Mystery Box product (Chaos): unboxing reveals what would hypothetically
       have been inside — an orderId-seeded catalog pick (decorative randomness,
       never gates value); deterministic pick unit-tested
-- [ ] Courier-nearby notification at ~80% trip progress that posts under the same
+- [x] Courier-nearby notification at ~80% trip progress that posts under the same
       id as the delivered one, so it updates in place — anticipation spike with
       zero extra shade noise; same background-only policy
-- [ ] CLAUDE.md tracking notes updated for the unbox beat
+- [x] CLAUDE.md tracking notes updated for the unbox beat
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

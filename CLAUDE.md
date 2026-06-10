@@ -71,7 +71,11 @@ app/src/main/java/com/cartharsis/
   (permission-guarded; channels `cartharsis.deliveries` + silent
   `cartharsis.wishlist`), gated by `data/NotificationPolicy` — background-only,
   quiet hours and a cooldown for drops. Notifications must stay calm; this is a
-  wellness app wearing a shopping app's clothes.
+  wellness app wearing a shopping app's clothes. A courier-nearby ping fires at
+  ~80% trip progress and the delivered ping updates the same shade entry in
+  place (shared id, alert-once) — one buzz per order. Arrival is interactive:
+  a live-watched delivery presents a sealed parcel and the celebration
+  (confetti, haptic, money tick, Mystery Box reveal) fires on the unbox tap.
 - Price drops are an overlay map (`priceDrops: id → cents`) applied at display/
   cart-add time via `Product.withPriceOverride` — the catalog itself is immutable.
   Cart lines snapshot the price at add time.

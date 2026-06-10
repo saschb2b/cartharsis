@@ -54,6 +54,23 @@ object Notifier {
     /** Intent extra carrying the in-app route a tapped notification should open. */
     const val EXTRA_ROUTE = "cartharsis.route"
 
+    /**
+     * Anticipation peaks just before arrival, so the nearby ping is the one
+     * that buzzes; it shares the delivered notification's id, so arrival
+     * updates the same shade entry in place instead of stacking a second one
+     * (post() alerts only once per id).
+     */
+    fun notifyCourierNearby(context: Context, orderId: Int) {
+        post(
+            context,
+            channelId = DELIVERY_CHANNEL_ID,
+            id = 1_000 + orderId,
+            title = "👀 Your courier is nearby",
+            text = "Order #$orderId is almost there. The nothing is holding steady.",
+            route = "tracking/$orderId",
+        )
+    }
+
     fun notifyDelivered(context: Context, orderId: Int, moneyKept: String) {
         post(
             context,
