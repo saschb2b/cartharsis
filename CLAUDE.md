@@ -48,6 +48,8 @@ app/src/main/java/com/cartharsis/
 │   │                        #   fakeStockLeft, streak math, price/date formatting
 │   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator,
 │   │                        #   variantsOf(group) for swatch siblings
+│   ├── Storefront.kt        # Pure per-open home variety: homeGreeting, homeOrder,
+│   │                        #   homeShelves (seeded, time-of-day, daily-stable)
 │   ├── NotificationPolicy.kt # Pure when-to-ping rules (background-only, quiet
 │   │                        #   hours, price-drop cooldown)
 │   └── WishlistStore.kt     # DataStore persistence: wishlist, profile, stats,
@@ -56,7 +58,8 @@ app/src/main/java/com/cartharsis/
     ├── theme/               # Vibrant "dopamine" palette (pink/purple/orange)
     └── screens/             # One file per screen + Common.kt shared pieces
         ├── OnboardingScreen.kt  # First-run fake signup: name → address → card
-        ├── HomeScreen.kt        # Flash deal banner, category chips, product grid
+        ├── HomeScreen.kt        # Per-open dynamic storefront: greeting, flash
+        │                        #   deal, chips, themed shelves, shuffled grid
         ├── ProductDetailScreen.kt
         ├── WishlistScreen.kt    # Hearted items + price-drop badges
         ├── CartScreen.kt
@@ -88,6 +91,15 @@ app/src/main/java/com/cartharsis/
   its own id/price/reviews, like Amazon's separate ASINs); the PDP shows a
   `variantAxis` swatch row ("Color"/"Edition") and swaps the displayed sibling
   in place via a local `selectedId`. Invariants are locked by FakeShopTest.
+- Dynamic storefront (researched): the home screen varies every open from a fixed
+  catalog + one `ShopViewModel.homeSeed`, refreshed on app foreground (a
+  ProcessLifecycle ON_START observer) so a genuine re-open is a fresh wander but
+  internal navigation never reshuffles mid-browse. `data/Storefront.kt` holds the
+  pure seeded logic — rotating time-of-day greeting, shuffled grid, and a deck of
+  themed shelves (a daily-stable collection for continuity + a personalized
+  Rediscover row + explore shelves). Stable anchors (greeting position, chips,
+  grid) stay put; only the middle band varies. The variety is the reward — never
+  add urgency/FOMO/infinite-scroll traps. Shelves show on the default view only.
 - Navigation Compose with plain string routes (`home`, `product/{id}`, `wishlist`,
   `cart`, `checkout`, `tracking/{orderId}`, `orders`).
 - Persistence: wishlist, urge streak, lifetime stats, the user's reviews, and

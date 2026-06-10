@@ -302,5 +302,22 @@ Declined by owner: review sort/filter controls.
 - [x] Verified on emulator: Orbit listings; FBT total $527 + Add-all snackbar;
       "Pro Controller" collapses 4→1, "Volcanic" surfaces the red variant
 
+## Phase 24 — Dynamic storefront (fresh on every open)
+- [x] Research: how a fixed local catalog feels fresh per open (one seed drives
+      it); ethical variable reward, no urgency/FOMO/infinite-scroll traps
+- [x] `ShopViewModel.homeSeed` refreshed on app foreground (ProcessLifecycle
+      ON_START); stays put on internal nav so browsing doesn't reshuffle
+- [x] `data/Storefront.kt` (pure, tested): homeGreeting (time-of-day rotating),
+      homeOrder (seeded grid shuffle), homeShelves (deck of ~10 themed
+      generators: daily-stable collection + personalized Rediscover + explore
+      shelves, deduped, time-of-day shelf)
+- [x] HomeScreen: rotating greeting, shuffled "Everything" grid (search stays
+      stable), themed shelf rows on the default view; stable anchors kept
+- [x] Tests: greeting/order determinism + permutation, shelf fullness/dedup/
+      daily-stability/personalization. Smoke test searches to surface a product
+      (robust to the shuffled grid). 33 → 36
+- [x] Verified on emulator across re-opens: greeting + grid + shelves change,
+      daily collection stays stable within the day
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
