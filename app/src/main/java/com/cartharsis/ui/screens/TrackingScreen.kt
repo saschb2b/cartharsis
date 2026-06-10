@@ -85,11 +85,13 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     val orders by viewModel.orders.collectAsState()
     val order = orders.firstOrNull { it.id == orderId } ?: return
 
-    // An arrival watched live presents a sealed parcel and waits for the tap —
-    // the celebration belongs to the user's action, not to a state change.
-    // Orders already delivered when the screen opens start opened, so history
-    // never re-fires the party.
-    var unboxed by remember(orderId) { mutableStateOf(order.status == OrderStatus.DELIVERED) }
+    // An arrival presents a sealed parcel and waits for the tap — the
+    // celebration belongs to the user's action, not to a state change. The
+    // ViewModel remembers which orders were opened, so the moment happens
+    // exactly once whether the arrival is watched live, reached through the
+    // delivered notification, or found later in history.
+    val unboxedOrders by viewModel.unboxedOrders.collectAsState()
+    val unboxed = order.id in unboxedOrders
     var celebrate by remember(orderId) { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(celebrate) {
@@ -145,7 +147,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                             SealedParcel(
                                 onUnbox = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    unboxed = true
+                                    viewModel.markUnboxed(order.id)
                                     celebrate = true
                                 },
                             )

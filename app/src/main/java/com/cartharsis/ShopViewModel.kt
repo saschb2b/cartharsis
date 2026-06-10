@@ -86,6 +86,14 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _recentlyViewed = MutableStateFlow<List<Int>>(emptyList())
     val recentlyViewed: StateFlow<List<Int>> = _recentlyViewed.asStateFlow()
 
+    /**
+     * Orders whose arrival parcel has been opened. Session-only like the
+     * orders themselves; every order gets exactly one unbox moment whether
+     * it's watched live, opened from the notification, or found in history.
+     */
+    private val _unboxedOrders = MutableStateFlow<Set<Int>>(emptySet())
+    val unboxedOrders: StateFlow<Set<Int>> = _unboxedOrders.asStateFlow()
+
     /** Consecutive days with at least one fake order — the urge-resisted streak. */
     private val _streakDays = MutableStateFlow(0)
     val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
@@ -192,6 +200,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _recentlyViewed.update { recent ->
             (listOf(productId) + recent.filterNot { it == productId }).take(10)
         }
+    }
+
+    fun markUnboxed(orderId: Int) {
+        _unboxedOrders.update { it + orderId }
     }
 
     // ---- Profile / onboarding ----
@@ -319,7 +331,8 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
                 updateOrder(orderId) { it.copy(progress = progress) }
                 // Anticipation peaks before arrival: one nearby ping on the
                 // final approach, background-only like every delivery ping.
-                if (!nearbyPinged && progress >= 0.8f &&
+                if (!nearbyPinged &&
+                    progress >= 0.8f &&
                     NotificationPolicy.shouldPingDelivery(appInForeground())
                 ) {
                     nearbyPinged = true
