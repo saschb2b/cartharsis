@@ -19,6 +19,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +79,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
@@ -1172,7 +1172,19 @@ private fun ChaseGlow(flipped: Boolean) {
     }
 }
 
-/** One card of the rip: emoji art on the front, wrapper-branded back. */
+/** The rarity's accent: the gem dot in the name bar and the footer tint. */
+@Composable
+private fun rarityAccent(rarity: String): Color = when {
+    rarity.startsWith("Common") -> MaterialTheme.colorScheme.outlineVariant
+    rarity.startsWith("Uncommon") -> SkyBlue
+    else -> LemonYellow
+}
+
+/**
+ * One card of the rip, laid out like a real one: a name bar with a rarity
+ * gem, a framed art window on a per-card wash (the catalog's "product
+ * photography" reused), and a rarity footer. The back stays wrapper-branded.
+ */
 @Composable
 private fun RipCardFace(
     card: CardPull,
@@ -1220,25 +1232,49 @@ private fun RipCardFace(
                     .clip(RoundedCornerShape(9.dp))
                     .background(MaterialTheme.colorScheme.surface),
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.matchParentSize().padding(horizontal = 12.dp),
-                ) {
-                    Text(card.emoji, fontSize = 64.sp)
-                    Text(
-                        text = card.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 10.dp),
+                Column(modifier = Modifier.matchParentSize()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
+                    ) {
+                        Text(
+                            text = card.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Box(
+                            Modifier
+                                .size(10.dp)
+                                .rotate(45f)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(rarityAccent(card.rarity)),
+                        )
+                    }
+                    EmojiHero(
+                        emoji = card.emoji,
+                        fontSize = 64,
+                        seed = card.name.hashCode(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant,
+                                RoundedCornerShape(8.dp),
+                            )
+                            .clip(RoundedCornerShape(8.dp)),
                     )
                     Text(
                         text = card.rarity,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 4.dp),
+                        maxLines = 2,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     )
                 }
                 if (holo) HoloSheen()
