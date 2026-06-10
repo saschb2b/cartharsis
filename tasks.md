@@ -178,5 +178,14 @@ Declined by owner: review sort/filter controls.
       confirmation back goes to shopping instead of the dead cart
 - [x] Verified on emulator (form → charging → reveal) + instrumented test green
 
+## Phase 15 — Toolchain: formatter, lint gate, CI
+- [x] Spotless + ktlint (android_studio style, trailing commas enforced, Composable
+      naming exemption, argument-list-wrapping disabled); one-time normalize applied
+- [x] Android Lint promoted to a hard gate (warningsAsErrors + checked-in baseline
+      absorbing 14 historical advisories)
+- [x] GitHub Actions: ci.yml (spotlessCheck + lint + test + assembleDebug per
+      push/PR, Gradle cache, wrapper validation), instrumented.yml (emulator smoke
+      test, weekly + on-demand)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

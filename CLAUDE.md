@@ -17,10 +17,17 @@ The Android Studio JBR provides the JDK (no system java on PATH):
 ```bash
 JAVA_HOME=/app/extra/jbr ./gradlew assembleDebug
 JAVA_HOME=/app/extra/jbr ./gradlew test
-JAVA_HOME=/app/extra/jbr ./gradlew lint
+JAVA_HOME=/app/extra/jbr ./gradlew lint           # warningsAsErrors; baseline in app/lint-baseline.xml
+JAVA_HOME=/app/extra/jbr ./gradlew spotlessCheck  # ktlint formatting gate; spotlessApply fixes
 ```
 
 SDK location comes from `local.properties` (`/home/sascha/Android/Sdk`).
+
+CI (`.github/workflows/ci.yml`) runs spotlessCheck + lint + test + assembleDebug
+on every push/PR; the emulator smoke test runs weekly/on-demand
+(`instrumented.yml`). Run `spotlessApply` before committing — formatting is a
+hard gate. ktlint settings live in the root `build.gradle.kts`
+(editorConfigOverride) with a mirrored `.editorconfig` for IDEs; change both.
 
 ## Architecture
 
