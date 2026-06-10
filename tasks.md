@@ -339,5 +339,12 @@ Declined by owner: review sort/filter controls.
 - [x] Tests 36 → 40; smoke test green; verified on emulator (normal + narrow,
       empty state, vault, milestones)
 
+## Phase 26 — Orders declutter: Milestones trophy room
+- [x] Extracted the trophy shelf + career stat chips from Orders into a pushed
+      MilestonesScreen (route `milestones`, NestedTopBar, 3-up badge grid with
+      room to breathe instead of a cramped horizontal strip)
+- [x] Orders keeps hero + savings vault + a slim "🏆 Milestones · N of M ›"
+      entry row; the milestone-cross celebration still fires on Orders
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

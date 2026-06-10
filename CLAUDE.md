@@ -67,8 +67,11 @@ app/src/main/java/com/cartharsis/
         ├── CartScreen.kt
         ├── CheckoutScreen.kt    # Fake payment → confetti success
         ├── TrackingScreen.kt    # Animated courier delivery simulation
-        └── OrdersScreen.kt      # "Your impact" payoff: kept-money hero, savings
-        │                        #   vault, milestones, order trophies, empty state
+        ├── OrdersScreen.kt      # "Your impact" payoff: kept-money hero, savings
+        │                        #   vault, milestones entry row, order cards,
+        │                        #   empty state
+        └── MilestonesScreen.kt  # Trophy room (pushed from Orders): career stat
+                                 #   chips + badge grid
 ```
 
 - One `ShopViewModel` (an `AndroidViewModel`, for notification context) scoped to
@@ -96,13 +99,16 @@ app/src/main/java/com/cartharsis/
   in place via a local `selectedId`. Invariants are locked by FakeShopTest.
 - Orders = the "your impact" payoff screen (researched), not a dry list: a
   full-width count-up hero of money kept with relatable equivalents ("≈ 2 movie
-  nights"), a hand-rolled filling savings vault toward the next milestone, a
-  trophy shelf of earned/locked badges, and order cards reframed as "you kept
-  $X". Big numbers auto-size (BasicText/TextAutoSize) and secondary stats wrap
-  (FlowRow) so nothing cramps on narrow phones. A brand-new user gets an inviting
-  value-first empty state with a ghost preview, not a lonely $0. A confetti+
-  haptic+chime fires only on a genuine in-session milestone crossing. The pure
-  logic (equivalents, milestones, badges, newlyEarned) lives in `data/Impact.kt`,
+  nights"), a hand-rolled filling savings vault toward the next milestone, and
+  order cards reframed as "you kept $X". The trophy case (badge grid) and the
+  career stat chips live on a separate pushed `MilestonesScreen`, reached via a
+  slim "🏆 Milestones · N of M ›" entry row — the Orders page stays a glanceable
+  payoff, not a stats wall; the milestone-cross celebration (confetti+haptic+
+  chime, only on a genuine in-session crossing) still fires on Orders. Big
+  numbers auto-size (BasicText/TextAutoSize) and stat chips wrap (FlowRow) so
+  nothing cramps on narrow phones. A brand-new user gets an inviting value-first
+  empty state with a ghost preview, not a lonely $0. The pure logic
+  (equivalents, milestones, badges, newlyEarned) lives in `data/Impact.kt`,
   tested. Framing is always celebratory (what you kept), never loss-framed.
 - Dynamic storefront (researched): the home screen varies every open from a fixed
   catalog + one `ShopViewModel.homeSeed`, refreshed on app foreground (a
@@ -114,7 +120,7 @@ app/src/main/java/com/cartharsis/
   grid) stay put; only the middle band varies. The variety is the reward — never
   add urgency/FOMO/infinite-scroll traps. Shelves show on the default view only.
 - Navigation Compose with plain string routes (`home`, `product/{id}`, `wishlist`,
-  `cart`, `checkout`, `tracking/{orderId}`, `orders`).
+  `cart`, `checkout`, `tracking/{orderId}`, `orders`, `milestones`).
 - Persistence: wishlist, urge streak, lifetime stats, the user's reviews, and
   the onboarding profile (name/address, used by checkout and the card) live in
   DataStore Preferences (single "cartharsis" file); orders and cart are

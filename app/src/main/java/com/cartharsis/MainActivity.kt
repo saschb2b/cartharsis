@@ -48,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import com.cartharsis.ui.screens.CartScreen
 import com.cartharsis.ui.screens.CheckoutScreen
 import com.cartharsis.ui.screens.HomeScreen
+import com.cartharsis.ui.screens.MilestonesScreen
 import com.cartharsis.ui.screens.OnboardingScreen
 import com.cartharsis.ui.screens.OrdersScreen
 import com.cartharsis.ui.screens.ProductDetailScreen
@@ -223,6 +224,17 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                     viewModel = viewModel,
                     onOrderClick = { navController.navigate("tracking/$it") },
                     onBrowse = { navController.navigate("home") { popUpTo("home") } },
+                    onMilestones = { navController.navigate("milestones") },
+                )
+            }
+            composable(
+                "milestones",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) {
+                MilestonesScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
                 )
             }
         }

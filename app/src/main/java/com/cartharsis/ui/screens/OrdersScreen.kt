@@ -4,12 +4,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -72,7 +68,12 @@ import com.cartharsis.ui.theme.LocalSavingsColor
 import kotlinx.coroutines.delay
 
 @Composable
-fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit, onBrowse: () -> Unit = {}) {
+fun OrdersScreen(
+    viewModel: ShopViewModel,
+    onOrderClick: (Int) -> Unit,
+    onBrowse: () -> Unit = {},
+    onMilestones: () -> Unit = {},
+) {
     val orders by viewModel.orders.collectAsState()
     val streakDays by viewModel.streakDays.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()
@@ -107,6 +108,7 @@ fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit, onBrowse
             stats = stats,
             streakDays = streakDays,
             onOrderClick = onOrderClick,
+            onMilestones = onMilestones,
         )
         if (celebrate) {
             ConfettiOverlay(Modifier.fillMaxSize())
@@ -120,6 +122,7 @@ private fun OrdersList(
     stats: com.cartharsis.data.StatsStore.Stats,
     streakDays: Int,
     onOrderClick: (Int) -> Unit,
+    onMilestones: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -140,20 +143,15 @@ private fun OrdersList(
             item { SavingsVault(centsKept = stats.centsKept) }
         }
 
-        item {
-            SecondaryStats(
-                ordersPlaced = stats.ordersPlaced,
-                itemsBought = stats.itemsBought,
-                streakDays = streakDays,
-            )
-        }
-
+        // The trophy room lives on its own screen (MilestonesScreen) so this
+        // one stays a glanceable payoff; the earned count is the breadcrumb.
         if (stats.ordersPlaced > 0) {
             item {
-                MilestoneShelf(
+                MilestonesEntryRow(
                     ordersPlaced = stats.ordersPlaced,
                     centsKept = stats.centsKept,
                     streakDays = streakDays,
+                    onClick = onMilestones,
                 )
             }
         }
@@ -421,119 +419,40 @@ private fun SavingsVault(centsKept: Long) {
 }
 
 /**
- * The supporting stats, wrapped so big values never truncate on narrow phones
- * (the old fixed 4-column row squeezed them). FlowRow reflows to 2-up when the
- * width is tight.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SecondaryStats(ordersPlaced: Int, itemsBought: Int, streakDays: Int) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        StatChip("🛍️", animatedCount(ordersPlaced), "orders placed", Modifier.weight(1f))
-        StatChip("📦", animatedCount(itemsBought), "items \"kept\"", Modifier.weight(1f))
-        StatChip(
-            "🔥",
-            animatedCount(streakDays),
-            if (streakDays == 1) "day resisted" else "days resisted",
-            Modifier.weight(1f),
-        )
-    }
-}
-
-/**
- * The trophy shelf: earned milestones in full color, not-yet-earned ones shown
- * faint as "next up" — a forward pull, never a loss frame.
+ * A slim doorway to the trophy room: the earned count is the pull ("3 of 8"
+ * ticking up over time), the room itself lives on MilestonesScreen.
  */
 @Composable
-private fun MilestoneShelf(ordersPlaced: Int, centsKept: Long, streakDays: Int) {
+private fun MilestonesEntryRow(ordersPlaced: Int, centsKept: Long, streakDays: Int, onClick: () -> Unit) {
     val all = remember(ordersPlaced, centsKept, streakDays) { badges(ordersPlaced, centsKept, streakDays) }
     val earned = all.count { it.earned }
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+        ) {
+            Text("🏆", fontSize = 22.sp)
             Text(
                 text = "Milestones",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 10.dp).weight(1f),
             )
             Text(
                 text = "$earned of ${all.size}",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            all.forEach { badge -> BadgePill(badge) }
-        }
-    }
-}
-
-@Composable
-private fun BadgePill(badge: com.cartharsis.data.Badge) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = if (badge.earned) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-        },
-    ) {
-        Column(
-            modifier = Modifier.width(92.dp).padding(vertical = 12.dp, horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
             Text(
-                text = if (badge.earned) badge.emoji else "🔒",
-                fontSize = 26.sp,
-                modifier = if (badge.earned) Modifier else Modifier.alpha(0.6f),
-            )
-            Text(
-                text = badge.label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (badge.earned) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (badge.earned) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                },
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.padding(top = 6.dp),
-                maxLines = 2,
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatChip(emoji: String, value: String, label: String, modifier: Modifier = Modifier) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        modifier = modifier,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-        ) {
-            Text(emoji, fontSize = 22.sp)
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                maxLines = 1,
-                softWrap = false,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f),
+                text = "›",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
