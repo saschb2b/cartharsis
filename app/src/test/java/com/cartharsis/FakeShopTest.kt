@@ -7,6 +7,7 @@ import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.UserReview
 import com.cartharsis.data.advanceStreak
+import com.cartharsis.data.badges
 import com.cartharsis.data.decodeUserReview
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.encodeUserReview
@@ -15,7 +16,12 @@ import com.cartharsis.data.formatPrice
 import com.cartharsis.data.homeGreeting
 import com.cartharsis.data.homeOrder
 import com.cartharsis.data.homeShelves
+import com.cartharsis.data.keptEquivalent
+import com.cartharsis.data.keptInCoffees
+import com.cartharsis.data.lastSavingsMilestone
+import com.cartharsis.data.nextSavingsMilestone
 import com.cartharsis.data.plusProduct
+import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.data.withPriceOverride
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -164,6 +170,44 @@ class FakeShopTest {
         val titles = { s: List<HomeShelf> -> s.map { it.title } }
         val withHistory = homeShelves(cat, 5L, listOf(cat[3].id, cat[7].id), setOf(cat[1].id), 14, 20_000L)
         assertTrue(titles(withHistory).any { it.startsWith("Rediscover") })
+    }
+
+    @Test
+    fun `kept equivalent picks the grandest affordable unit and counts it`() {
+        assertEquals(null, keptEquivalent(0))
+        assertEquals(null, keptEquivalent(499)) // below one fancy coffee
+        // $50 → grandest affordable is the movie-night tier... actually burger
+        // ($18) is grandest ≤ $50; 5000/1800 = 2.
+        assertEquals("≈ 2 burger combos", keptEquivalent(5_000)!!.text)
+        // $6,344 → grandest affordable is the dream getaway ($3,500); 2 of them.
+        assertEquals("≈ 1 dream getaway", keptEquivalent(350_000)!!.text)
+        assertEquals(12, keptInCoffees(6_000))
+    }
+
+    @Test
+    fun `savings milestones advance and the progress bar stays in bounds`() {
+        assertEquals(10_000L, nextSavingsMilestone(0))
+        assertEquals(100_000L, nextSavingsMilestone(50_000))
+        assertEquals(null, nextSavingsMilestone(9_000_000)) // past the top
+        assertEquals(50_000L, lastSavingsMilestone(60_000))
+        // Progress is measured between the previous and next anchor.
+        assertEquals(0f, savingsMilestoneProgress(10_000), 0.001f) // exactly on an anchor
+        assertTrue(savingsMilestoneProgress(30_000) in 0f..1f)
+        assertEquals(1f, savingsMilestoneProgress(9_000_000), 0.001f) // capped past the top
+    }
+
+    @Test
+    fun `badges earn at their thresholds`() {
+        val none = badges(ordersPlaced = 0, centsKept = 0, streakDays = 0)
+        assertTrue(none.none { it.earned })
+        val some = badges(ordersPlaced = 12, centsKept = 120_000, streakDays = 8)
+        assertTrue(some.first { it.id == "first" }.earned)
+        assertTrue(some.first { it.id == "orders10" }.earned)
+        assertFalse(some.first { it.id == "orders50" }.earned)
+        assertTrue(some.first { it.id == "kept1k" }.earned)
+        assertFalse(some.first { it.id == "kept10k" }.earned)
+        assertTrue(some.first { it.id == "streak7" }.earned)
+        assertFalse(some.first { it.id == "streak30" }.earned)
     }
 
     @Test
