@@ -1939,6 +1939,49 @@ object FakeCatalog {
                 "airs.",
             14_900, "Gaming", 4.8, 7611, originalPriceCents = 17_900,
         ),
+
+        // Gaming — a believable current-gen library for the console.
+        product(
+            "Ashen Banner", "🗡️",
+            "Die, learn, conquer. Repeat.",
+            "A punishing open-world action-RPG of crumbling kingdoms, hidden " +
+                "shortcuts, and bosses that earn their reputation. The one everyone " +
+                "argues about online. A hundred hours of glorious suffering, none " +
+                "of it delivered.",
+            6_900, "Gaming", 4.8, 52188, originalPriceCents = 7_900,
+        ),
+        product(
+            "Override: Tactical", "🎯",
+            "Five heroes. One objective. Pure chaos.",
+            "A team-based hero shooter with a roster of distinct abilities, ranked " +
+                "ladders, and a new agent every season. The headset is recommended; " +
+                "the friends are mandatory. Wins ranked matches that never queue.",
+            4_900, "Gaming", 4.5, 38740,
+        ),
+        product(
+            "Nightshift Anomaly", "👻",
+            "Clock in. Survive the shift. Maybe.",
+            "A co-op horror about underpaid contractors collecting data in places " +
+                "they shouldn't, where proximity chat turns terror into comedy. The " +
+                "streamer-favorite scream machine. Frights guaranteed; cartridge not.",
+            1_900, "Gaming", 4.7, 44902,
+        ),
+        product(
+            "Pitch Legends 26", "⚽",
+            "This year's squad, this year's glory.",
+            "The annual football sim with refreshed rosters, deeper career mode, and " +
+                "online seasons your group chat will live in. Yes, it's basically " +
+                "last year's. Yes, you'll buy it. Here, gloriously, you won't.",
+            6_900, "Gaming", 4.3, 29055, originalPriceCents = 7_900,
+        ),
+        product(
+            "Redline GT 5", "🏁",
+            "Every car, every track, photoreal.",
+            "A sim-grade racer with hundreds of licensed-feeling cars, dynamic " +
+                "weather, and a career that rewards a clean apex. Pairs perfectly " +
+                "with a force-feedback wheel. The podium remains, as ever, imaginary.",
+            5_900, "Gaming", 4.6, 21344,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
