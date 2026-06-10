@@ -1,5 +1,8 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +33,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +51,8 @@ import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.keptEquivalent
 import com.cartharsis.data.keptInCoffees
+import com.cartharsis.data.nextSavingsMilestone
+import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.MintGreen
@@ -65,6 +77,10 @@ fun OrdersScreen(viewModel: ShopViewModel, onOrderClick: (Int) -> Unit) {
         }
 
         item { KeptHero(centsKept = stats.centsKept) }
+
+        if (stats.centsKept > 0) {
+            item { SavingsVault(centsKept = stats.centsKept) }
+        }
 
         item {
             SecondaryStats(
@@ -150,6 +166,117 @@ private fun KeptHero(centsKept: Long) {
                 color = Color.White.copy(alpha = 0.95f),
                 modifier = Modifier.padding(top = 8.dp),
             )
+        }
+    }
+}
+
+/**
+ * A filling jar that makes the abstract "kept" total physical — the research's
+ * "people save when they can see their money." Fills to the true progress
+ * toward the next milestone (never inflated), with the goal and remainder
+ * spelled out beside it.
+ */
+@Composable
+private fun SavingsVault(centsKept: Long) {
+    val next = nextSavingsMilestone(centsKept)
+    val target = savingsMilestoneProgress(centsKept)
+    val progress by animateFloatAsState(
+        targetValue = target,
+        animationSpec = tween(durationMillis = 900, delayMillis = 250),
+        label = "vaultFill",
+    )
+    val liquidTop = MintGreen
+    val liquidBottom = MintGreen.copy(alpha = 0.65f)
+    val outline = MaterialTheme.colorScheme.outlineVariant
+    val glass = MaterialTheme.colorScheme.surfaceVariant
+
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Canvas(Modifier.size(78.dp, 96.dp)) {
+                val w = size.width
+                val h = size.height
+                val lidH = h * 0.13f
+                val bodyTop = lidH
+                val left = w * 0.10f
+                val right = w * 0.90f
+                val radius = CornerRadius(14f, 14f)
+                val body = Path().apply {
+                    addRoundRect(RoundRect(left, bodyTop, right, h, radius))
+                }
+                // Glass body + lid.
+                drawPath(body, color = glass)
+                drawRoundRect(
+                    color = outline,
+                    topLeft = Offset(w * 0.22f, 0f),
+                    size = Size(w * 0.56f, lidH * 1.3f),
+                    cornerRadius = CornerRadius(8f, 8f),
+                )
+                // Liquid, clipped to the jar, filling from the bottom.
+                clipPath(body) {
+                    val fillTop = bodyTop + (h - bodyTop) * (1f - progress)
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            listOf(liquidTop, liquidBottom),
+                            startY = fillTop,
+                            endY = h,
+                        ),
+                        topLeft = Offset(0f, fillTop),
+                        size = Size(w, h - fillTop),
+                    )
+                    if (progress in 0.02f..0.98f) {
+                        // A shallow meniscus so the top reads as liquid.
+                        drawArc(
+                            color = liquidTop,
+                            startAngle = 0f,
+                            sweepAngle = 180f,
+                            useCenter = true,
+                            topLeft = Offset(left, fillTop - 7f),
+                            size = Size(right - left, 14f),
+                        )
+                    }
+                }
+                drawPath(body, color = outline, style = Stroke(width = 3f))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Your savings vault",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (next != null) {
+                    Text(
+                        text = "${formatPrice(next)} milestone",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "${formatPrice(next - centsKept)} to go",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MintGreen,
+                    )
+                } else {
+                    Text(
+                        text = "Top tier reached 🏔️",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MintGreen,
+                    )
+                    Text(
+                        text = "and still climbing",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
     }
 }

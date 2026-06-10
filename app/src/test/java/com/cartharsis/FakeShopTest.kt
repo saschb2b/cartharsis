@@ -190,8 +190,8 @@ class FakeShopTest {
         assertEquals(100_000L, nextSavingsMilestone(50_000))
         assertEquals(null, nextSavingsMilestone(9_000_000)) // past the top
         assertEquals(50_000L, lastSavingsMilestone(60_000))
-        // Progress is measured between the previous and next anchor.
-        assertEquals(0f, savingsMilestoneProgress(10_000), 0.001f) // exactly on an anchor
+        // Fill is the fraction of the way to the next milestone, from zero.
+        assertEquals(0.5f, savingsMilestoneProgress(25_000), 0.001f) // $250 toward the $500 goal
         assertTrue(savingsMilestoneProgress(30_000) in 0f..1f)
         assertEquals(1f, savingsMilestoneProgress(9_000_000), 0.001f) // capped past the top
     }

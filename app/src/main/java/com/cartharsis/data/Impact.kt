@@ -44,13 +44,15 @@ fun nextSavingsMilestone(cents: Long): Long? = savingsMilestones.firstOrNull { i
 fun lastSavingsMilestone(cents: Long): Long = savingsMilestones.lastOrNull { it <= cents } ?: 0L
 
 /**
- * Progress 0f..1f toward the next milestone, measured from the previous one so
- * the bar fills satisfyingly between anchors rather than from zero each time.
+ * Vault fill 0f..1f: how far [cents] is toward the next milestone, measured
+ * from zero. This keeps the jar encouragingly full (a quarter of the way to
+ * $500 reads as a quarter-full jar) and resets gently at each crossing — from
+ * ~full down to the fraction the same total is of the *new*, larger goal —
+ * rather than emptying to zero.
  */
 fun savingsMilestoneProgress(cents: Long): Float {
     val next = nextSavingsMilestone(cents) ?: return 1f
-    val prev = lastSavingsMilestone(cents)
-    return ((cents - prev).toFloat() / (next - prev).toFloat()).coerceIn(0f, 1f)
+    return (cents.toFloat() / next.toFloat()).coerceIn(0f, 1f)
 }
 
 /** An earned-or-not achievement on the milestone shelf. */
