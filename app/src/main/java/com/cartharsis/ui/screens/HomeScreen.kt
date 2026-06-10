@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
@@ -122,34 +123,36 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = "Cartharsis",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    val greeting = remember(homeSeed) {
-                        homeGreeting(homeSeed, hourOfDayFor(homeSeed))
-                    }
-                    Text(
-                        text = greeting,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (lifetimeStats.centsKept > 0) {
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        color = MintGreen.copy(alpha = 0.15f),
-                    ) {
+            AppearOnce(homeSeed, delayMillis = 0) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
                         Text(
-                            text = "💸 ${formatPrice(lifetimeStats.centsKept)} kept",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            text = "Cartharsis",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary,
                         )
+                        val greeting = remember(homeSeed) {
+                            homeGreeting(homeSeed, hourOfDayFor(homeSeed))
+                        }
+                        Text(
+                            text = greeting,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (lifetimeStats.centsKept > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MintGreen.copy(alpha = 0.15f),
+                        ) {
+                            Text(
+                                text = "💸 ${formatPrice(lifetimeStats.centsKept)} kept",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -176,15 +179,17 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 
         if (query.isBlank()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
-                FlashDealBanner(
-                    emoji = deal.emoji,
-                    name = deal.name,
-                    price = formatPrice(deal.priceCents),
-                    originalPrice = deal.originalPriceCents?.let(::formatPrice),
-                    countdown = formatCountdown(secondsLeft),
-                    onClick = { onProductClick(deal.id) },
-                )
+                AppearOnce(homeSeed, delayMillis = 90) {
+                    val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
+                    FlashDealBanner(
+                        emoji = deal.emoji,
+                        name = deal.name,
+                        price = formatPrice(deal.priceCents),
+                        originalPrice = deal.originalPriceCents?.let(::formatPrice),
+                        countdown = formatCountdown(secondsLeft),
+                        onClick = { onProductClick(deal.id) },
+                    )
+                }
             }
         }
 
@@ -233,21 +238,25 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 
         // Themed shelves — the freshness engine, default browse view only.
         if (query.isBlank() && selectedCategory == "All") {
-            items(shelves, span = { GridItemSpan(maxLineSpan) }, key = { "shelf-${it.title}" }) { shelf ->
-                Column(Modifier.animateItem()) {
-                    SectionHeader(
-                        title = shelf.title,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                    )
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        shelf.products.forEach { p ->
-                            MiniProductCard(
-                                product = viewModel.displayProduct(p),
-                                onClick = { onProductClick(p.id) },
-                            )
+            itemsIndexed(shelves, span = { _, _ ->
+                GridItemSpan(maxLineSpan)
+            }, key = { _, s -> "shelf-${s.title}" }) { index, shelf ->
+                AppearOnce(homeSeed, delayMillis = 150 + index * 70) {
+                    Column(Modifier.animateItem()) {
+                        SectionHeader(
+                            title = shelf.title,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                        )
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            shelf.products.forEach { p ->
+                                MiniProductCard(
+                                    product = viewModel.displayProduct(p),
+                                    onClick = { onProductClick(p.id) },
+                                )
+                            }
                         }
                     }
                 }

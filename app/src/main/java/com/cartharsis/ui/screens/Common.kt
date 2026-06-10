@@ -1,6 +1,8 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -28,8 +30,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -63,6 +69,7 @@ import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.MintGreen
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
+import kotlinx.coroutines.delay
 
 /** "colors" / "editions" / "options" for the grid variant hint, pluralized. */
 fun variantNoun(axis: String, count: Int): String {
@@ -187,6 +194,31 @@ fun DiscountBadge(percent: Int, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
         )
     }
+}
+
+/**
+ * Fades + lifts its content in once, replaying whenever [key] changes. Used to
+ * stagger the home sections on each open (different [delayMillis] per section)
+ * so the storefront feels alive every time, even when content repeats.
+ */
+@Composable
+fun AppearOnce(key: Any, delayMillis: Int, content: @Composable () -> Unit) {
+    var shown by remember(key) { mutableStateOf(false) }
+    LaunchedEffect(key) {
+        delay(delayMillis.toLong())
+        shown = true
+    }
+    val progress by animateFloatAsState(
+        targetValue = if (shown) 1f else 0f,
+        animationSpec = tween(durationMillis = 320),
+        label = "appear",
+    )
+    Box(
+        Modifier.graphicsLayer {
+            alpha = progress
+            translationY = (1f - progress) * 28f
+        },
+    ) { content() }
 }
 
 // Soft tile gradients, assigned stably per product so the grid reads colorful
