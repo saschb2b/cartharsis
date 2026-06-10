@@ -2107,6 +2107,49 @@ object FakeCatalog {
             34_900, "Gaming", 4.6, 9882,
             variantGroup = "meteor-swift", variantLabel = "Digital", variantAxis = "Edition",
         ),
+
+        // Gaming — Orbit, the rival console ecosystem (the other half of the
+        // console duopoly), with its own bundle and Disc/Digital editions.
+        product(
+            "Orbit One Console", "🎮",
+            "Cinematic power, under the TV.",
+            "The rival flagship: a 4K disc console with a custom SSD that kills load " +
+                "screens, a haptic controller in the box, and a library of " +
+                "blockbuster exclusives. The other console everyone argues about. " +
+                "Ships nowhere, loudly.",
+            49_900, "Gaming", 4.8, 28744,
+            variantGroup = "orbit-one", variantLabel = "Disc Edition", variantAxis = "Edition",
+        ),
+        product(
+            "Orbit One — Digital Edition", "🎮",
+            "Same power, no disc drive.",
+            "The slimmer Orbit One for the all-download crowd — identical internals, " +
+                "minus the disc slot, minus a chunk of the price. The digital future, " +
+                "delivered digitally, which is to say not at all.",
+            44_900, "Gaming", 4.7, 12033,
+            variantGroup = "orbit-one", variantLabel = "Digital Edition", variantAxis = "Edition",
+        ),
+        product(
+            "Orbit Glide Controller", "🎮",
+            "Haptics you feel in your palms.",
+            "The Orbit pad with fine-grained haptics, adaptive triggers that fight " +
+                "back, a built-in mic, and a charge that lasts the weekend. Pairs to " +
+                "the Orbit One in a tap. Rumbles for a game that never loads.",
+            7_400, "Gaming", 4.7, 16920,
+        ),
+        product(
+            "Orbit One + Skybound Survivors Bundle", "🎮",
+            "The rival console with a co-op epic to start.",
+            "The Orbit One paired with a full download of Skybound Survivors — the " +
+                "console-and-game box for the other camp. One price, one unboxing, " +
+                "zero of it real.",
+            52_900, "Gaming", 4.8, 8401, originalPriceCents = 55_800,
+            includes = listOf(
+                "Orbit One Console (Disc Edition)",
+                "Skybound Survivors (full game download)",
+                "Orbit Glide Controller",
+            ),
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
