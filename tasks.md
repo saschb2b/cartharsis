@@ -287,5 +287,20 @@ Declined by owner: review sort/filter controls.
       bundles via a real "Frequently bought together / Add all" block (honest sum),
       and a swatch UI on the home grid card
 
+## Phase 23 — The three approved bundle/variant proposals
+- [x] Rival console brand: Orbit ecosystem (Orbit One disc console with a
+      Disc/Digital edition variant, Orbit Glide controller, Orbit One + Skybound
+      bundle) — proves the patterns travel across brands. 234 → 238 products
+- [x] Frequently bought together: curated companion sets in
+      `FakeCatalog.boughtTogether` (consoles, AuraPhone, espresso machine); PDP
+      block with product + companions, honest combined Total (no fake saving),
+      and "Add all N to cart" → new `ShopViewModel.addAllToCart`
+- [x] Variant collapse: grid/search shows one card per variant group
+      (`FakeCatalog.collapseVariants`), representative = base or matched sibling;
+      the "N colors/editions" card hint carries the rest
+- [x] Tests: collapse (both rep branches) + FBT companion resolution. 30 → 33
+- [x] Verified on emulator: Orbit listings; FBT total $527 + Add-all snackbar;
+      "Pro Controller" collapses 4→1, "Volcanic" surfaces the red variant
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
