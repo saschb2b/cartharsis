@@ -47,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import com.cartharsis.ui.screens.CartScreen
 import com.cartharsis.ui.screens.CheckoutScreen
 import com.cartharsis.ui.screens.HomeScreen
+import com.cartharsis.ui.screens.OnboardingScreen
 import com.cartharsis.ui.screens.OrdersScreen
 import com.cartharsis.ui.screens.ProductDetailScreen
 import com.cartharsis.ui.screens.TrackingScreen
@@ -76,7 +77,13 @@ class MainActivity : ComponentActivity() {
         pendingRoute.value = intent.getStringExtra(Notifier.EXTRA_ROUTE)
         setContent {
             CartharsisTheme {
-                CartharsisApp(shopViewModel, pendingRoute)
+                // First run walks the fake signup; after that, straight to the shop.
+                val profile by shopViewModel.profile.collectAsState()
+                when {
+                    profile == null -> Unit // DataStore loads in a blink; render nothing.
+                    profile?.onboarded == false -> OnboardingScreen(shopViewModel)
+                    else -> CartharsisApp(shopViewModel, pendingRoute)
+                }
             }
         }
     }

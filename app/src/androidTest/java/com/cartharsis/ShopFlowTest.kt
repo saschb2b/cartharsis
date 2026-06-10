@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import org.junit.Rule
@@ -33,6 +34,16 @@ class ShopFlowTest {
 
     @Test
     fun browseAddToCartCheckoutPlaceOrder() {
+        // A fresh install lands on the fake signup; walk it. Devices that
+        // already have a profile skip straight to the shop.
+        compose.waitForIdle()
+        if (compose.onAllNodesWithText("Create your account").fetchSemanticsNodes().isNotEmpty()) {
+            compose.onNodeWithText("Create your account").performClick()
+            compose.onNodeWithText("Your name").performTextInput("Test Pilot")
+            compose.onNodeWithText("Continue").performClick()
+            compose.onNodeWithText("Continue").performClick() // address comes prefilled
+            compose.onNodeWithText("Add card and start shopping").performClick()
+        }
         compose.onNodeWithText("Cartharsis").assertIsDisplayed()
 
         // Open the first catalog product and add it to the cart.

@@ -46,10 +46,12 @@ app/src/main/java/com/cartharsis/
 │   ├── FakeCatalog.kt       # Hardcoded products, categories, review generator
 │   ├── NotificationPolicy.kt # Pure when-to-ping rules (background-only, quiet
 │   │                        #   hours, price-drop cooldown)
-│   └── WishlistStore.kt     # DataStore persistence: wishlist ids + urge streak
+│   └── WishlistStore.kt     # DataStore persistence: wishlist, profile, stats,
+│                            #   streak, user reviews (single "cartharsis" file)
 └── ui/
     ├── theme/               # Vibrant "dopamine" palette (pink/purple/orange)
     └── screens/             # One file per screen + Common.kt shared pieces
+        ├── OnboardingScreen.kt  # First-run fake signup: name → address → card
         ├── HomeScreen.kt        # Flash deal banner, category chips, product grid
         ├── ProductDetailScreen.kt
         ├── WishlistScreen.kt    # Hearted items + price-drop badges
@@ -73,10 +75,12 @@ app/src/main/java/com/cartharsis/
   Cart lines snapshot the price at add time.
 - Navigation Compose with plain string routes (`home`, `product/{id}`, `wishlist`,
   `cart`, `checkout`, `tracking/{orderId}`, `orders`).
-- Persistence: wishlist and urge streak live in DataStore Preferences
-  (`WishlistStore`/`StreakStore`, single "cartharsis" file); orders and cart are
-  intentionally in-memory and reset on process death. Persisting orders/stats is
-  a listed future task in tasks.md.
+- Persistence: wishlist, urge streak, lifetime stats, the user's reviews, and
+  the onboarding profile (name/address, used by checkout and the card) live in
+  DataStore Preferences (single "cartharsis" file); orders and cart are
+  intentionally in-memory and reset on process death. Persisting orders is a
+  listed future task in tasks.md. First run is gated by `Profile.onboarded`
+  (installs with existing data are treated as onboarded).
 - Notification taps deep-link via a route-string intent extra
   (`Notifier.EXTRA_ROUTE`) consumed by MainActivity into Navigation Compose.
 

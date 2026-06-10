@@ -187,5 +187,17 @@ Declined by owner: review sort/filter controls.
       push/PR, Gradle cache, wrapper validation), instrumented.yml (emulator smoke
       test, weekly + on-demand)
 
+## Phase 16 — Believable onboarding
+- [x] First-run signup played straight: welcome → create account (name) → delivery
+      address (prefilled imaginary defaults, editable) → payment method, where the
+      Imagination Express is "issued" bearing the user's name
+- [x] ProfileStore (DataStore): name/street/city/onboarded; installs with existing
+      data are grandfathered as onboarded; checkout's Deliver-to and card holder
+      personalize from the profile
+- [x] ImaginationCard promoted to Common.kt with a cardHolder param (lint gate
+      caught and fixed the Modifier-param ordering on the way)
+- [x] Smoke test walks the signup on fresh installs; verified on emulator end to
+      end (welcome → name → address → card with name → shop → personalized checkout)
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,14 +56,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -76,13 +71,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.ProfileStore
 import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
@@ -124,6 +119,7 @@ fun CheckoutScreen(
     onKeepShopping: () -> Unit = onBack,
 ) {
     val cart by viewModel.cart.collectAsState()
+    val profile by viewModel.profile.collectAsState()
     var phase by remember { mutableStateOf<CheckoutPhase>(CheckoutPhase.Form) }
     val haptics = LocalHapticFeedback.current
 
@@ -170,9 +166,13 @@ fun CheckoutScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     CheckoutSection("Deliver to") {
-                        Text("Your Imagination", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Apt ∞, Anticipation Street, Dopamine City",
+                            text = profile?.name?.ifBlank { null } ?: "Your Imagination",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = (profile?.street ?: ProfileStore.DEFAULT_STREET) + ", " +
+                                (profile?.city ?: ProfileStore.DEFAULT_CITY),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -190,7 +190,7 @@ fun CheckoutScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 6.dp),
                     )
-                    ImaginationCard()
+                    ImaginationCard(cardHolder = profile?.name.orEmpty())
 
                     Text(
                         text = "Order summary",
@@ -547,148 +547,5 @@ private fun SummaryLine(item: CartItem) {
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
         )
-    }
-}
-
-/**
- * The "payment method", drawn with real card anatomy — ISO 1.586:1 ratio,
- * EMV chip, contactless mark, embossed digit groups, holder and expiry
- * blocks — because the ceremony only works if the props look real.
- * Balance: infinite, by definition.
- */
-@Composable
-private fun ImaginationCard() {
-    val embossed = Shadow(color = Color.Black.copy(alpha = 0.35f), offset = Offset(0f, 3f), blurRadius = 4f)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1.586f)
-            .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(ElectricPurple, HotPink))),
-    ) {
-        // A diagonal sheen so the surface reads as plastic, not as a fill.
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(
-                    Brush.linearGradient(
-                        colorStops = arrayOf(
-                            0f to Color.White.copy(alpha = 0.18f),
-                            0.45f to Color.Transparent,
-                            1f to Color.Black.copy(alpha = 0.12f),
-                        ),
-                    ),
-                ),
-        )
-        Column(Modifier.fillMaxSize().padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "IMAGINATION EXPRESS",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.5.sp,
-                )
-                Spacer(Modifier.weight(1f))
-                ContactlessMark()
-            }
-            Spacer(Modifier.weight(1f))
-            EmvChip()
-            Spacer(Modifier.height(10.dp))
-            Text(
-                "5310  0000  0000  0000",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 1.5.sp,
-                    shadow = embossed,
-                ),
-            )
-            Spacer(Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.Bottom) {
-                CardField(label = "CARD HOLDER", value = "YOUR IMAGINATION", embossed)
-                Spacer(Modifier.width(20.dp))
-                CardField(label = "VALID THRU", value = "∞∞/∞∞", embossed)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "∞",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.titleLarge.copy(shadow = embossed),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CardField(label: String, value: String, shadow: Shadow) {
-    Column {
-        Text(label, color = Color.White.copy(alpha = 0.65f), fontSize = 8.sp, letterSpacing = 1.sp)
-        Text(
-            text = value,
-            color = Color.White,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontFamily = FontFamily.Monospace,
-                shadow = shadow,
-            ),
-        )
-    }
-}
-
-/** Gold contact chip, simplified to the pattern everyone recognizes. */
-@Composable
-private fun EmvChip() {
-    Canvas(Modifier.size(width = 42.dp, height = 31.dp)) {
-        drawRoundRect(
-            brush = Brush.linearGradient(listOf(Color(0xFFEED787), Color(0xFFC49A45))),
-            cornerRadius = CornerRadius(6.dp.toPx()),
-        )
-        val line = Color(0xFF8A6B2F)
-        val strokeWidth = 1.4.dp.toPx()
-        val w = size.width
-        val h = size.height
-        drawLine(line, Offset(0f, h / 2), Offset(w, h / 2), strokeWidth)
-        drawLine(line, Offset(w * 0.33f, 0f), Offset(w * 0.33f, h), strokeWidth)
-        drawLine(line, Offset(w * 0.67f, 0f), Offset(w * 0.67f, h), strokeWidth)
-        drawRoundRect(
-            color = line,
-            topLeft = Offset(w * 0.33f, h * 0.28f),
-            size = Size(w * 0.34f, h * 0.44f),
-            cornerRadius = CornerRadius(3.dp.toPx()),
-            style = Stroke(strokeWidth),
-        )
-    }
-}
-
-/** The radio-waves mark; ours broadcasts nothing, contactlessly. */
-@Composable
-private fun ContactlessMark() {
-    Canvas(Modifier.size(22.dp)) {
-        val color = Color.White.copy(alpha = 0.85f)
-        val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-        val cx = size.width * 0.18f
-        val cy = size.height * 0.5f
-        listOf(0.28f, 0.52f, 0.76f).forEach { f ->
-            val r = size.width * f
-            drawArc(
-                color = color,
-                startAngle = -38f,
-                sweepAngle = 76f,
-                useCenter = false,
-                topLeft = Offset(cx - r, cy - r),
-                size = Size(2 * r, 2 * r),
-                style = stroke,
-            )
-        }
-    }
-}
-
-@androidx.compose.ui.tooling.preview.Preview
-@Composable
-private fun ImaginationCardPreview() {
-    com.cartharsis.ui.theme.CartharsisTheme {
-        ImaginationCard()
     }
 }

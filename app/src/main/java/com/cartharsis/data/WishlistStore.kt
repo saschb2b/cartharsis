@@ -1,9 +1,11 @@
 package com.cartharsis.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
@@ -13,6 +15,10 @@ private val Context.dataStore by preferencesDataStore(name = "cartharsis")
 
 private val WISHLIST_KEY = stringSetPreferencesKey("wishlist_ids")
 private val USER_REVIEWS_KEY = stringSetPreferencesKey("user_reviews")
+private val PROFILE_NAME_KEY = stringPreferencesKey("profile_name")
+private val PROFILE_STREET_KEY = stringPreferencesKey("profile_street")
+private val PROFILE_CITY_KEY = stringPreferencesKey("profile_city")
+private val PROFILE_ONBOARDED_KEY = booleanPreferencesKey("profile_onboarded")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
@@ -33,6 +39,45 @@ object WishlistStore {
     suspend fun save(context: Context, ids: Set<Int>) {
         context.dataStore.edit { prefs ->
             prefs[WISHLIST_KEY] = ids.map { it.toString() }.toSet()
+        }
+    }
+}
+
+/**
+ * The "account": a name and an imaginary address, living on this phone and
+ * nowhere else. Existing installs that predate onboarding stay onboarded.
+ */
+object ProfileStore {
+
+    data class Profile(
+        val name: String = "",
+        val street: String = DEFAULT_STREET,
+        val city: String = DEFAULT_CITY,
+        val onboarded: Boolean = false,
+    )
+
+    const val DEFAULT_STREET = "Apt ∞, Anticipation Street"
+    const val DEFAULT_CITY = "Dopamine City"
+
+    suspend fun load(context: Context): Profile {
+        val prefs = context.dataStore.data.first()
+        return Profile(
+            name = prefs[PROFILE_NAME_KEY] ?: "",
+            street = prefs[PROFILE_STREET_KEY] ?: DEFAULT_STREET,
+            city = prefs[PROFILE_CITY_KEY] ?: DEFAULT_CITY,
+            // An install with a wishlist or stats predates onboarding;
+            // don't make a regular ask them to "create an account".
+            onboarded = prefs[PROFILE_ONBOARDED_KEY]
+                ?: (prefs[WISHLIST_KEY] != null || prefs[STATS_ORDERS_KEY] != null),
+        )
+    }
+
+    suspend fun save(context: Context, profile: Profile) {
+        context.dataStore.edit { prefs ->
+            prefs[PROFILE_NAME_KEY] = profile.name
+            prefs[PROFILE_STREET_KEY] = profile.street
+            prefs[PROFILE_CITY_KEY] = profile.city
+            prefs[PROFILE_ONBOARDED_KEY] = profile.onboarded
         }
     }
 }

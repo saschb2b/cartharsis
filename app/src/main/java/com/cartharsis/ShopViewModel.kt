@@ -11,6 +11,7 @@ import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.Product
+import com.cartharsis.data.ProfileStore
 import com.cartharsis.data.ReviewStore
 import com.cartharsis.data.StatsStore
 import com.cartharsis.data.StreakStore
@@ -73,6 +74,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _userReviews = MutableStateFlow<Map<Int, UserReview>>(emptyMap())
     val userReviews: StateFlow<Map<Int, UserReview>> = _userReviews.asStateFlow()
 
+    /** The fake "account"; null while DataStore loads, then gates onboarding. */
+    private val _profile = MutableStateFlow<ProfileStore.Profile?>(null)
+    val profile: StateFlow<ProfileStore.Profile?> = _profile.asStateFlow()
+
     /** Lifetime fake-shopping totals; survive process death unlike the order list. */
     private val _lifetimeStats = MutableStateFlow(StatsStore.Stats(0, 0, 0L))
     val lifetimeStats: StateFlow<StatsStore.Stats> = _lifetimeStats.asStateFlow()
@@ -106,6 +111,9 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             val saved = ReviewStore.load(getApplication())
             // Reviews written before the load finished win over their saved versions.
             if (saved.isNotEmpty()) _userReviews.update { saved + it }
+        }
+        viewModelScope.launch {
+            _profile.value = ProfileStore.load(getApplication())
         }
         viewModelScope.launch {
             val saved = StreakStore.load(getApplication())
@@ -184,6 +192,20 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _recentlyViewed.update { recent ->
             (listOf(productId) + recent.filterNot { it == productId }).take(10)
         }
+    }
+
+    // ---- Profile / onboarding ----
+
+    /** Finishes onboarding: the "account" is created, locally and forever. */
+    fun completeOnboarding(name: String, street: String, city: String) {
+        val profile = ProfileStore.Profile(
+            name = name.trim(),
+            street = street.trim().ifBlank { ProfileStore.DEFAULT_STREET },
+            city = city.trim().ifBlank { ProfileStore.DEFAULT_CITY },
+            onboarded = true,
+        )
+        _profile.value = profile
+        viewModelScope.launch { ProfileStore.save(getApplication(), profile) }
     }
 
     // ---- User reviews ----
