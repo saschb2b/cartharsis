@@ -1661,6 +1661,56 @@ object FakeCatalog {
                 "retired the skinny. Sized true; shipped never.",
             8_900, "Fashion", 4.5, 10288, originalPriceCents = 11_900,
         ),
+
+        // Hobbies — the crafts and kits trending across feeds.
+        product(
+            "ChirpCam Smart Bird Feeder", "🐦",
+            "Meet the birds in your own yard.",
+            "A solar bird feeder with an AI camera that snaps close-ups, identifies " +
+                "the species, and pings your phone when a visitor lands. A nature " +
+                "documentary on your windowsill. The cast shows up; the feeder won't.",
+            17_900, "Hobbies", 4.8, 13266, originalPriceCents = 21_900,
+        ),
+        product(
+            "Tabletop Pottery Wheel Kit", "🏺",
+            "Get your hands muddy at the kitchen table.",
+            "A compact, quiet pottery wheel with clay, trimming tools, and an apron, " +
+                "sized for a beginner and a countertop. Center, pull, wobble, laugh. " +
+                "The messy, meditative hobby you keep almost starting.",
+            8_900, "Hobbies", 4.5, 5912,
+        ),
+        product(
+            "Diamond Painting Kit, Galaxy", "💎",
+            "Sparkle therapy, one tile at a time.",
+            "A large canvas, trays of shimmering resin gems, and the tools to place " +
+                "them into a glittering galaxy scene — the craft that's equal parts " +
+                "ASMR and accomplishment. Hours of calm. The frame stays empty here.",
+            2_400, "Hobbies", 4.7, 9803,
+        ),
+        product(
+            "Closed Terrarium Kit", "🌿",
+            "A tiny world under glass.",
+            "A sealed glass globe with moss, substrate, charcoal, and miniatures to " +
+                "build a self-sustaining ecosystem that waters itself for years. " +
+                "Living art for a shelf. The shelf, for now, stays bare.",
+            4_900, "Hobbies", 4.6, 6448,
+        ),
+        product(
+            "Botanical Brick Bouquet", "💐",
+            "Flowers that never wilt.",
+            "An 800-piece building set that assembles into a vase of detailed brick " +
+                "blooms — the grown-up build that doubles as decor. An evening of " +
+                "clicks and a forever bouquet. Petals not included, by definition.",
+            5_900, "Hobbies", 4.8, 15077,
+        ),
+        product(
+            "Gourmet Mushroom Grow Kit", "🍄",
+            "Harvest dinner off your counter.",
+            "A ready-to-fruit block that sprouts a flush of oyster mushrooms in ten " +
+                "days with nothing but a daily mist — the most rewarding thing you'll " +
+                "grow indoors. Spores of satisfaction; zero actual mushrooms shipped.",
+            2_200, "Hobbies", 4.6, 7219,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
