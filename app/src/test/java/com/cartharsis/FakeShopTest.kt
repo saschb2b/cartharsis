@@ -8,8 +8,10 @@ import com.cartharsis.data.Order
 import com.cartharsis.data.UserReview
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.badges
+import com.cartharsis.data.decodeBinderCard
 import com.cartharsis.data.decodeUserReview
 import com.cartharsis.data.effectiveStreak
+import com.cartharsis.data.encodeBinderCard
 import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
@@ -410,6 +412,36 @@ class FakeShopTest {
         assertEquals(second, FakeCatalog.packRipFor(11, pack, packIndex = 1))
         // And the default index is pack 0, so older call sites keep their deal.
         assertEquals(first, FakeCatalog.packRipFor(11, pack))
+    }
+
+    @Test
+    fun `binder codec round-trips and rejects garbage`() {
+        val card = "critters" to "Emberwing, Ascendant"
+        assertEquals(card, decodeBinderCard(encodeBinderCard(card.first, card.second)))
+        assertEquals(null, decodeBinderCard(""))
+        assertEquals(null, decodeBinderCard("no separator"))
+        assertEquals(null, decodeBinderCard("nameless game"))
+        assertEquals(null, decodeBinderCard("gameless name"))
+    }
+
+    @Test
+    fun `every card game has a title and a non-empty chase checklist`() {
+        // The binder UI iterates these; a game missing from either map would
+        // silently vanish from the collection.
+        val gamesInCatalog = FakeCatalog.products
+            .filter { it.category == "Trading Cards" && it.variantGroup != null }
+            .map { it.variantGroup!!.substringBefore('-') }
+            .toSet()
+        assertEquals(gamesInCatalog, FakeCatalog.cardGameTitles.keys)
+        gamesInCatalog.forEach { game ->
+            assertTrue("$game has no chase cards", FakeCatalog.chaseCardsOf(game).isNotEmpty())
+            assertTrue("$game has no title", !FakeCatalog.cardGameTitles[game].isNullOrBlank())
+        }
+        // Chase names are unique within a game — they're the binder's keys.
+        gamesInCatalog.forEach { game ->
+            val names = FakeCatalog.chaseCardsOf(game).map { it.name }
+            assertEquals("$game repeats a chase name", names.size, names.toSet().size)
+        }
     }
 
     @Test

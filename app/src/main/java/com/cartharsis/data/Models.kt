@@ -69,6 +69,19 @@ fun decodeUserReview(encoded: String): UserReview? {
     )
 }
 
+// Codec for the card binder's DataStore string set: "game␁cardName". Same
+// control-character separator trick as user reviews; card names are fixed
+// catalog strings, so two fields and no free text.
+private const val BINDER_SEP = '\u0001'
+
+fun encodeBinderCard(game: String, cardName: String): String = "$game$BINDER_SEP$cardName"
+
+fun decodeBinderCard(encoded: String): Pair<String, String>? {
+    val parts = encoded.split(BINDER_SEP, limit = 2)
+    if (parts.size != 2 || parts[0].isBlank() || parts[1].isBlank()) return null
+    return parts[0] to parts[1]
+}
+
 data class CartItem(val product: Product, val quantity: Int) {
     val totalCents: Long get() = product.priceCents * quantity
 }

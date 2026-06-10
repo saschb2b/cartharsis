@@ -21,6 +21,7 @@ private val PROFILE_CITY_KEY = stringPreferencesKey("profile_city")
 private val PROFILE_ONBOARDED_KEY = booleanPreferencesKey("profile_onboarded")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
+private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
 private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
 private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
@@ -39,6 +40,22 @@ object WishlistStore {
     suspend fun save(context: Context, ids: Set<Int>) {
         context.dataStore.edit { prefs ->
             prefs[WISHLIST_KEY] = ids.map { it.toString() }.toSet()
+        }
+    }
+}
+
+/**
+ * Persists the card binder: every chase card ever pulled from a pack rip,
+ * encoded via [encodeBinderCard]. Orders are session-only by design, but a
+ * collection is a collection — the binder is forever.
+ */
+object BinderStore {
+
+    suspend fun load(context: Context): Set<String> = context.dataStore.data.first()[BINDER_KEY].orEmpty()
+
+    suspend fun save(context: Context, cards: Set<String>) {
+        context.dataStore.edit { prefs ->
+            prefs[BINDER_KEY] = cards
         }
     }
 }

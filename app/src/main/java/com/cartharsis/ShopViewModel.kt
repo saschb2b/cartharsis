@@ -6,6 +6,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.viewModelScope
+import com.cartharsis.data.BinderStore
+import com.cartharsis.data.CardPull
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.NotificationPolicy
@@ -20,6 +22,7 @@ import com.cartharsis.data.UserReview
 import com.cartharsis.data.WishlistStore
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.effectiveStreak
+import com.cartharsis.data.encodeBinderCard
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.plusProduct
@@ -96,6 +99,14 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _unboxedOrders = MutableStateFlow<Set<Int>>(emptySet())
     val unboxedOrders: StateFlow<Set<Int>> = _unboxedOrders.asStateFlow()
 
+    /**
+     * The card binder: every chase card ever pulled from a pack rip, as
+     * [encodeBinderCard] entries. Persisted — orders are session-only, but a
+     * collection is a collection.
+     */
+    private val _binder = MutableStateFlow<Set<String>>(emptySet())
+    val binder: StateFlow<Set<String>> = _binder.asStateFlow()
+
     /** Consecutive days with at least one fake order — the urge-resisted streak. */
     private val _streakDays = MutableStateFlow(0)
     val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
@@ -161,6 +172,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             _profile.value = ProfileStore.load(getApplication())
+        }
+        viewModelScope.launch {
+            val saved = BinderStore.load(getApplication())
+            // Pulls recorded before the load finished stay in the set.
+            if (saved.isNotEmpty()) _binder.update { it + saved }
         }
         viewModelScope.launch {
             val saved = StreakStore.load(getApplication())
@@ -239,6 +255,12 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         _recentlyViewed.update { recent ->
             (listOf(productId) + recent.filterNot { it == productId }).take(10)
         }
+    }
+
+    /** Files a freshly-flipped chase card into the persistent binder. */
+    fun recordPull(game: String, card: CardPull) {
+        _binder.update { it + encodeBinderCard(game, card.name) }
+        viewModelScope.launch { BinderStore.save(getApplication(), _binder.value) }
     }
 
     fun markUnboxed(orderId: Int) {

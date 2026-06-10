@@ -2549,6 +2549,16 @@ object FakeCatalog {
         ),
     )
 
+    /** Display titles for the card games, keyed by their variant-group prefix. */
+    val cardGameTitles: Map<String, String> = mapOf(
+        "critters" to "Pocket Critters",
+        "duelbound" to "Duelbound",
+        "manaforge" to "Manaforge",
+    )
+
+    /** Every chase card a game can pull — the binder's checklist. */
+    fun chaseCardsOf(game: String): List<CardPull> = cardPullPools[game].orEmpty()
+
     /**
      * The hypothetical best card inside [product] for [orderId]: a seeded,
      * stable pick from the matching game's chase pool, or null when the

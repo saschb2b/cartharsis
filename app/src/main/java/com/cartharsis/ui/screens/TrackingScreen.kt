@@ -226,6 +226,12 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                         onChaseRevealed = {
                                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                             Chime.playSuccess()
+                                            // The flipped chase goes into the
+                                            // persistent binder.
+                                            viewModel.recordPull(
+                                                game = ripPacks[idx].first,
+                                                card = ripPacks[idx].second.last(),
+                                            )
                                             // Every chase lands with haptic+chime;
                                             // the confetti is the finale's.
                                             if (lastPack) celebrate = true
@@ -786,10 +792,13 @@ private const val MAX_PACK_RIPS = 3
 
 private data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
 
-private fun packTheme(game: String): PackTheme = when (game) {
-    "critters" -> PackTheme("Pocket Critters", "🐲", listOf(JuicyOrange, HotPink))
-    "duelbound" -> PackTheme("Duelbound", "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
-    else -> PackTheme("Manaforge", "🔮", listOf(SkyBlue, ElectricPurple))
+private fun packTheme(game: String): PackTheme {
+    val title = FakeCatalog.cardGameTitles[game] ?: "Trading Cards"
+    return when (game) {
+        "critters" -> PackTheme(title, "🐲", listOf(JuicyOrange, HotPink))
+        "duelbound" -> PackTheme(title, "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
+        else -> PackTheme(title, "🔮", listOf(SkyBlue, ElectricPurple))
+    }
 }
 
 @Composable
