@@ -1912,6 +1912,33 @@ object FakeCatalog {
                 "naturally.",
             4_400, "Gaming", 4.6, 5119, originalPriceCents = 5_400,
         ),
+        product(
+            "Meteor VR Headset", "🥽",
+            "Step inside the console.",
+            "A console-tethered VR headset with a 4K OLED per eye, inside-out eye " +
+                "tracking, headset haptics, and a pair of orb controllers with " +
+                "adaptive triggers. One cable to the Meteor. The worlds are vast; " +
+                "the package, empty.",
+            54_900, "Gaming", 4.6, 8233, originalPriceCents = 64_900,
+        ),
+        product(
+            "Vortex Broadcast Mic", "🎙️",
+            "Sound like the streamers you watch.",
+            "A USB condenser mic with a built-in shock mount, tap-to-mute, and a " +
+                "studio-quality cardioid pickup that ignores the keyboard clatter. " +
+                "Plug in and go live. Broadcasts your voice to an audience as real " +
+                "as the stream.",
+            11_900, "Gaming", 4.7, 10455,
+        ),
+        product(
+            "Vortex Stream Control Pad", "🎛️",
+            "Run the whole stream with one press.",
+            "Fifteen customizable LCD keys that switch scenes, fire clips, mute " +
+                "audio, and launch anything mid-broadcast, with endless folders of " +
+                "actions. The streamer's command deck. Controls a show that never " +
+                "airs.",
+            14_900, "Gaming", 4.8, 7611, originalPriceCents = 17_900,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
