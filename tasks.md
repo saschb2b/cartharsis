@@ -443,5 +443,27 @@ Declined by owner: review sort/filter controls.
 - [x] Verified live: Crimson Eclipse 2-pack order — wrapper, rip, vortex
       back under the pre-flip glow, chase flip, pack 2 staging
 
+## Phase 32 — Card faces in their genre's layout (CardFaces.kt)
+- [x] Fronts move to per-game layouts (GameCardFace) and become
+      print-constant like the backs — a card doesn't re-ink for dark mode
+- [x] CrittersFace (Pokémon skeleton): element-tinted body parsed from the
+      type line (flame/tide/spark/bloom/dream/sky/meadow), stage chip → name
+      → element-accent HP header, gilt art frame, italic species strip,
+      boxed flavor, rarity gem in the bottom corner
+- [x] DuelboundFace (Yu-Gi-Oh skeleton): kind-colored frame (amber monster,
+      ice-blue ritual, violet fusion, green relic/spell, rose trap), metallic
+      name plate + attribute orb, level stars derived from printed ATK/DEF,
+      heavy art frame, set code under the art, tan text box closing with
+      ATK/DEF over a rule
+- [x] ManaforgeFace (Magic skeleton): color-identity frame (red elemental,
+      blue wizard/instant, green enchantment, colorless artifact), serif
+      parchment plates — title banner with seeded cost orb + identity pip,
+      type banner wearing the rarity-colored set gem, italic text box,
+      serif P/T plate in the corner, collector print along the foot
+- [x] Two new gallery gates: Duelbound kinds (5 frames) and Manaforge
+      identities (4 frames); name autosize fixed (wrap-based fit detection)
+- [x] Verified live: Manaforge rip (artifact common, serif plates) and the
+      binder dialog showing the new Critters face
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
