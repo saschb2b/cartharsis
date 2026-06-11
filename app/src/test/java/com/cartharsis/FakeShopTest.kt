@@ -450,9 +450,10 @@ class FakeShopTest {
         }
         // Every card that can ever be dealt carries flavor text and a type
         // line. Eight pack indexes walk the whole commons pool (the start
-        // step is coprime with its size), so this sweeps commons and chases.
-        gamesInCatalog.forEach { game ->
-            val pack = FakeCatalog.products.first { it.variantGroup?.startsWith(game) == true }
+        // step is coprime with its size), and every card product is swept so
+        // both series of a game get covered.
+        FakeCatalog.products.filter { it.category == "Trading Cards" && it.variantGroup != null }.forEach { pack ->
+            val game = pack.variantGroup!!.substringBefore('-')
             (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.forEach { card ->
                 assertTrue("${card.name} has no flavor text", card.flavor.isNotBlank())
                 assertTrue("${card.name} has no type line", card.type.isNotBlank())
@@ -490,24 +491,32 @@ class FakeShopTest {
 
     @Test
     fun `collector numbers are stable, well-formed, and unique per game`() {
+        // Converted games number per series (the set code names the series);
+        // unconverted ones keep the legacy game-wide idiom.
         val idioms = mapOf(
-            "critters" to Regex("""\d{3}/198"""),
+            "critters-emberglow" to Regex("""\d{3}/96"""),
+            "critters-abyssal" to Regex("""\d{3}/102"""),
             "duelbound" to Regex("""DBD-EN\d{3}"""),
             "manaforge" to Regex("""\d{4}/0280 [CUM]"""),
         )
-        idioms.forEach { (game, idiom) ->
+        val numbersByGame = mutableMapOf<String, MutableMap<String, String>>()
+        FakeCatalog.products.filter { it.category == "Trading Cards" && it.variantGroup != null }.forEach { pack ->
+            val group = pack.variantGroup!!
+            val game = group.substringBefore('-')
+            val idiom = idioms[group] ?: idioms.getValue(game)
             // Eight pack indexes sweep the whole dealable set, commons + chases.
-            val pack = FakeCatalog.products.first { it.variantGroup?.startsWith(game) == true }
-            val cards = (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.toSet()
-            val numbers = cards.map { card ->
+            (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.toSet().forEach { card ->
                 val number = FakeCatalog.collectorNumberOf(game, card)
                 // Stable — the binder's permanent record never renumbers.
                 assertEquals(number, FakeCatalog.collectorNumberOf(game, card))
-                assertTrue("'$number' breaks the $game idiom", idiom.matches(number))
-                number
+                assertTrue("'$number' (${card.name}) breaks the $group idiom", idiom.matches(number))
+                numbersByGame.getOrPut(game) { mutableMapOf() }[card.name] = number
             }
-            // No two cards in a game share a slot in its fake master set.
-            assertEquals("$game repeats a collector number", numbers.size, numbers.toSet().size)
+        }
+        // No two cards in a game share a print — series codes/sizes differ,
+        // and within a series each card has its own checklist slot.
+        numbersByGame.forEach { (game, byName) ->
+            assertEquals("$game repeats a collector number", byName.size, byName.values.toSet().size)
         }
         assertEquals("", FakeCatalog.collectorNumberOf("not-a-game", FakeCatalog.chaseCardsOf("critters").first()))
     }

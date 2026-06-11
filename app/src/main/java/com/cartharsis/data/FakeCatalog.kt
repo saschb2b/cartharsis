@@ -2558,24 +2558,33 @@ object FakeCatalog {
     }
 
     /**
-     * The chase cards of each trading-card game, keyed by the game prefix of
-     * its variant groups ("critters-emberglow" → "critters"). Shown as the
-     * "top pull" when a delivered order contained that game's product — the
-     * pack-rip moment, after the courier, like the Mystery Box reveal.
+     * The chase cards, keyed by series (variant group) — each series is a
+     * themed set with its own content language, the way real expansions
+     * have their own world. The wrapper already names the series; the cards
+     * inside now belong to it. (Games not yet converted keep a game-keyed
+     * pool; lookups fall back from series to game.)
+     *
+     * The six content languages:
+     * - Emberglow (critters): hearth, dawn, kept warmth — critters with
+     *   cozy habits. Flavor: gentle, domestic, one wink per card.
+     * - Abyssal Tides (critters): deep water, night currents, soft glow in
+     *   the dark. Flavor: serene, drifting, unhurried.
+     * - Forbidden Archive (duelbound): a haunted library. The dread is
+     *   bureaucratic — indexes, late fees, shushing.
+     * - Crimson Eclipse (duelbound): a blood-moon vigil. Apocalyptic but
+     *   unbothered; everything is on schedule.
+     * - Ashveil (manaforge): the volcanic forge. Flavor reads as smithing
+     *   proverbs, work and patience.
+     * - The Verdant Throne (manaforge): a fallen court overgrown — royal
+     *   language gone to seed; nature wins politely.
      */
     private val cardPullPools: Map<String, List<CardPull>> = mapOf(
-        "critters" to listOf(
+        "critters-emberglow" to listOf(
             CardPull(
                 "🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs",
                 "It molts once a century. The valley keeps every feather.",
                 type = "Stage 2 Flame Critter",
                 stat = "180 HP",
-            ),
-            CardPull(
-                "🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs",
-                "The tide doesn't come in. Mawra lets it out.",
-                type = "Stage 2 Tide Critter",
-                stat = "170 HP",
             ),
             CardPull(
                 "⚡", "Voltifox", "Holo rare · 1 in 96 packs",
@@ -2584,16 +2593,42 @@ object FakeCatalog {
                 stat = "120 HP",
             ),
             CardPull(
+                "🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common",
+                "Every Sprigbloom believes it is the rarest card in the set.",
+                type = "Stage 1 Bloom Critter",
+                stat = "110 HP",
+            ),
+            CardPull(
+                "🦚", "Dawnplume Radiant", "Full-art holo · 1 in 720 packs",
+                "Fans its tail and the morning decides to stay.",
+                type = "Stage 2 Sky Critter",
+                stat = "150 HP",
+            ),
+        ),
+        "critters-abyssal" to listOf(
+            CardPull(
+                "🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs",
+                "The tide doesn't come in. Mawra lets it out.",
+                type = "Stage 2 Tide Critter",
+                stat = "170 HP",
+            ),
+            CardPull(
                 "🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs",
                 "It sleeps through every battle and has never lost one.",
                 type = "Stage 2 Dream Critter",
                 stat = "160 HP",
             ),
             CardPull(
-                "🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common",
-                "Every Sprigbloom believes it is the rarest card in the set.",
-                type = "Stage 1 Bloom Critter",
-                stat = "110 HP",
+                "🦑", "Vellamora, Deepcrowned", "Secret holo · 1 in 1,800 packs",
+                "Wears the pressure of the deep as a crown. It fits.",
+                type = "Stage 2 Tide Critter",
+                stat = "170 HP",
+            ),
+            CardPull(
+                "🐋", "Brinesong", "Holo rare · 1 in 128 packs",
+                "Sings to the surface once a year. The surface writes back.",
+                type = "Stage 2 Dream Critter",
+                stat = "140 HP",
             ),
         ),
         "duelbound" to listOf(
@@ -2654,21 +2689,50 @@ object FakeCatalog {
         "manaforge" to "Manaforge",
     )
 
-    /** Every chase card a game can pull — the binder's checklist. */
-    fun chaseCardsOf(game: String): List<CardPull> = cardPullPools[game].orEmpty()
+    /** The series groups of a game, in checklist order. */
+    private fun seriesGroupsOf(game: String): List<String> = cardSeriesTitles.keys.filter { it.startsWith("$game-") }
 
     /**
-     * The tiny collector print in the card's bottom corner, again in each
-     * genre's idiom: Pokémon's set fraction, Yu-Gi-Oh's set code, Magic's
-     * zero-padded number with a rarity letter. Seeded from the card name —
-     * fake but stable, so the binder's permanent record never renumbers.
+     * Every chase card a game can pull — the binder's checklist, series
+     * pools first (in series order), then any legacy game-keyed pool.
+     */
+    fun chaseCardsOf(game: String): List<CardPull> =
+        seriesGroupsOf(game).flatMap { cardPullPools[it].orEmpty() } + cardPullPools[game].orEmpty()
+
+    /**
+     * The tiny collector print in the card's bottom corner, in each genre's
+     * idiom — and now per series, the way real expansions number their own
+     * sets: Pokémon's set fraction, Yu-Gi-Oh's per-set code, Magic's padded
+     * number with set code and rarity letter. The number is the card's slot
+     * in its series checklist (commons first, chases last), so it never
+     * renumbers unless the set itself changes. Games not yet converted to
+     * series pools keep the old name-hash print.
      */
     fun collectorNumberOf(game: String, card: CardPull): String {
+        for (group in seriesGroupsOf(game)) {
+            val set = cardCommonPools[group].orEmpty() + cardPullPools[group].orEmpty()
+            val slot = set.indexOfFirst { it.name == card.name } + 1
+            if (slot == 0) continue
+            val letter = when {
+                card.rarity.startsWith("Common") -> "C"
+                card.rarity.startsWith("Uncommon") -> "U"
+                else -> "M"
+            }
+            return when (group) {
+                "critters-emberglow" -> "%03d/96".format(slot)
+                "critters-abyssal" -> "%03d/102".format(slot)
+                "duelbound-archive" -> "DAR-EN%03d".format(slot)
+                "duelbound-eclipse" -> "DCE-EN%03d".format(slot)
+                "manaforge-ashveil" -> "ASH · %04d/0184 $letter".format(slot)
+                else -> "VER · %04d/0166 $letter".format(slot)
+            }
+        }
+        // Legacy game-keyed pools: the original name-hash print.
         fun slot(setSize: Int) = Math.floorMod(card.name.hashCode(), setSize) + 1
-        return when (game) {
-            "critters" -> "%03d/198".format(slot(198))
-            "duelbound" -> "DBD-EN%03d".format(slot(99))
-            "manaforge" -> {
+        return when {
+            cardPullPools[game] == null && cardCommonPools[game] == null -> ""
+            game == "duelbound" -> "DBD-EN%03d".format(slot(99))
+            game == "manaforge" -> {
                 val letter = when {
                     card.rarity.startsWith("Common") -> "C"
                     card.rarity.startsWith("Uncommon") -> "U"
@@ -2697,20 +2761,21 @@ object FakeCatalog {
      * rules as the Mystery Box: decorative, free, gates nothing.
      */
     fun cardPullFor(orderId: Int, product: Product, packIndex: Int = 0): CardPull? {
-        val game = product.variantGroup?.substringBefore('-') ?: return null
-        val pool = cardPullPools[game] ?: return null
+        val group = product.variantGroup ?: return null
+        val pool = cardPullPools[group] ?: cardPullPools[group.substringBefore('-')] ?: return null
         return pool[Math.floorMod(orderId * 31 + product.id * 7 + packIndex * 17 + 5, pool.size)]
     }
 
     /**
-     * The rest of the pack: per-game commons and uncommons that pad the rip
-     * out before the chase card. Each pool holds 8 so a coprime index step
-     * keeps any four picks distinct.
+     * The rest of the pack: commons and uncommons that pad the rip out
+     * before the chase card, keyed by series like the chases (game-keyed
+     * pools remain for unconverted games). Each pool holds 8 so a coprime
+     * index step keeps any four picks distinct.
      */
     private val cardCommonPools: Map<String, List<CardPull>> = mapOf(
-        "critters" to listOf(
+        "critters-emberglow" to listOf(
             CardPull(
-                "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
+                "🐭", "Nibbletuft", "Common", "Hoards crumbs by the hearth. Eating them is not the point.",
                 type = "Basic Meadow Critter",
                 stat = "50 HP",
             ),
@@ -2720,24 +2785,66 @@ object FakeCatalog {
                 stat = "40 HP",
             ),
             CardPull(
-                "🐸", "Paddlehop", "Common", "Has never once landed where it aimed. Unbothered.",
-                type = "Basic Tide Critter",
-                stat = "60 HP",
-            ),
-            CardPull(
-                "🐦", "Chirplet", "Common", "Knows one song. Commits to it.",
+                "🐦", "Chirplet", "Common", "Knows one song. Commits to it at first light.",
                 type = "Basic Sky Critter",
                 stat = "40 HP",
             ),
             CardPull(
-                "🦔", "Bramblepin", "Common", "Hugs are technically possible.",
+                "🦔", "Bramblepin", "Common", "Sleeps against warm chimney stones. Hugs technically possible.",
                 type = "Basic Bloom Critter",
                 stat = "70 HP",
+            ),
+            CardPull(
+                "🦊", "Sunkit", "Common", "Naps wherever the light pools. The light has learned to pool around it.",
+                type = "Basic Flame Critter",
+                stat = "60 HP",
+            ),
+            CardPull(
+                "🐝", "Cinderbee", "Common", "Makes honey that tastes faintly of campfire. Will not elaborate.",
+                type = "Basic Spark Critter",
+                stat = "40 HP",
+            ),
+            CardPull(
+                "🦎", "Emberlisk", "Uncommon", "Suns itself on stones it warmed up first.",
+                type = "Stage 1 Flame Critter",
+                stat = "80 HP",
+            ),
+            CardPull(
+                "🐓", "Dawnstrut", "Uncommon", "Announces the sunrise. Accepts full credit.",
+                type = "Stage 1 Sky Critter",
+                stat = "90 HP",
+            ),
+        ),
+        "critters-abyssal" to listOf(
+            CardPull(
+                "🐸", "Paddlehop", "Common", "Has never once landed where it aimed. The tide approves.",
+                type = "Basic Tide Critter",
+                stat = "60 HP",
             ),
             CardPull(
                 "🐑", "Cloudlamb", "Common", "Counts itself to fall asleep.",
                 type = "Basic Dream Critter",
                 stat = "60 HP",
+            ),
+            CardPull(
+                "🐚", "Murmurshell", "Common", "Repeats the ocean back to itself, slightly improved.",
+                type = "Basic Tide Critter",
+                stat = "50 HP",
+            ),
+            CardPull(
+                "🦀", "Pinchdrift", "Common", "Walks sideways. Arrives anyway.",
+                type = "Basic Tide Critter",
+                stat = "60 HP",
+            ),
+            CardPull(
+                "🐙", "Inkpip", "Common", "Dreams in ink. Wakes in clouds.",
+                type = "Basic Dream Critter",
+                stat = "40 HP",
+            ),
+            CardPull(
+                "🐟", "Glintfin", "Common", "A school of one. Perpetually on time.",
+                type = "Basic Tide Critter",
+                stat = "40 HP",
             ),
             CardPull(
                 "🐌", "Glimmersnail", "Uncommon", "Arrives last. Shines anyway.",
@@ -2834,8 +2941,8 @@ object FakeCatalog {
      */
     fun packRipFor(orderId: Int, product: Product, packIndex: Int = 0): List<CardPull>? {
         val chase = cardPullFor(orderId, product, packIndex) ?: return null
-        val game = product.variantGroup!!.substringBefore('-')
-        val pool = cardCommonPools.getValue(game)
+        val group = product.variantGroup!!
+        val pool = cardCommonPools[group] ?: cardCommonPools.getValue(group.substringBefore('-'))
         val start = Math.floorMod(orderId * 13 + product.id * 3 + packIndex * 5, pool.size)
         // Step 3 is coprime with the pool size, so the four picks are distinct.
         return List(4) { pool[(start + it * 3) % pool.size] } + chase

@@ -24,7 +24,7 @@ import com.cartharsis.ui.theme.CartharsisTheme
 // Commons are inlined (their pool is private by design); chases come from
 // the catalog so the gallery tracks the real cards.
 private val sampleCommon = CardPull(
-    "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
+    "🐭", "Nibbletuft", "Common", "Hoards crumbs by the hearth. Eating them is not the point.",
     type = "Basic Meadow Critter",
     stat = "50 HP",
 )
@@ -37,7 +37,7 @@ private val sampleUncommon = CardPull(
 // With the chases, this completes all seven element washes in the gallery —
 // Sky appears on no other rendered card.
 private val sampleSky = CardPull(
-    "🐦", "Chirplet", "Common", "Knows one song. Commits to it.",
+    "🐦", "Chirplet", "Common", "Knows one song. Commits to it at first light.",
     type = "Basic Sky Critter",
     stat = "40 HP",
 )
