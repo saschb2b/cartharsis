@@ -45,7 +45,7 @@ internal fun CommonAndUncommonPreview() {
 }
 
 @PreviewTest
-@Preview(name = "Chase cards, all games", showBackground = true)
+@Preview(name = "Chase cards, all games", showBackground = true, widthDp = 740)
 @Composable
 internal fun ChaseCardsPreview() {
     CartharsisTheme {
@@ -64,7 +64,7 @@ internal fun ChaseCardsPreview() {
 }
 
 @PreviewTest
-@Preview(name = "Card backs, all games", showBackground = true)
+@Preview(name = "Card backs, all games", showBackground = true, widthDp = 740)
 @Composable
 internal fun CardBacksPreview() {
     CartharsisTheme {
@@ -97,7 +97,7 @@ internal fun ChaseCardDarkPreview() {
 }
 
 @PreviewTest
-@Preview(name = "Sealed boosters, all games", showBackground = true)
+@Preview(name = "Sealed boosters, all games", showBackground = true, widthDp = 820)
 @Composable
 internal fun BoosterPacksPreview() {
     CartharsisTheme {
