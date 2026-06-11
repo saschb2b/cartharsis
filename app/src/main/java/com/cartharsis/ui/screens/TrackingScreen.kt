@@ -801,14 +801,14 @@ private const val MAX_PACK_RIPS = 3
 /** One rip's worth: which game, which series wrapper, and the five cards. */
 private data class RipPack(val game: String, val series: String, val cards: List<CardPull>)
 
-internal data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
+internal data class PackTheme(val game: String, val title: String, val emoji: String, val wrapper: List<Color>)
 
 internal fun packTheme(game: String): PackTheme {
     val title = FakeCatalog.cardGameTitles[game] ?: "Trading Cards"
     return when (game) {
-        "critters" -> PackTheme(title, "🐲", listOf(JuicyOrange, HotPink))
-        "duelbound" -> PackTheme(title, "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
-        else -> PackTheme(title, "🔮", listOf(SkyBlue, ElectricPurple))
+        "critters" -> PackTheme(game, title, "🐲", listOf(JuicyOrange, HotPink))
+        "duelbound" -> PackTheme(game, title, "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
+        else -> PackTheme(game, title, "🔮", listOf(SkyBlue, ElectricPurple))
     }
 }
 
@@ -1340,6 +1340,17 @@ internal fun RipCardFace(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 3.dp),
+                        )
+                        // The collector print, the genre's signature in the
+                        // bottom corner: set fraction / set code / padded
+                        // number — its own tiny line, like the real ones.
+                        Text(
+                            text = FakeCatalog.collectorNumberOf(theme.game, card),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 9.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            maxLines = 1,
+                            modifier = Modifier.padding(top = 2.dp),
                         )
                     }
                 }

@@ -2639,6 +2639,29 @@ object FakeCatalog {
     /** Every chase card a game can pull — the binder's checklist. */
     fun chaseCardsOf(game: String): List<CardPull> = cardPullPools[game].orEmpty()
 
+    /**
+     * The tiny collector print in the card's bottom corner, again in each
+     * genre's idiom: Pokémon's set fraction, Yu-Gi-Oh's set code, Magic's
+     * zero-padded number with a rarity letter. Seeded from the card name —
+     * fake but stable, so the binder's permanent record never renumbers.
+     */
+    fun collectorNumberOf(game: String, card: CardPull): String {
+        fun slot(setSize: Int) = Math.floorMod(card.name.hashCode(), setSize) + 1
+        return when (game) {
+            "critters" -> "%03d/198".format(slot(198))
+            "duelbound" -> "DBD-EN%03d".format(slot(99))
+            "manaforge" -> {
+                val letter = when {
+                    card.rarity.startsWith("Common") -> "C"
+                    card.rarity.startsWith("Uncommon") -> "U"
+                    else -> "M"
+                }
+                "%04d/0280 $letter".format(slot(280))
+            }
+            else -> ""
+        }
+    }
+
     /** Display titles for each collectible series, keyed by variant group. */
     val cardSeriesTitles: Map<String, String> = mapOf(
         "critters-emberglow" to "Emberglow",

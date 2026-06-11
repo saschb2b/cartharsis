@@ -461,6 +461,30 @@ class FakeShopTest {
     }
 
     @Test
+    fun `collector numbers are stable, well-formed, and unique per game`() {
+        val idioms = mapOf(
+            "critters" to Regex("""\d{3}/198"""),
+            "duelbound" to Regex("""DBD-EN\d{3}"""),
+            "manaforge" to Regex("""\d{4}/0280 [CUM]"""),
+        )
+        idioms.forEach { (game, idiom) ->
+            // Eight pack indexes sweep the whole dealable set, commons + chases.
+            val pack = FakeCatalog.products.first { it.variantGroup?.startsWith(game) == true }
+            val cards = (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.toSet()
+            val numbers = cards.map { card ->
+                val number = FakeCatalog.collectorNumberOf(game, card)
+                // Stable — the binder's permanent record never renumbers.
+                assertEquals(number, FakeCatalog.collectorNumberOf(game, card))
+                assertTrue("'$number' breaks the $game idiom", idiom.matches(number))
+                number
+            }
+            // No two cards in a game share a slot in its fake master set.
+            assertEquals("$game repeats a collector number", numbers.size, numbers.toSet().size)
+        }
+        assertEquals("", FakeCatalog.collectorNumberOf("not-a-game", FakeCatalog.chaseCardsOf("critters").first()))
+    }
+
+    @Test
     fun `trading-card grids lead with the entry-price pack, not the sealed display`() {
         val groups = FakeCatalog.products
             .filter { it.category == "Trading Cards" && it.variantGroup != null }
