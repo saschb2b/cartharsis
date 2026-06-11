@@ -116,6 +116,27 @@ internal fun DuelboundKindsPreview() {
 }
 
 @PreviewTest
+@Preview(name = "Manaforge identities, framed by color", showBackground = true, widthDp = 990)
+@Composable
+internal fun ManaforgeIdentitiesPreview() {
+    // Magic's convention: the frame wears the card's color identity. The
+    // four chases happen to cover all four — blue wizard, red elemental,
+    // green enchantment, colorless artifact.
+    CartharsisTheme {
+        Row(Modifier.padding(12.dp)) {
+            FakeCatalog.chaseCardsOf("manaforge").forEachIndexed { i, card ->
+                RipCardFace(
+                    card = card,
+                    theme = packTheme("manaforge"),
+                    faceDown = false,
+                    modifier = Modifier.padding(start = if (i == 0) 0.dp else 12.dp),
+                )
+            }
+        }
+    }
+}
+
+@PreviewTest
 @Preview(name = "Chase card, dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 internal fun ChaseCardDarkPreview() {

@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -74,7 +76,7 @@ internal fun GameCardFace(card: CardPull, theme: PackTheme, holo: Boolean) {
     when (theme.game) {
         "critters" -> CrittersFace(card, holo)
         "duelbound" -> DuelboundFace(card, holo)
-        else -> ClassicFace(card, theme, holo)
+        else -> ManaforgeFace(card, holo)
     }
 }
 
@@ -341,85 +343,192 @@ private fun DuelboundFace(card: CardPull, holo: Boolean) {
     }
 }
 
-// ------------------------------------------- interim face (being replaced)
+// --------------------------------------------------------------- Manaforge
 
-/** The shared pre-redesign face; per-game faces are replacing it. */
+private data class ForgeIdentity(val frame: Color, val banner: Color, val pip: Color)
+
+/**
+ * Magic's kind convention is color identity: the outer frame wears the
+ * card's color while the plates stay parchment. Manaforge's type lines
+ * carry the identity — elementals burn red, wizards and instants run
+ * blue, enchantments grow green, artifacts stay colorless.
+ */
+private fun forgeIdentity(type: String): ForgeIdentity = when {
+    type.contains("Elemental") ->
+        ForgeIdentity(Color(0xFFC06044), Color(0xFFF6E3DA), Color(0xFFA33B22))
+    type.contains("Wizard") || type.contains("Instant") || type.contains("Sorcery") ->
+        ForgeIdentity(Color(0xFF6E93C4), Color(0xFFE3EBF5), Color(0xFF3D639B))
+    type.contains("Enchantment") || type.contains("Saga") || type.contains("Aura") ->
+        ForgeIdentity(Color(0xFF5E9468), Color(0xFFE0EEDE), Color(0xFF356B40))
+    else ->
+        ForgeIdentity(Color(0xFFA8A29A), Color(0xFFEEEAE2), Color(0xFF6E6860))
+}
+
+private val ForgeFaceInk = Color(0xFF2C2317)
+private val ForgeFaceBox = Color(0xFFF4ECDA)
+private val ForgePlateEdge = Color(0xFF3F3122)
+
+/**
+ * The Manaforge face, in the Magic mold: an identity-colored frame holding
+ * parchment plates — title banner with the mana cost, framed art, a type
+ * banner wearing the set gem (its color is the rarity, the genre's own
+ * trick), an italic text box, the P/T plate in the corner, and the tiny
+ * collector print along the foot.
+ */
 @Composable
-private fun ClassicFace(card: CardPull, theme: PackTheme, holo: Boolean) {
+private fun ManaforgeFace(card: CardPull, holo: Boolean) {
+    val identity = forgeIdentity(card.type)
+    // The cost is seeded and decorative, like every invented number here.
+    val cost = Math.floorMod(card.name.hashCode(), 5) + 1
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(9.dp))
-            .background(Color(0xFFFDF8F2)),
+            .background(
+                Brush.verticalGradient(
+                    listOf(identity.frame, identity.frame.copy(alpha = 0.85f).compositeOver(Color(0xFF40342A))),
+                ),
+            ),
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(identity.banner)
+                    .border(1.dp, ForgePlateEdge, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 7.dp, vertical = 4.dp),
             ) {
                 BasicText(
                     text = card.name,
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF26221C)),
+                    style = TextStyle(
+                        color = ForgeFaceInk,
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Serif,
+                    ),
                     maxLines = 1,
-                    softWrap = false,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
-                    modifier = Modifier.weight(1f).padding(end = 6.dp),
+                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.5.sp, stepSize = 0.5.sp),
+                    modifier = Modifier.weight(1f).padding(end = 5.dp),
                 )
-                RarityGem(card.rarity)
+                // The cost: a grey generic orb and the identity pip.
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(13.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFC8C2B4))
+                        .border(1.dp, ForgePlateEdge.copy(alpha = 0.5f), CircleShape),
+                ) {
+                    Text(
+                        text = "$cost",
+                        style = TextStyle(color = ForgeFaceInk, fontSize = 8.sp, fontWeight = FontWeight.Bold),
+                    )
+                }
+                Box(
+                    Modifier
+                        .padding(start = 3.dp)
+                        .size(13.dp)
+                        .clip(CircleShape)
+                        .background(identity.pip)
+                        .border(1.dp, ForgePlateEdge.copy(alpha = 0.5f), CircleShape),
+                )
             }
             EmojiHero(
                 emoji = card.emoji,
-                fontSize = 64,
+                fontSize = 60,
                 seed = card.name.hashCode(),
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
+                    .padding(top = 5.dp)
                     .border(
-                        width = if (holo) 1.5.dp else 1.dp,
-                        color = if (holo) LemonYellow else Color(0xFFD8D2C6),
-                        shape = RoundedCornerShape(8.dp),
+                        width = 2.dp,
+                        color = if (holo) LemonYellow else ForgePlateEdge,
+                        shape = RoundedCornerShape(4.dp),
                     )
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(4.dp)),
             )
-            if (card.type.isNotBlank()) {
+            // The type banner, wearing the set gem — its color is the rarity.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(identity.banner)
+                    .border(1.dp, ForgePlateEdge, RoundedCornerShape(5.dp))
+                    .padding(horizontal = 7.dp, vertical = 3.dp),
+            ) {
                 BasicText(
                     text = card.type,
-                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF26221C)),
+                    style = TextStyle(color = ForgeFaceInk, fontSize = 9.5.sp, fontFamily = FontFamily.Serif),
                     maxLines = 1,
-                    softWrap = false,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp, stepSize = 1.sp),
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 7.dp),
+                    autoSize = TextAutoSize.StepBased(minFontSize = 7.sp, maxFontSize = 9.5.sp, stepSize = 0.5.sp),
+                    modifier = Modifier.weight(1f).padding(end = 5.dp),
+                )
+                RarityGem(card.rarity)
+            }
+            // The text box, italic flavor on parchment.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(ForgeFaceBox)
+                    .border(1.dp, ForgePlateEdge.copy(alpha = 0.7f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 7.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    text = card.flavor,
+                    style = TextStyle(
+                        color = ForgeFaceInk.copy(alpha = 0.85f),
+                        fontSize = 9.5.sp,
+                        fontStyle = FontStyle.Italic,
+                        fontFamily = FontFamily.Serif,
+                        lineHeight = 12.sp,
+                    ),
+                    maxLines = 2,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
-                if (card.flavor.isNotBlank()) {
+            // The foot: collector print left; the P/T plate in the corner
+            // where the genre stamps it.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(top = 3.dp, bottom = 7.dp),
+            ) {
+                Column(Modifier.weight(1f).padding(end = 5.dp)) {
                     Text(
-                        text = card.flavor,
-                        style = TextStyle(fontSize = 10.sp, fontStyle = FontStyle.Italic, color = Color(0xFF5A554C)),
-                        maxLines = 2,
+                        text = card.rarity,
+                        style = TextStyle(color = Color.White.copy(alpha = 0.85f), fontSize = 7.5.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = FakeCatalog.collectorNumberOf("manaforge", card),
+                        style = TextStyle(color = Color.White.copy(alpha = 0.6f), fontSize = 7.sp),
+                        maxLines = 1,
                     )
                 }
-                Text(
-                    text = card.rarity,
-                    style = TextStyle(fontSize = 9.sp, color = Color(0xFF6A655C)),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 3.dp),
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                    Text(
-                        text = FakeCatalog.collectorNumberOf(theme.game, card),
-                        style = TextStyle(fontSize = 9.sp, color = Color(0xFF8A8478)),
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (card.stat.isNotBlank()) {
+                if (card.stat.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(identity.banner)
+                            .border(1.dp, ForgePlateEdge, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    ) {
                         Text(
                             text = card.stat,
-                            style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color(0xFF26221C)),
+                            style = TextStyle(
+                                color = ForgeFaceInk,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Serif,
+                            ),
                             maxLines = 1,
                         )
                     }
