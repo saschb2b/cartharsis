@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,7 +54,7 @@ internal fun GameCardBack(theme: PackTheme, modifier: Modifier = Modifier) {
     when (theme.game) {
         "critters" -> CrittersBack(modifier)
         "duelbound" -> DuelboundBack(modifier)
-        else -> GenericBack(theme, modifier)
+        else -> ManaforgeBack(modifier)
     }
 }
 
@@ -182,6 +183,245 @@ private fun DrawScope.drawCritterBall(center: Offset, r: Float) {
         size = Size(r * 0.16f, r * 0.10f),
     )
 }
+
+// --------------------------------------------------------------- Manaforge
+
+private val ForgeLeather = Color(0xFF7A5A40)
+private val ForgeLeatherLo = Color(0xFF553C2C)
+private val ForgeOval = Color(0xFF6B4B36)
+private val ForgeGold = Color(0xFFC9A86A)
+private val ForgeGoldHi = Color(0xFFE9D3A0)
+private val ForgeBead = Color(0xFFD9C49A)
+private val ForgeSphereHi = Color(0xFF24304C)
+private val ForgeSphereLo = Color(0xFF0E1322)
+
+/**
+ * The Manaforge back, in the Magic mold: a leather spellbook cover —
+ * mottled parchment, a beaded border, an inner oval, a serif wordmark —
+ * and the lore emblem in the middle: Manaforge's five elements (sun, tide,
+ * flame, void, growth) orbiting a dark world-sphere.
+ */
+@Composable
+private fun ManaforgeBack(modifier: Modifier = Modifier) {
+    Box(modifier) {
+        Canvas(Modifier.fillMaxSize()) {
+            // Leather field, then mottling: speckles in both directions of
+            // the base tone, like worn binding.
+            drawRect(Brush.verticalGradient(listOf(ForgeLeather, ForgeLeatherLo)))
+            repeat(150) { i ->
+                val x = size.width * (((i * 73 + 19) % 199) / 199f)
+                val y = size.height * (((i * 137 + 41) % 211) / 211f)
+                val r = (0.8f + ((i * 31) % 10) / 9f).dp.toPx()
+                drawCircle(
+                    color = if (i % 2 == 0) Color.Black else Color(0xFFE8D2A8),
+                    radius = r,
+                    center = Offset(x, y),
+                    alpha = if (i % 2 == 0) 0.10f else 0.07f,
+                )
+            }
+            drawRect(
+                Brush.radialGradient(
+                    listOf(Color.Transparent, Color.Black.copy(alpha = 0.30f)),
+                    center = Offset(size.width / 2, size.height / 2),
+                    radius = size.height * 0.66f,
+                ),
+            )
+            // The beaded border, dot by dot along the trim.
+            drawBeadedBorder()
+
+            // The inner oval panel the emblem lives on.
+            val c = Offset(size.width / 2, size.height * 0.555f)
+            val ovalW = size.width * 0.80f
+            val ovalH = size.height * 0.66f
+            val ovalRect = Rect(c.x - ovalW / 2, c.y - ovalH / 2, c.x + ovalW / 2, c.y + ovalH / 2)
+            drawOval(
+                Brush.radialGradient(
+                    listOf(
+                        ForgeOval,
+                        ForgeOval.copy(
+                            red = ForgeOval.red * 0.82f, green = ForgeOval.green * 0.82f,
+                            blue =
+                            ForgeOval.blue * 0.82f,
+                        ),
+                    ),
+                    center = c,
+                    radius = ovalH / 2,
+                ),
+                topLeft = ovalRect.topLeft,
+                size = ovalRect.size,
+            )
+            drawOval(ForgeGold, topLeft = ovalRect.topLeft, size = ovalRect.size, style = Stroke(2.dp.toPx()))
+            val pad = 3.dp.toPx()
+            drawOval(
+                ForgeGold.copy(alpha = 0.45f),
+                topLeft = ovalRect.topLeft + Offset(pad, pad),
+                size = Size(ovalRect.size.width - pad * 2, ovalRect.size.height - pad * 2),
+                style = Stroke(1.dp.toPx()),
+            )
+
+            // The world-sphere, and the five elements in their wheel.
+            val sphereR = size.width * 0.125f
+            drawCircle(
+                Brush.radialGradient(
+                    listOf(ForgeSphereHi, ForgeSphereLo),
+                    center = c - Offset(sphereR * 0.3f, sphereR * 0.35f),
+                    radius = sphereR * 1.8f,
+                ),
+                radius = sphereR,
+                center = c,
+            )
+            drawCircle(ForgeGold, radius = sphereR, center = c, style = Stroke(1.5.dp.toPx()))
+            val ringR = size.width * 0.255f
+            // The faint pentagon ring binding the wheel together.
+            var prevOrb: Offset? = null
+            var firstOrb: Offset? = null
+            repeat(5) { i ->
+                val ang = Math.toRadians((-90 + i * 72).toDouble())
+                val p = Offset(c.x + (ringR * cos(ang)).toFloat(), c.y + (ringR * sin(ang)).toFloat())
+                prevOrb?.let { drawLine(ForgeGold.copy(alpha = 0.4f), it, p, strokeWidth = 1.dp.toPx()) }
+                if (firstOrb == null) firstOrb = p
+                prevOrb = p
+            }
+            prevOrb?.let { last ->
+                firstOrb?.let { drawLine(ForgeGold.copy(alpha = 0.4f), last, it, strokeWidth = 1.dp.toPx()) }
+            }
+            repeat(5) { i ->
+                val ang = Math.toRadians((-90 + i * 72).toDouble())
+                val p = Offset(c.x + (ringR * cos(ang)).toFloat(), c.y + (ringR * sin(ang)).toFloat())
+                drawElementOrb(index = i, center = p, r = size.width * 0.062f)
+            }
+        }
+        Text(
+            text = "MANAFORGE",
+            style = TextStyle(
+                color = ForgeGoldHi,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 21.sp,
+                letterSpacing = 1.5.sp,
+                shadow = Shadow(color = Color(0xFF2E1F14), offset = Offset(0f, 4f), blurRadius = 2f),
+            ),
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 22.dp),
+        )
+        Text(
+            text = "FORGEMASTER",
+            style = TextStyle(
+                color = ForgeGold.copy(alpha = 0.85f),
+                fontFamily = FontFamily.Serif,
+                fontSize = 9.sp,
+                letterSpacing = 4.sp,
+            ),
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
+        )
+    }
+}
+
+/** Beads along the trim, the bookbinding ornament of the genre. */
+private fun DrawScope.drawBeadedBorder() {
+    val edge = 9.dp.toPx()
+    val step = 8.dp.toPx()
+    val beadR = 1.3.dp.toPx()
+    var x = edge + step
+    while (x < size.width - edge - step / 2) {
+        drawCircle(ForgeBead, beadR, Offset(x, edge), alpha = 0.8f)
+        drawCircle(ForgeBead, beadR, Offset(x, size.height - edge), alpha = 0.8f)
+        x += step
+    }
+    var y = edge + step
+    while (y < size.height - edge - step / 2) {
+        drawCircle(ForgeBead, beadR, Offset(edge, y), alpha = 0.8f)
+        drawCircle(ForgeBead, beadR, Offset(size.width - edge, y), alpha = 0.8f)
+        y += step
+    }
+}
+
+/**
+ * One element orb of the wheel: a lit sphere with a hand-drawn glyph —
+ * sun, tide, flame, void, growth, in wheel order from the top.
+ */
+private fun DrawScope.drawElementOrb(index: Int, center: Offset, r: Float) {
+    val body = when (index) {
+        0 -> Color(0xFFF2EAD4) // sun
+        1 -> Color(0xFF4A7FC0) // tide
+        2 -> Color(0xFFBE4A3C) // flame
+        3 -> Color(0xFF2A2530) // void
+        else -> Color(0xFF4A8050) // growth
+    }
+    drawCircle(Color.Black.copy(alpha = 0.35f), radius = r, center = center + Offset(0f, r * 0.14f))
+    drawCircle(
+        Brush.radialGradient(
+            listOf(body.lighten(0.35f), body),
+            center = center - Offset(r * 0.35f, r * 0.4f),
+            radius = r * 1.9f,
+        ),
+        radius = r,
+        center = center,
+    )
+    drawCircle(Color(0xFF3A2A1C), radius = r, center = center, style = Stroke(1.2.dp.toPx()))
+    val glyph = if (index == 0) Color(0xFF8A6A38) else Color(0xFFF0E8D2)
+    when (index) {
+        0 -> { // sun: disc and rays
+            drawCircle(glyph, radius = r * 0.32f, center = center)
+            repeat(8) { i ->
+                val a = Math.toRadians((i * 45).toDouble())
+                val from = center + Offset((r * 0.48f * cos(a)).toFloat(), (r * 0.48f * sin(a)).toFloat())
+                val to = center + Offset((r * 0.72f * cos(a)).toFloat(), (r * 0.72f * sin(a)).toFloat())
+                drawLine(glyph, from, to, strokeWidth = r * 0.12f, cap = StrokeCap.Round)
+            }
+        }
+        1 -> { // tide: a drop
+            drawCircle(glyph, radius = r * 0.34f, center = center + Offset(0f, r * 0.16f))
+            val tip = androidx.compose.ui.graphics.Path().apply {
+                moveTo(center.x, center.y - r * 0.62f)
+                lineTo(center.x - r * 0.30f, center.y + r * 0.10f)
+                lineTo(center.x + r * 0.30f, center.y + r * 0.10f)
+                close()
+            }
+            drawPath(tip, glyph)
+        }
+        2 -> { // flame: a teardrop with a darker heart
+            drawCircle(glyph, radius = r * 0.36f, center = center + Offset(0f, r * 0.18f))
+            val tip = androidx.compose.ui.graphics.Path().apply {
+                moveTo(center.x + r * 0.16f, center.y - r * 0.66f)
+                quadraticTo(center.x - r * 0.5f, center.y - r * 0.1f, center.x - r * 0.32f, center.y + r * 0.2f)
+                lineTo(center.x + r * 0.34f, center.y + r * 0.2f)
+                close()
+            }
+            drawPath(tip, glyph)
+            drawCircle(body, radius = r * 0.16f, center = center + Offset(0f, r * 0.26f))
+        }
+        3 -> { // void: a crescent
+            drawCircle(glyph, radius = r * 0.42f, center = center)
+            drawCircle(body, radius = r * 0.38f, center = center + Offset(r * 0.2f, -r * 0.12f))
+        }
+        else -> { // growth: a leaf with a vein
+            val leaf = androidx.compose.ui.graphics.Path().apply {
+                moveTo(center.x, center.y - r * 0.55f)
+                quadraticTo(center.x + r * 0.55f, center.y - r * 0.1f, center.x, center.y + r * 0.55f)
+                quadraticTo(center.x - r * 0.55f, center.y - r * 0.1f, center.x, center.y - r * 0.55f)
+                close()
+            }
+            drawPath(leaf, glyph)
+            drawLine(
+                body,
+                center + Offset(0f, -r * 0.45f),
+                center + Offset(0f, r * 0.45f),
+                strokeWidth = r * 0.09f,
+            )
+        }
+    }
+    // The shared specular dot that makes the wheel read as set stones.
+    drawCircle(Color.White.copy(alpha = 0.55f), radius = r * 0.13f, center = center - Offset(r * 0.4f, r * 0.45f))
+}
+
+private fun Color.lighten(amount: Float): Color = Color(
+    red = red + (1f - red) * amount,
+    green = green + (1f - green) * amount,
+    blue = blue + (1f - blue) * amount,
+    alpha = alpha,
+)
 
 // --------------------------------------------------------------- Duelbound
 
@@ -354,37 +594,4 @@ private fun DrawScope.drawHeart(center: Offset, s: Float, color: Color) {
 
 private inline fun inset(scope: DrawScope, px: Float, draw: (Rect) -> Unit) {
     draw(Rect(px, px, scope.size.width - px, scope.size.height - px))
-}
-
-// ----------------------------------------------- placeholder (to be replaced)
-
-/** The pre-redesign generic back; each game's own back is replacing it. */
-@Composable
-private fun GenericBack(theme: PackTheme, modifier: Modifier = Modifier) {
-    Box(modifier) {
-        Canvas(Modifier.fillMaxSize()) {
-            drawRect(Brush.linearGradient(theme.wrapper))
-            drawRect(Color.Black.copy(alpha = 0.22f))
-            val c = Offset(size.width / 2, size.height / 2)
-            val r = size.width * 0.25f
-            drawCircle(Color.White.copy(alpha = 0.08f), radius = r, center = c)
-            drawCircle(Color.White.copy(alpha = 0.4f), radius = r, center = c, style = Stroke(2.dp.toPx()))
-            drawCircle(Color.White.copy(alpha = 0.22f), radius = r * 0.78f, center = c, style = Stroke(1.dp.toPx()))
-        }
-        Text(
-            text = theme.emoji,
-            fontSize = 48.sp,
-            modifier = Modifier.align(Alignment.Center),
-        )
-        Text(
-            text = theme.title.uppercase(),
-            style = TextStyle(
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-            ),
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 48.dp),
-        )
-    }
 }
