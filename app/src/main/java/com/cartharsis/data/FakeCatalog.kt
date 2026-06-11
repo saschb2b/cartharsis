@@ -2508,6 +2508,20 @@ object FakeCatalog {
             listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
         "Manaforge: Ashveil Play Booster" to
             listOf("Vaultline Magnetic Deck Box", "Dragonhide Matte Sleeves (100-Pack)"),
+        // A sealed display is binder fodder by definition — the accessories
+        // belong beside it just as much as beside the single pack.
+        "Pocket Critters: Emberglow Booster Display" to
+            listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
+        "Pocket Critters: Abyssal Tides Booster Display" to
+            listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
+        "Duelbound: Forbidden Archive Booster Display" to
+            listOf("Dragonhide Matte Sleeves (100-Pack)", "Vaultline Magnetic Deck Box"),
+        "Duelbound: Crimson Eclipse Booster Display" to
+            listOf("Dragonhide Matte Sleeves (100-Pack)", "Cardkeeper Zip Binder (480 Slots)"),
+        "Manaforge: Ashveil Booster Display" to
+            listOf("Vaultline Magnetic Deck Box", "Cardkeeper Zip Binder (480 Slots)"),
+        "Manaforge: The Verdant Throne Booster Display" to
+            listOf("Vaultline Magnetic Deck Box", "Dragonhide Matte Sleeves (100-Pack)"),
     )
 
     /** The companion products bought alongside [product], in listed order. */
