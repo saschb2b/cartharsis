@@ -414,6 +414,12 @@ Declined by owner: review sort/filter controls.
 - [x] Binder: tap a pulled chase to view the full card face in a dialog
       (foil, type line, collector print); locked slots stay "???"
 - [x] Booster displays join the also-bought accessory rows
+- [x] Battle stats in the genre's corner: Pokémon-position HP in the Critters
+      name bar, Yu-Gi-Oh ATK/DEF and Magic P/T bottom-right — only on
+      monsters/creatures, never on spells/traps/relics (mapping tested)
+- [x] Per-series booster wrappers (Abyssal teal, Eclipse crimson, Verdant
+      green) while faces/backs stay game-wide like real card backs; booster
+      preview renders all six series
 - [x] Verified live on emulator: order → courier → unbox → tear → commons →
       face-down back → chase flip (confetti) → binder → inspect dialog
 
