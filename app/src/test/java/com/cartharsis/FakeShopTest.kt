@@ -448,13 +448,14 @@ class FakeShopTest {
             val names = FakeCatalog.chaseCardsOf(game).map { it.name }
             assertEquals("$game repeats a chase name", names.size, names.toSet().size)
         }
-        // Every card that can ever be dealt carries flavor text. Eight pack
-        // indexes walk the whole commons pool (the start step is coprime
-        // with its size), so this sweeps commons and chases alike.
+        // Every card that can ever be dealt carries flavor text and a type
+        // line. Eight pack indexes walk the whole commons pool (the start
+        // step is coprime with its size), so this sweeps commons and chases.
         gamesInCatalog.forEach { game ->
             val pack = FakeCatalog.products.first { it.variantGroup?.startsWith(game) == true }
             (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.forEach { card ->
                 assertTrue("${card.name} has no flavor text", card.flavor.isNotBlank())
+                assertTrue("${card.name} has no type line", card.type.isNotBlank())
             }
         }
     }

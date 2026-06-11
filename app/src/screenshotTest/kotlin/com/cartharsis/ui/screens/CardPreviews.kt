@@ -22,10 +22,14 @@ import com.cartharsis.ui.theme.CartharsisTheme
 
 // Commons are inlined (their pool is private by design); chases come from
 // the catalog so the gallery tracks the real cards.
-private val sampleCommon =
-    CardPull("🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.")
-private val sampleUncommon =
-    CardPull("🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows.")
+private val sampleCommon = CardPull(
+    "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
+    type = "Basic Meadow Critter",
+)
+private val sampleUncommon = CardPull(
+    "🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows.",
+    type = "Stage 1 Dream Critter",
+)
 
 @PreviewTest
 @Preview(name = "Critters common + uncommon", showBackground = true)

@@ -46,6 +46,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -1219,7 +1220,11 @@ internal fun RipCardFace(
         modifier = modifier
             .size(220.dp, 308.dp)
             .clearAndSetSemantics {
-                contentDescription = if (faceDown) "A face-down card" else "${card.name}, ${card.rarity}"
+                contentDescription = when {
+                    faceDown -> "A face-down card"
+                    card.type.isBlank() -> "${card.name}, ${card.rarity}"
+                    else -> "${card.name}, ${card.type}, ${card.rarity}"
+                }
             }
             .clip(RoundedCornerShape(14.dp))
             .background(Brush.linearGradient(theme.wrapper))
@@ -1298,6 +1303,26 @@ internal fun RipCardFace(
                             )
                             .clip(RoundedCornerShape(8.dp)),
                     )
+                    // The type line, real-card style: a slim bar between art
+                    // and text box, each game in its genre's idiom. Long
+                    // lines shrink instead of clipping, like the name bar.
+                    if (card.type.isNotBlank()) {
+                        BasicText(
+                            text = card.type,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
+                            maxLines = 1,
+                            softWrap = false,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp, stepSize = 1.sp),
+                            modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 7.dp),
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(horizontal = 12.dp).padding(top = 5.dp),
+                        )
+                    }
                     Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
                         if (card.flavor.isNotBlank()) {
                             Text(

@@ -20,6 +20,14 @@ data class CardPull(
     val rarity: String,
     /** The one-line flavor text under the art — deadpan, like the listings. */
     val flavor: String = "",
+    /**
+     * The type line between art and text box, in the idiom of the real game
+     * each invented one homages: Pocket Critters wears Pokémon stage lines
+     * ("Basic Flame Critter"), Duelbound wears Yu-Gi-Oh brackets
+     * ("[Spellcaster / Effect]"), Manaforge wears Magic's em-dash
+     * ("Legendary Creature — Human Wizard").
+     */
+    val type: String = "",
 )
 
 object FakeCatalog {
@@ -2552,58 +2560,71 @@ object FakeCatalog {
             CardPull(
                 "🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs",
                 "It molts once a century. The valley keeps every feather.",
+                type = "Stage 2 Flame Critter",
             ),
             CardPull(
                 "🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs",
                 "The tide doesn't come in. Mawra lets it out.",
+                type = "Stage 2 Tide Critter",
             ),
             CardPull(
                 "⚡", "Voltifox", "Holo rare · 1 in 96 packs",
                 "Static cling is its love language.",
+                type = "Stage 1 Spark Critter",
             ),
             CardPull(
                 "🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs",
                 "It sleeps through every battle and has never lost one.",
+                type = "Stage 2 Dream Critter",
             ),
             CardPull(
                 "🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common",
                 "Every Sprigbloom believes it is the rarest card in the set.",
+                type = "Stage 1 Bloom Critter",
             ),
         ),
         "duelbound" to listOf(
             CardPull(
                 "👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs",
                 "It knows your deck list. It filed it centuries ago.",
+                type = "[Spellcaster / Effect]",
             ),
             CardPull(
                 "🐍", "Serpent of the Sealed Vault", "Ultimate foil · 1 in 480 packs",
                 "The vault was sealed to keep it in. It signs for deliveries anyway.",
+                type = "[Serpent / Ritual / Effect]",
             ),
             CardPull(
                 "🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs",
                 "It ate the moon once. The moon got better.",
+                type = "[Fiend / Fusion / Effect]",
             ),
             CardPull(
                 "🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs",
                 "Nobody remembers who won. The urn isn't telling.",
+                type = "[Relic / Continuous]",
             ),
         ),
         "manaforge" to listOf(
             CardPull(
                 "🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500",
                 "She numbered the copies herself. She is not in any of them.",
+                type = "Legendary Creature — Human Wizard",
             ),
             CardPull(
                 "🌋", "Caldera Sovereign", "Borderless mythic · 1 in 640 packs",
                 "Its throne room has no borders. Neither does this card.",
+                type = "Legendary Creature — Elemental Dragon",
             ),
             CardPull(
                 "🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs",
                 "The kingdom fell. The garden won.",
+                type = "Legendary Enchantment — Saga",
             ),
             CardPull(
                 "⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs",
                 "Turn it over and somewhere, a draft begins.",
+                type = "Legendary Artifact",
             ),
         ),
     )
@@ -2647,34 +2668,106 @@ object FakeCatalog {
      */
     private val cardCommonPools: Map<String, List<CardPull>> = mapOf(
         "critters" to listOf(
-            CardPull("🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating."),
-            CardPull("🐛", "Larvalume", "Common", "Glows brighter the less it knows."),
-            CardPull("🐸", "Paddlehop", "Common", "Has never once landed where it aimed. Unbothered."),
-            CardPull("🐦", "Chirplet", "Common", "Knows one song. Commits to it."),
-            CardPull("🦔", "Bramblepin", "Common", "Hugs are technically possible."),
-            CardPull("🐑", "Cloudlamb", "Common", "Counts itself to fall asleep."),
-            CardPull("🐌", "Glimmersnail", "Uncommon", "Arrives last. Shines anyway."),
-            CardPull("🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows."),
+            CardPull(
+                "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
+                type = "Basic Meadow Critter",
+            ),
+            CardPull(
+                "🐛", "Larvalume", "Common", "Glows brighter the less it knows.",
+                type = "Basic Spark Critter",
+            ),
+            CardPull(
+                "🐸", "Paddlehop", "Common", "Has never once landed where it aimed. Unbothered.",
+                type = "Basic Tide Critter",
+            ),
+            CardPull(
+                "🐦", "Chirplet", "Common", "Knows one song. Commits to it.",
+                type = "Basic Sky Critter",
+            ),
+            CardPull(
+                "🦔", "Bramblepin", "Common", "Hugs are technically possible.",
+                type = "Basic Bloom Critter",
+            ),
+            CardPull(
+                "🐑", "Cloudlamb", "Common", "Counts itself to fall asleep.",
+                type = "Basic Dream Critter",
+            ),
+            CardPull(
+                "🐌", "Glimmersnail", "Uncommon", "Arrives last. Shines anyway.",
+                type = "Stage 1 Spark Critter",
+            ),
+            CardPull(
+                "🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows.",
+                type = "Stage 1 Dream Critter",
+            ),
         ),
         "duelbound" to listOf(
-            CardPull("🕯️", "Vault Candle", "Common", "Lit before the archive. Will outlast it."),
-            CardPull("🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in."),
-            CardPull("📜", "Scroll of Echoes", "Common", "Repeats your last move, judgmentally."),
-            CardPull("🗝️", "Key to the Lower Stacks", "Common", "Opens a door best left described."),
-            CardPull("⚱️", "Sealed Urn", "Common", "Do not open. It gets cold."),
-            CardPull("🌫️", "Shade of the Reading Room", "Common", "Shushes duelists at sorcery speed."),
-            CardPull("🦇", "Crypt Flitter", "Uncommon", "Files itself under 'bird'. Nobody argues."),
-            CardPull("🕸️", "Warding Web", "Uncommon", "The spider moved out. The lease holds."),
+            CardPull(
+                "🕯️", "Vault Candle", "Common", "Lit before the archive. Will outlast it.",
+                type = "[Relic / Normal]",
+            ),
+            CardPull(
+                "🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in.",
+                type = "[Zombie / Normal]",
+            ),
+            CardPull(
+                "📜", "Scroll of Echoes", "Common", "Repeats your last move, judgmentally.",
+                type = "[Spell / Quick-Play]",
+            ),
+            CardPull(
+                "🗝️", "Key to the Lower Stacks", "Common", "Opens a door best left described.",
+                type = "[Relic / Equip]",
+            ),
+            CardPull(
+                "⚱️", "Sealed Urn", "Common", "Do not open. It gets cold.",
+                type = "[Trap / Counter]",
+            ),
+            CardPull(
+                "🌫️", "Shade of the Reading Room", "Common", "Shushes duelists at sorcery speed.",
+                type = "[Ghost / Effect]",
+            ),
+            CardPull(
+                "🦇", "Crypt Flitter", "Uncommon", "Files itself under 'bird'. Nobody argues.",
+                type = "[Winged Beast / Effect]",
+            ),
+            CardPull(
+                "🕸️", "Warding Web", "Uncommon", "The spider moved out. The lease holds.",
+                type = "[Trap / Continuous]",
+            ),
         ),
         "manaforge" to listOf(
-            CardPull("💧", "Mana Droplet", "Common", "Every flood starts somewhere small."),
-            CardPull("🪨", "Forge Stone", "Common", "It was here before the forge. It waits."),
-            CardPull("🔥", "Cinder Wisp", "Common", "A spark with ambitions and no plan."),
-            CardPull("🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty."),
-            CardPull("🧪", "Alchemist's Vial", "Common", "Contents: hope, approximately."),
-            CardPull("🛡️", "Wovenroot Shield", "Common", "Grows back faster than it dents."),
-            CardPull("🗡️", "Ashveil Blade", "Uncommon", "Forged in the fire it was named after."),
-            CardPull("✨", "Spark of Convergence", "Uncommon", "Two ideas touched. This got out."),
+            CardPull(
+                "💧", "Mana Droplet", "Common", "Every flood starts somewhere small.",
+                type = "Instant",
+            ),
+            CardPull(
+                "🪨", "Forge Stone", "Common", "It was here before the forge. It waits.",
+                type = "Artifact",
+            ),
+            CardPull(
+                "🔥", "Cinder Wisp", "Common", "A spark with ambitions and no plan.",
+                type = "Creature — Elemental",
+            ),
+            CardPull(
+                "🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty.",
+                type = "Enchantment — Aura",
+            ),
+            CardPull(
+                "🧪", "Alchemist's Vial", "Common", "Contents: hope, approximately.",
+                type = "Artifact — Potion",
+            ),
+            CardPull(
+                "🛡️", "Wovenroot Shield", "Common", "Grows back faster than it dents.",
+                type = "Artifact — Equipment",
+            ),
+            CardPull(
+                "🗡️", "Ashveil Blade", "Uncommon", "Forged in the fire it was named after.",
+                type = "Artifact — Equipment",
+            ),
+            CardPull(
+                "✨", "Spark of Convergence", "Uncommon", "Two ideas touched. This got out.",
+                type = "Sorcery",
+            ),
         ),
     )
 
