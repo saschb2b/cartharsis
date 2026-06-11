@@ -83,7 +83,8 @@ app/src/main/java/com/cartharsis/
         │                        #   vault, milestones entry row, order cards,
         │                        #   empty state
         └── MilestonesScreen.kt  # Trophy room (pushed from Orders): career stat
-                                 #   chips + badge grid
+                                 #   chips + badge grid + card binder (pulled
+                                 #   chase cards; locked ones stay "???")
 ```
 
 - One `ShopViewModel` (an `AndroidViewModel`, for notification context) scoped to
@@ -121,9 +122,15 @@ app/src/main/java/com/cartharsis/
   confetti + haptic + chime together (the flow's one big celebration; the
   parcel tap deliberately doesn't fire it for card orders).
   `FakeCatalog.packRipFor` deals the pack (commons + chase last, seeded per
-  order/product, tested); the celebration card keeps the "top pull" line as
-  the permanent record. Decorative randomness in the Mystery Box mold — shown
-  only after delivery, never as a pre-purchase odds tease.
+  order/product/packIndex — multi-pack orders rip each pack, capped at 3, with
+  confetti saved for the finale); the celebration card keeps the "top pull"
+  line as the permanent record. Cards are laid out like real ones (name bar +
+  rarity gem, framed EmojiHero art, deadpan flavor text, foil treatment on
+  chases); wrappers carry their series (`cardSeriesTitles`). Every flipped
+  chase lands in the persistent card binder (`BinderStore`, shown in the
+  Milestones trophy room; unpulled cards stay "???"). Decorative randomness
+  in the Mystery Box mold — shown only after delivery, never as a
+  pre-purchase odds tease.
 - Orders = the "your impact" payoff screen (researched), not a dry list: a
   full-width count-up hero of money kept with relatable equivalents ("≈ 2 movie
   nights"), a hand-rolled filling savings vault toward the next milestone, and

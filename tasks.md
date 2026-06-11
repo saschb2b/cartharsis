@@ -377,5 +377,24 @@ Declined by owner: review sort/filter controls.
       background for an invisible handoff
 - [x] Verified cold start on emulator in light and dark mode
 
+## Phase 29 — Trading cards autopilot: rip depth, card design, binder, tooling
+- [x] Multi-pack rips: one rip per quantity of each card line (cap 3), each
+      its own seeded deal; "Pack N of M", haptic+chime per chase, confetti
+      saved for the finale
+- [x] Rip a11y: dots announce "Card N of M"; faces read "name, rarity"
+- [x] Card binder: every flipped chase persists (BinderStore + codec, tested);
+      Milestones gains a per-game checklist — owned bright, unpulled "???"
+- [x] Card design: real card anatomy (name bar + rarity gem, framed art,
+      footer), deadpan flavor text on all 37 cards, tinted foil + gilt frame
+      on chases, series name on the booster wrapper (cardSeriesTitles, tested)
+- [x] Tooling: Compose Preview screenshot gallery (screenshotTest source set,
+      updateDebugScreenshotTest to iterate, validateDebugScreenshotTest as a
+      visual gate; references checked in) — first renders caught two real
+      truncation bugs
+- [ ] Proposal: add validateDebugScreenshotTest to CI (plugin is alpha; may
+      flake on runner rendering — owner call)
+- [ ] Proposal: pack-rip "tilt" parallax on the chase card (gyro/touch), in
+      the Pocket mold — juicy but gimmick-adjacent, owner taste call
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
