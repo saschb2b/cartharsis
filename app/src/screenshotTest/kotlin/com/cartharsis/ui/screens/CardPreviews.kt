@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -103,17 +104,23 @@ internal fun ChaseCardDarkPreview() {
 }
 
 @PreviewTest
-@Preview(name = "Sealed boosters, all games", showBackground = true, widthDp = 820)
+@Preview(name = "Sealed boosters, all series", showBackground = true, widthDp = 820)
 @Composable
 internal fun BoosterPacksPreview() {
+    // Every series, not just every game: each set wears its own wrapper.
     CartharsisTheme {
-        Row(Modifier.padding(12.dp)) {
-            FakeCatalog.cardGameTitles.keys.forEach { game ->
-                val series = FakeCatalog.cardSeriesTitles.entries
-                    .first { it.key.startsWith(game) }
-                    .value
-                Row(Modifier.width(264.dp)) {
-                    BoosterPackTear(theme = packTheme(game), series = series, onTorn = {})
+        Column(Modifier.padding(12.dp)) {
+            FakeCatalog.cardSeriesTitles.entries.chunked(3).forEach { rowOfSeries ->
+                Row {
+                    rowOfSeries.forEach { (group, series) ->
+                        Row(Modifier.width(264.dp)) {
+                            BoosterPackTear(
+                                theme = packTheme(group.substringBefore('-'), group),
+                                series = series,
+                                onTorn = {},
+                            )
+                        }
+                    }
                 }
             }
         }

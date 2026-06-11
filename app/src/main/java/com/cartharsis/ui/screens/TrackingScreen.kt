@@ -179,6 +179,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                 FakeCatalog.packRipFor(order.id, product, i)?.let { cards ->
                                     RipPack(
                                         game = product.variantGroup!!.substringBefore('-'),
+                                        seriesGroup = product.variantGroup!!,
                                         series = FakeCatalog.cardSeriesTitles[product.variantGroup].orEmpty(),
                                         cards = cards,
                                     )
@@ -802,17 +803,29 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
 private const val MAX_PACK_RIPS = 3
 
 /** One rip's worth: which game, which series wrapper, and the five cards. */
-private data class RipPack(val game: String, val series: String, val cards: List<CardPull>)
+private data class RipPack(val game: String, val seriesGroup: String, val series: String, val cards: List<CardPull>)
 
 internal data class PackTheme(val game: String, val title: String, val emoji: String, val wrapper: List<Color>)
 
-internal fun packTheme(game: String): PackTheme {
+/**
+ * The game's dress. With a [seriesGroup], the wrapper tints to that set —
+ * Abyssal Tides doesn't ship in Emberglow's flames — while card faces and
+ * backs keep the game-wide theme, the way real games keep one back forever.
+ */
+internal fun packTheme(game: String, seriesGroup: String? = null): PackTheme {
     val title = FakeCatalog.cardGameTitles[game] ?: "Trading Cards"
-    return when (game) {
+    val base = when (game) {
         "critters" -> PackTheme(game, title, "🐲", listOf(JuicyOrange, HotPink))
         "duelbound" -> PackTheme(game, title, "🃏", listOf(Color(0xFF4527A0), Color(0xFF1A1233)))
         else -> PackTheme(game, title, "🔮", listOf(SkyBlue, ElectricPurple))
     }
+    val seriesWrapper = when (seriesGroup) {
+        "critters-abyssal" -> listOf(Color(0xFF00ACC1), Color(0xFF1A237E))
+        "duelbound-eclipse" -> listOf(Color(0xFFC62828), Color(0xFF260A12))
+        "manaforge-verdant" -> listOf(Color(0xFF66BB6A), Color(0xFF1B5E20))
+        else -> null
+    }
+    return if (seriesWrapper != null) base.copy(wrapper = seriesWrapper) else base
 }
 
 @Composable
@@ -824,6 +837,7 @@ private fun PackRipReveal(
     onFinished: () -> Unit,
 ) {
     val theme = remember(pack.game) { packTheme(pack.game) }
+    val wrapperTheme = remember(pack.seriesGroup) { packTheme(pack.game, pack.seriesGroup) }
     var torn by remember { mutableStateOf(false) }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         if (packCount > 1) {
@@ -841,7 +855,7 @@ private fun PackRipReveal(
             },
         ) { isTorn ->
             if (!isTorn) {
-                BoosterPackTear(theme, series = pack.series, onTorn = { torn = true })
+                BoosterPackTear(wrapperTheme, series = pack.series, onTorn = { torn = true })
             } else {
                 CardStackReveal(
                     theme = theme,
