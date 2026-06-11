@@ -1368,6 +1368,17 @@ internal fun RipCardFace(
                             autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
                             modifier = Modifier.weight(1f).padding(end = 6.dp),
                         )
+                        // Critters print HP where Pokémon does: name bar, right.
+                        if (theme.game == "critters" && card.stat.isNotBlank()) {
+                            Text(
+                                text = card.stat,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                modifier = Modifier.padding(end = 6.dp),
+                            )
+                        }
                         RarityGem(card.rarity)
                     }
                     EmojiHero(
@@ -1424,17 +1435,32 @@ internal fun RipCardFace(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 3.dp),
                         )
-                        // The collector print, the genre's signature in the
-                        // bottom corner: set fraction / set code / padded
-                        // number — its own tiny line, like the real ones.
-                        Text(
-                            text = FakeCatalog.collectorNumberOf(theme.game, card),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 9.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            maxLines = 1,
+                        // The bottom line: the collector print on the left
+                        // (set fraction / set code / padded number), and —
+                        // where the genre prints one — the battle stat on the
+                        // right (Yu-Gi-Oh ATK/DEF, Magic power/toughness).
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(top = 2.dp),
-                        )
+                        ) {
+                            Text(
+                                text = FakeCatalog.collectorNumberOf(theme.game, card),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 9.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (theme.game != "critters" && card.stat.isNotBlank()) {
+                                Text(
+                                    text = card.stat,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                     }
                 }
                 if (holo) HoloSheen()

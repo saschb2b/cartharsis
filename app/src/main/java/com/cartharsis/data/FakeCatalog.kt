@@ -28,6 +28,14 @@ data class CardPull(
      * ("Legendary Creature — Human Wizard").
      */
     val type: String = "",
+    /**
+     * The battle stat, only where its genre prints one: Pokémon HP for
+     * Critters ("120 HP"), Yu-Gi-Oh ATK/DEF for Duelbound monsters
+     * ("ATK/2400 DEF/2100"), Magic power/toughness for Manaforge creatures
+     * ("3/4"). Spells, traps, relics and artifacts stay blank, like the
+     * real ones.
+     */
+    val stat: String = "",
 )
 
 object FakeCatalog {
@@ -2561,26 +2569,31 @@ object FakeCatalog {
                 "🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs",
                 "It molts once a century. The valley keeps every feather.",
                 type = "Stage 2 Flame Critter",
+                stat = "180 HP",
             ),
             CardPull(
                 "🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs",
                 "The tide doesn't come in. Mawra lets it out.",
                 type = "Stage 2 Tide Critter",
+                stat = "170 HP",
             ),
             CardPull(
                 "⚡", "Voltifox", "Holo rare · 1 in 96 packs",
                 "Static cling is its love language.",
                 type = "Stage 1 Spark Critter",
+                stat = "120 HP",
             ),
             CardPull(
                 "🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs",
                 "It sleeps through every battle and has never lost one.",
                 type = "Stage 2 Dream Critter",
+                stat = "160 HP",
             ),
             CardPull(
                 "🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common",
                 "Every Sprigbloom believes it is the rarest card in the set.",
                 type = "Stage 1 Bloom Critter",
+                stat = "110 HP",
             ),
         ),
         "duelbound" to listOf(
@@ -2588,16 +2601,19 @@ object FakeCatalog {
                 "👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs",
                 "It knows your deck list. It filed it centuries ago.",
                 type = "[Spellcaster / Effect]",
+                stat = "ATK/2400 DEF/2100",
             ),
             CardPull(
                 "🐍", "Serpent of the Sealed Vault", "Ultimate foil · 1 in 480 packs",
                 "The vault was sealed to keep it in. It signs for deliveries anyway.",
                 type = "[Serpent / Ritual / Effect]",
+                stat = "ATK/2900 DEF/2500",
             ),
             CardPull(
                 "🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs",
                 "It ate the moon once. The moon got better.",
                 type = "[Fiend / Fusion / Effect]",
+                stat = "ATK/3000 DEF/2500",
             ),
             CardPull(
                 "🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs",
@@ -2610,11 +2626,13 @@ object FakeCatalog {
                 "🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500",
                 "She numbered the copies herself. She is not in any of them.",
                 type = "Legendary Creature — Human Wizard",
+                stat = "3/4",
             ),
             CardPull(
                 "🌋", "Caldera Sovereign", "Borderless mythic · 1 in 640 packs",
                 "Its throne room has no borders. Neither does this card.",
                 type = "Legendary Creature — Elemental Dragon",
+                stat = "6/6",
             ),
             CardPull(
                 "🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs",
@@ -2694,34 +2712,42 @@ object FakeCatalog {
             CardPull(
                 "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
                 type = "Basic Meadow Critter",
+                stat = "50 HP",
             ),
             CardPull(
                 "🐛", "Larvalume", "Common", "Glows brighter the less it knows.",
                 type = "Basic Spark Critter",
+                stat = "40 HP",
             ),
             CardPull(
                 "🐸", "Paddlehop", "Common", "Has never once landed where it aimed. Unbothered.",
                 type = "Basic Tide Critter",
+                stat = "60 HP",
             ),
             CardPull(
                 "🐦", "Chirplet", "Common", "Knows one song. Commits to it.",
                 type = "Basic Sky Critter",
+                stat = "40 HP",
             ),
             CardPull(
                 "🦔", "Bramblepin", "Common", "Hugs are technically possible.",
                 type = "Basic Bloom Critter",
+                stat = "70 HP",
             ),
             CardPull(
                 "🐑", "Cloudlamb", "Common", "Counts itself to fall asleep.",
                 type = "Basic Dream Critter",
+                stat = "60 HP",
             ),
             CardPull(
                 "🐌", "Glimmersnail", "Uncommon", "Arrives last. Shines anyway.",
                 type = "Stage 1 Spark Critter",
+                stat = "80 HP",
             ),
             CardPull(
                 "🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows.",
                 type = "Stage 1 Dream Critter",
+                stat = "90 HP",
             ),
         ),
         "duelbound" to listOf(
@@ -2732,6 +2758,7 @@ object FakeCatalog {
             CardPull(
                 "🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in.",
                 type = "[Zombie / Normal]",
+                stat = "ATK/0 DEF/1900",
             ),
             CardPull(
                 "📜", "Scroll of Echoes", "Common", "Repeats your last move, judgmentally.",
@@ -2748,10 +2775,12 @@ object FakeCatalog {
             CardPull(
                 "🌫️", "Shade of the Reading Room", "Common", "Shushes duelists at sorcery speed.",
                 type = "[Ghost / Effect]",
+                stat = "ATK/1200 DEF/800",
             ),
             CardPull(
                 "🦇", "Crypt Flitter", "Uncommon", "Files itself under 'bird'. Nobody argues.",
                 type = "[Winged Beast / Effect]",
+                stat = "ATK/900 DEF/600",
             ),
             CardPull(
                 "🕸️", "Warding Web", "Uncommon", "The spider moved out. The lease holds.",
@@ -2770,6 +2799,7 @@ object FakeCatalog {
             CardPull(
                 "🔥", "Cinder Wisp", "Common", "A spark with ambitions and no plan.",
                 type = "Creature — Elemental",
+                stat = "1/1",
             ),
             CardPull(
                 "🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty.",

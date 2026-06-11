@@ -25,10 +25,12 @@ import com.cartharsis.ui.theme.CartharsisTheme
 private val sampleCommon = CardPull(
     "🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating.",
     type = "Basic Meadow Critter",
+    stat = "50 HP",
 )
 private val sampleUncommon = CardPull(
     "🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows.",
     type = "Stage 1 Dream Critter",
+    stat = "90 HP",
 )
 
 @PreviewTest

@@ -456,6 +456,34 @@ class FakeShopTest {
             (0..7).flatMap { FakeCatalog.packRipFor(5, pack, it).orEmpty() }.forEach { card ->
                 assertTrue("${card.name} has no flavor text", card.flavor.isNotBlank())
                 assertTrue("${card.name} has no type line", card.type.isNotBlank())
+                // Stats appear exactly where the genre prints them: every
+                // Critter has HP; Manaforge P/T belongs to creatures alone;
+                // Duelbound ATK/DEF belongs to monsters, never spells/traps.
+                when (game) {
+                    "critters" -> assertTrue(
+                        "${card.name} should have HP",
+                        Regex("""\d+ HP""").matches(card.stat),
+                    )
+                    "manaforge" -> assertEquals(
+                        "${card.name} P/T must match creatureness",
+                        card.type.contains("Creature"),
+                        Regex("""\d+/\d+""").matches(card.stat),
+                    )
+                    "duelbound" -> {
+                        if (card.stat.isNotBlank()) {
+                            assertTrue(
+                                "${card.name} has a malformed ATK/DEF",
+                                Regex("""ATK/\d+ DEF/\d+""").matches(card.stat),
+                            )
+                        }
+                        // The race is the first bracket segment ("Spellcaster"
+                        // is a monster; "Spell" is not).
+                        val race = card.type.removePrefix("[").substringBefore(" /").removeSuffix("]")
+                        if (race in listOf("Spell", "Trap", "Relic")) {
+                            assertTrue("${card.name} is a spell with stats", card.stat.isBlank())
+                        }
+                    }
+                }
             }
         }
     }
