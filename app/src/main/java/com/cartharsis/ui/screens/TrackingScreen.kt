@@ -1231,24 +1231,55 @@ internal fun RipCardFace(
             .padding(7.dp),
     ) {
         if (faceDown) {
+            // The back is a designed object like the real ones: a bordered
+            // inner panel, a ringed central medallion, and the game's
+            // wordmark — not a blank wrapper.
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .matchParentSize()
                     .clip(RoundedCornerShape(9.dp))
-                    .background(Color.Black.copy(alpha = 0.22f)),
+                    .background(Color.Black.copy(alpha = 0.22f))
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(9.dp)),
             ) {
-                Text(theme.emoji, fontSize = 56.sp, modifier = Modifier.alpha(0.5f))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = theme.title.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(vertical = 14.dp).size(112.dp),
+                    ) {
+                        Canvas(Modifier.matchParentSize()) {
+                            val r = size.minDimension / 2f
+                            drawCircle(Color.White.copy(alpha = 0.08f), radius = r)
+                            drawCircle(Color.White.copy(alpha = 0.4f), radius = r, style = Stroke(2.dp.toPx()))
+                            drawCircle(Color.White.copy(alpha = 0.22f), radius = r * 0.78f, style = Stroke(1.dp.toPx()))
+                        }
+                        Text(theme.emoji, fontSize = 48.sp)
+                    }
+                    Text(
+                        text = "TRADING CARD GAME",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 9.sp,
+                        letterSpacing = 3.sp,
+                        color = Color.White.copy(alpha = 0.55f),
+                    )
+                }
                 Text(
                     text = "✦",
-                    fontSize = 22.sp,
-                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.align(Alignment.TopStart).padding(10.dp),
                 )
                 Text(
                     text = "✦",
-                    fontSize = 22.sp,
-                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
                 )
             }
