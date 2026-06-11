@@ -13,8 +13,14 @@ package com.cartharsis.data
  * The first 27 products predate the catalog expansion and keep their listing
  * order so persisted wishlist ids stay pointing at the same products.
  */
-/** A fantasy chase card "pulled" from a delivered trading-card order. */
-data class CardPull(val emoji: String, val name: String, val rarity: String)
+/** A fantasy card "pulled" from a delivered trading-card order. */
+data class CardPull(
+    val emoji: String,
+    val name: String,
+    val rarity: String,
+    /** The one-line flavor text under the art — deadpan, like the listings. */
+    val flavor: String = "",
+)
 
 object FakeCatalog {
 
@@ -2529,23 +2535,62 @@ object FakeCatalog {
      */
     private val cardPullPools: Map<String, List<CardPull>> = mapOf(
         "critters" to listOf(
-            CardPull("🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs"),
-            CardPull("🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs"),
-            CardPull("⚡", "Voltifox", "Holo rare · 1 in 96 packs"),
-            CardPull("🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs"),
-            CardPull("🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common"),
+            CardPull(
+                "🔥", "Emberwing, Ascendant", "Secret holo · 1 in 2,304 packs",
+                "It molts once a century. The valley keeps every feather.",
+            ),
+            CardPull(
+                "🌊", "Tidelord Mawra", "Full-art holo · 1 in 850 packs",
+                "The tide doesn't come in. Mawra lets it out.",
+            ),
+            CardPull(
+                "⚡", "Voltifox", "Holo rare · 1 in 96 packs",
+                "Static cling is its love language.",
+            ),
+            CardPull(
+                "🌙", "Lunavale, Dreaming", "Alt-art holo · 1 in 1,200 packs",
+                "It sleeps through every battle and has never lost one.",
+            ),
+            CardPull(
+                "🌿", "Sprigbloom, Waking", "Reverse holo · pleasantly common",
+                "Every Sprigbloom believes it is the rarest card in the set.",
+            ),
         ),
         "duelbound" to listOf(
-            CardPull("👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs"),
-            CardPull("🐍", "Serpent of the Sealed Vault", "Ultimate foil · 1 in 480 packs"),
-            CardPull("🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs"),
-            CardPull("🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs"),
+            CardPull(
+                "👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs",
+                "It knows your deck list. It filed it centuries ago.",
+            ),
+            CardPull(
+                "🐍", "Serpent of the Sealed Vault", "Ultimate foil · 1 in 480 packs",
+                "The vault was sealed to keep it in. It signs for deliveries anyway.",
+            ),
+            CardPull(
+                "🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs",
+                "It ate the moon once. The moon got better.",
+            ),
+            CardPull(
+                "🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs",
+                "Nobody remembers who won. The urn isn't telling.",
+            ),
         ),
         "manaforge" to listOf(
-            CardPull("🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500"),
-            CardPull("🌋", "Caldera Sovereign", "Borderless mythic · 1 in 640 packs"),
-            CardPull("🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs"),
-            CardPull("⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs"),
+            CardPull(
+                "🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500",
+                "She numbered the copies herself. She is not in any of them.",
+            ),
+            CardPull(
+                "🌋", "Caldera Sovereign", "Borderless mythic · 1 in 640 packs",
+                "Its throne room has no borders. Neither does this card.",
+            ),
+            CardPull(
+                "🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs",
+                "The kingdom fell. The garden won.",
+            ),
+            CardPull(
+                "⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs",
+                "Turn it over and somewhere, a draft begins.",
+            ),
         ),
     )
 
@@ -2578,34 +2623,34 @@ object FakeCatalog {
      */
     private val cardCommonPools: Map<String, List<CardPull>> = mapOf(
         "critters" to listOf(
-            CardPull("🐭", "Nibbletuft", "Common"),
-            CardPull("🐛", "Larvalume", "Common"),
-            CardPull("🐸", "Paddlehop", "Common"),
-            CardPull("🐦", "Chirplet", "Common"),
-            CardPull("🦔", "Bramblepin", "Common"),
-            CardPull("🐑", "Cloudlamb", "Common"),
-            CardPull("🐌", "Glimmersnail", "Uncommon"),
-            CardPull("🦉", "Duskhoot", "Uncommon"),
+            CardPull("🐭", "Nibbletuft", "Common", "Hoards crumbs it has no intention of eating."),
+            CardPull("🐛", "Larvalume", "Common", "Glows brighter the less it knows."),
+            CardPull("🐸", "Paddlehop", "Common", "Has never once landed where it aimed. Unbothered."),
+            CardPull("🐦", "Chirplet", "Common", "Knows one song. Commits to it."),
+            CardPull("🦔", "Bramblepin", "Common", "Hugs are technically possible."),
+            CardPull("🐑", "Cloudlamb", "Common", "Counts itself to fall asleep."),
+            CardPull("🐌", "Glimmersnail", "Uncommon", "Arrives last. Shines anyway."),
+            CardPull("🦉", "Duskhoot", "Uncommon", "Asks 'who?' rhetorically. It knows."),
         ),
         "duelbound" to listOf(
-            CardPull("🕯️", "Vault Candle", "Common"),
-            CardPull("🪦", "Tombstone Sentry", "Common"),
-            CardPull("📜", "Scroll of Echoes", "Common"),
-            CardPull("🗝️", "Key to the Lower Stacks", "Common"),
-            CardPull("⚱️", "Sealed Urn", "Common"),
-            CardPull("🌫️", "Shade of the Reading Room", "Common"),
-            CardPull("🦇", "Crypt Flitter", "Uncommon"),
-            CardPull("🕸️", "Warding Web", "Uncommon"),
+            CardPull("🕯️", "Vault Candle", "Common", "Lit before the archive. Will outlast it."),
+            CardPull("🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in."),
+            CardPull("📜", "Scroll of Echoes", "Common", "Repeats your last move, judgmentally."),
+            CardPull("🗝️", "Key to the Lower Stacks", "Common", "Opens a door best left described."),
+            CardPull("⚱️", "Sealed Urn", "Common", "Do not open. It gets cold."),
+            CardPull("🌫️", "Shade of the Reading Room", "Common", "Shushes duelists at sorcery speed."),
+            CardPull("🦇", "Crypt Flitter", "Uncommon", "Files itself under 'bird'. Nobody argues."),
+            CardPull("🕸️", "Warding Web", "Uncommon", "The spider moved out. The lease holds."),
         ),
         "manaforge" to listOf(
-            CardPull("💧", "Mana Droplet", "Common"),
-            CardPull("🪨", "Forge Stone", "Common"),
-            CardPull("🔥", "Cinder Wisp", "Common"),
-            CardPull("🍃", "Leaf of the Throne", "Common"),
-            CardPull("🧪", "Alchemist's Vial", "Common"),
-            CardPull("🛡️", "Wovenroot Shield", "Common"),
-            CardPull("🗡️", "Ashveil Blade", "Uncommon"),
-            CardPull("✨", "Spark of Convergence", "Uncommon"),
+            CardPull("💧", "Mana Droplet", "Common", "Every flood starts somewhere small."),
+            CardPull("🪨", "Forge Stone", "Common", "It was here before the forge. It waits."),
+            CardPull("🔥", "Cinder Wisp", "Common", "A spark with ambitions and no plan."),
+            CardPull("🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty."),
+            CardPull("🧪", "Alchemist's Vial", "Common", "Contents: hope, approximately."),
+            CardPull("🛡️", "Wovenroot Shield", "Common", "Grows back faster than it dents."),
+            CardPull("🗡️", "Ashveil Blade", "Uncommon", "Forged in the fire it was named after."),
+            CardPull("✨", "Spark of Convergence", "Uncommon", "Two ideas touched. This got out."),
         ),
     )
 

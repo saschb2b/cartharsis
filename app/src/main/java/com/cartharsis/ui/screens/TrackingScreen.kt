@@ -39,6 +39,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -78,7 +80,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
@@ -790,9 +794,9 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
 /** Rips per order, max — enough to feel abundant, few enough to stay a ceremony. */
 private const val MAX_PACK_RIPS = 3
 
-private data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
+internal data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
 
-private fun packTheme(game: String): PackTheme {
+internal fun packTheme(game: String): PackTheme {
     val title = FakeCatalog.cardGameTitles[game] ?: "Trading Cards"
     return when (game) {
         "critters" -> PackTheme(title, "🐲", listOf(JuicyOrange, HotPink))
@@ -849,7 +853,7 @@ private fun PackRipReveal(
  * never gates on a gesture someone can't make.
  */
 @Composable
-private fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
+internal fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     var dragging by remember { mutableStateOf(false) }
     var tearTarget by remember { mutableFloatStateOf(0f) }
@@ -1186,7 +1190,7 @@ private fun rarityAccent(rarity: String): Color = when {
  * photography" reused), and a rarity footer. The back stays wrapper-branded.
  */
 @Composable
-private fun RipCardFace(
+internal fun RipCardFace(
     card: CardPull,
     theme: PackTheme,
     faceDown: Boolean,
@@ -1239,12 +1243,18 @@ private fun RipCardFace(
                             .fillMaxWidth()
                             .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
                     ) {
-                        Text(
+                        // Long chase names shrink instead of clipping — a
+                        // collector card never truncates its own name.
+                        BasicText(
                             text = card.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
                             maxLines = 1,
-                            modifier = Modifier.weight(1f),
+                            softWrap = false,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
+                            modifier = Modifier.weight(1f).padding(end = 6.dp),
                         )
                         Box(
                             Modifier
@@ -1269,13 +1279,25 @@ private fun RipCardFace(
                             )
                             .clip(RoundedCornerShape(8.dp)),
                     )
-                    Text(
-                        text = card.rarity,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    )
+                    Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+                        if (card.flavor.isNotBlank()) {
+                            Text(
+                                text = card.flavor,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                            )
+                        }
+                        Text(
+                            text = card.rarity,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 3.dp),
+                        )
+                    }
                 }
                 if (holo) HoloSheen()
             }
