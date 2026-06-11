@@ -433,6 +433,12 @@ class FakeShopTest {
             .map { it.variantGroup!!.substringBefore('-') }
             .toSet()
         assertEquals(gamesInCatalog, FakeCatalog.cardGameTitles.keys)
+        // Every series in the catalog has a display title for the wrapper.
+        val seriesInCatalog = FakeCatalog.products
+            .filter { it.category == "Trading Cards" && it.variantGroup != null }
+            .map { it.variantGroup!! }
+            .toSet()
+        assertEquals(seriesInCatalog, FakeCatalog.cardSeriesTitles.keys)
         gamesInCatalog.forEach { game ->
             assertTrue("$game has no chase cards", FakeCatalog.chaseCardsOf(game).isNotEmpty())
             assertTrue("$game has no title", !FakeCatalog.cardGameTitles[game].isNullOrBlank())

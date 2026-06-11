@@ -103,8 +103,11 @@ internal fun BoosterPacksPreview() {
     CartharsisTheme {
         Row(Modifier.padding(12.dp)) {
             FakeCatalog.cardGameTitles.keys.forEach { game ->
+                val series = FakeCatalog.cardSeriesTitles.entries
+                    .first { it.key.startsWith(game) }
+                    .value
                 Row(Modifier.width(264.dp)) {
-                    BoosterPackTear(theme = packTheme(game), onTorn = {})
+                    BoosterPackTear(theme = packTheme(game), series = series, onTorn = {})
                 }
             }
         }

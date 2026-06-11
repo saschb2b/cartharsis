@@ -2604,6 +2604,16 @@ object FakeCatalog {
     /** Every chase card a game can pull — the binder's checklist. */
     fun chaseCardsOf(game: String): List<CardPull> = cardPullPools[game].orEmpty()
 
+    /** Display titles for each collectible series, keyed by variant group. */
+    val cardSeriesTitles: Map<String, String> = mapOf(
+        "critters-emberglow" to "Emberglow",
+        "critters-abyssal" to "Abyssal Tides",
+        "duelbound-archive" to "Forbidden Archive",
+        "duelbound-eclipse" to "Crimson Eclipse",
+        "manaforge-ashveil" to "Ashveil",
+        "manaforge-verdant" to "The Verdant Throne",
+    )
+
     /**
      * The hypothetical best card inside [product] for [orderId]: a seeded,
      * stable pick from the matching game's chase pool, or null when the

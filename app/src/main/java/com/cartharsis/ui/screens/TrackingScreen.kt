@@ -173,7 +173,11 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                             .flatMap { line -> List(line.quantity) { i -> line.product to i } }
                             .mapNotNull { (product, i) ->
                                 FakeCatalog.packRipFor(order.id, product, i)?.let { cards ->
-                                    product.variantGroup!!.substringBefore('-') to cards
+                                    RipPack(
+                                        game = product.variantGroup!!.substringBefore('-'),
+                                        series = FakeCatalog.cardSeriesTitles[product.variantGroup].orEmpty(),
+                                        cards = cards,
+                                    )
                                 }
                             }
                             .take(MAX_PACK_RIPS)
@@ -223,8 +227,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     },
                                 ) { idx ->
                                     PackRipReveal(
-                                        game = ripPacks[idx].first,
-                                        cards = ripPacks[idx].second,
+                                        pack = ripPacks[idx],
                                         packNumber = idx + 1,
                                         packCount = ripPacks.size,
                                         onChaseRevealed = {
@@ -233,8 +236,8 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                             // The flipped chase goes into the
                                             // persistent binder.
                                             viewModel.recordPull(
-                                                game = ripPacks[idx].first,
-                                                card = ripPacks[idx].second.last(),
+                                                game = ripPacks[idx].game,
+                                                card = ripPacks[idx].cards.last(),
                                             )
                                             // Every chase lands with haptic+chime;
                                             // the confetti is the finale's.
@@ -794,6 +797,9 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
 /** Rips per order, max — enough to feel abundant, few enough to stay a ceremony. */
 private const val MAX_PACK_RIPS = 3
 
+/** One rip's worth: which game, which series wrapper, and the five cards. */
+private data class RipPack(val game: String, val series: String, val cards: List<CardPull>)
+
 internal data class PackTheme(val title: String, val emoji: String, val wrapper: List<Color>)
 
 internal fun packTheme(game: String): PackTheme {
@@ -807,14 +813,13 @@ internal fun packTheme(game: String): PackTheme {
 
 @Composable
 private fun PackRipReveal(
-    game: String,
-    cards: List<CardPull>,
+    pack: RipPack,
     packNumber: Int,
     packCount: Int,
     onChaseRevealed: () -> Unit,
     onFinished: () -> Unit,
 ) {
-    val theme = remember(game) { packTheme(game) }
+    val theme = remember(pack.game) { packTheme(pack.game) }
     var torn by remember { mutableStateOf(false) }
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         if (packCount > 1) {
@@ -832,11 +837,11 @@ private fun PackRipReveal(
             },
         ) { isTorn ->
             if (!isTorn) {
-                BoosterPackTear(theme, onTorn = { torn = true })
+                BoosterPackTear(theme, series = pack.series, onTorn = { torn = true })
             } else {
                 CardStackReveal(
                     theme = theme,
-                    cards = cards,
+                    cards = pack.cards,
                     finishLabel = if (packNumber < packCount) "Rip the next pack" else "Take your haul",
                     onChaseRevealed = onChaseRevealed,
                     onFinished = onFinished,
@@ -853,7 +858,7 @@ private fun PackRipReveal(
  * never gates on a gesture someone can't make.
  */
 @Composable
-internal fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
+internal fun BoosterPackTear(theme: PackTheme, series: String, onTorn: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     var dragging by remember { mutableStateOf(false) }
     var tearTarget by remember { mutableFloatStateOf(0f) }
@@ -955,11 +960,24 @@ internal fun BoosterPackTear(theme: PackTheme, onTorn: () -> Unit) {
                         color = Color.White,
                         modifier = Modifier.padding(top = 8.dp),
                     )
+                    if (series.isNotBlank()) {
+                        // The set is the thing being collected — it gets the
+                        // second-loudest line on the wrapper.
+                        Text(
+                            text = series.uppercase(),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = LemonYellow,
+                            letterSpacing = 2.sp,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
                     Text(
                         text = "BOOSTER PACK",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.75f),
+                        modifier = Modifier.padding(top = 3.dp),
                     )
                 }
                 // Bottom crimp.
