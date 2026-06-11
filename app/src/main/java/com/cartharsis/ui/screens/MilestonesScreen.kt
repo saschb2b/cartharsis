@@ -27,7 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.Badge
+import com.cartharsis.data.CardPull
+import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.badges
+import com.cartharsis.data.decodeBinderCard
 
 /**
  * The trophy room, pushed from Orders so the impact screen stays a glanceable
@@ -39,6 +42,7 @@ import com.cartharsis.data.badges
 fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
     val streakDays by viewModel.streakDays.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()
+    val binder by viewModel.binder.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
         NestedTopBar(onBack = onBack, title = "Milestones")
@@ -58,6 +62,91 @@ fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
                 ordersPlaced = stats.ordersPlaced,
                 centsKept = stats.centsKept,
                 streakDays = streakDays,
+            )
+            CardBinder(binder = binder)
+        }
+    }
+}
+
+/**
+ * The card binder: every chase card pulled from a pack rip, kept forever.
+ * Unpulled cards stay locked and unnamed — the mystery is the pull's to
+ * spend, never the checklist's to spoil.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CardBinder(binder: Set<String>) {
+    val collected = remember(binder) { binder.mapNotNull(::decodeBinderCard).toSet() }
+    val total = FakeCatalog.cardGameTitles.keys.sumOf { FakeCatalog.chaseCardsOf(it).size }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+            Text(
+                text = "Card binder",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "${collected.size} of $total pulled",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (collected.isEmpty()) {
+            Text(
+                text = "Chase cards from ripped boosters land here — mint forever.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        FakeCatalog.cardGameTitles.forEach { (game, title) ->
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FakeCatalog.chaseCardsOf(game).forEach { card ->
+                    ChaseCardPill(card = card, owned = (game to card.name) in collected)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChaseCardPill(card: CardPull, owned: Boolean) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (owned) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        },
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+        ) {
+            Text(
+                text = if (owned) card.emoji else "🔒",
+                fontSize = 16.sp,
+                modifier = if (owned) Modifier else Modifier.alpha(0.6f),
+            )
+            Text(
+                text = if (owned) card.name else "???",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (owned) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (owned) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                },
+                modifier = Modifier.padding(start = 6.dp),
             )
         }
     }
