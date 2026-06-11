@@ -1298,188 +1298,149 @@ internal fun RipCardFace(
                     else -> "${card.name}, ${card.type}, ${card.rarity}"
                 }
             }
-            .clip(RoundedCornerShape(14.dp))
-            .background(Brush.linearGradient(theme.wrapper))
-            .padding(7.dp),
+            .clip(RoundedCornerShape(14.dp)),
     ) {
         if (faceDown) {
-            // The back is a designed object like the real ones: a bordered
-            // inner panel, a ringed central medallion, and the game's
-            // wordmark — not a blank wrapper.
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(Color.Black.copy(alpha = 0.22f))
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(9.dp)),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = theme.title.uppercase(),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
-                        color = Color.White.copy(alpha = 0.9f),
-                    )
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(vertical = 14.dp).size(112.dp),
-                    ) {
-                        Canvas(Modifier.matchParentSize()) {
-                            val r = size.minDimension / 2f
-                            drawCircle(Color.White.copy(alpha = 0.08f), radius = r)
-                            drawCircle(Color.White.copy(alpha = 0.4f), radius = r, style = Stroke(2.dp.toPx()))
-                            drawCircle(Color.White.copy(alpha = 0.22f), radius = r * 0.78f, style = Stroke(1.dp.toPx()))
-                        }
-                        Text(theme.emoji, fontSize = 48.sp)
-                    }
-                    Text(
-                        text = "TRADING CARD GAME",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 9.sp,
-                        letterSpacing = 3.sp,
-                        color = Color.White.copy(alpha = 0.55f),
-                    )
-                }
-                Text(
-                    text = "✦",
-                    fontSize = 18.sp,
-                    color = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.align(Alignment.TopStart).padding(10.dp),
-                )
-                Text(
-                    text = "✦",
-                    fontSize = 18.sp,
-                    color = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
-                )
-            }
+            // The back owns its whole surface, border included, the way the
+            // real ones do — no wrapper frame. One back per game, forever.
+            GameCardBack(theme, Modifier.matchParentSize())
         } else {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(Brush.linearGradient(theme.wrapper))
+                    .padding(7.dp),
             ) {
-                Column(modifier = Modifier.matchParentSize()) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
-                    ) {
-                        // Long chase names shrink instead of clipping — a
-                        // collector card never truncates its own name.
-                        BasicText(
-                            text = card.name,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                            autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
-                            modifier = Modifier.weight(1f).padding(end = 6.dp),
-                        )
-                        // Critters print HP where Pokémon does: name bar, right.
-                        if (theme.game == "critters" && card.stat.isNotBlank()) {
-                            Text(
-                                text = card.stat,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                modifier = Modifier.padding(end = 6.dp),
-                            )
-                        }
-                        RarityGem(card.rarity)
-                    }
-                    EmojiHero(
-                        emoji = card.emoji,
-                        fontSize = 64,
-                        seed = card.name.hashCode(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .border(
-                                width = if (holo) 1.5.dp else 1.dp,
-                                // Foil faces get a gilt frame around the art.
-                                color = if (holo) LemonYellow else MaterialTheme.colorScheme.outlineVariant,
-                                shape = RoundedCornerShape(8.dp),
-                            )
-                            .clip(RoundedCornerShape(8.dp)),
-                    )
-                    // The type line, real-card style: a slim bar between art
-                    // and text box, each game in its genre's idiom. Long
-                    // lines shrink instead of clipping, like the name bar.
-                    if (card.type.isNotBlank()) {
-                        BasicText(
-                            text = card.type,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp, stepSize = 1.sp),
-                            modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 7.dp),
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(horizontal = 12.dp).padding(top = 5.dp),
-                        )
-                    }
-                    Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
-                        if (card.flavor.isNotBlank()) {
-                            Text(
-                                text = card.flavor,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontStyle = FontStyle.Italic,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2,
-                            )
-                        }
-                        Text(
-                            text = card.rarity,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 3.dp),
-                        )
-                        // The bottom line: the collector print on the left
-                        // (set fraction / set code / padded number), and —
-                        // where the genre prints one — the battle stat on the
-                        // right (Yu-Gi-Oh ATK/DEF, Magic power/toughness).
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(top = 2.dp),
-                        ) {
-                            Text(
-                                text = FakeCatalog.collectorNumberOf(theme.game, card),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 9.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                maxLines = 1,
-                                modifier = Modifier.weight(1f),
-                            )
-                            if (theme.game != "critters" && card.stat.isNotBlank()) {
-                                Text(
-                                    text = card.stat,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                )
-                            }
-                        }
-                    }
-                }
-                if (holo) HoloSheen()
+                FaceContent(card, theme, holo)
             }
         }
+    }
+}
+
+@Composable
+private fun FaceContent(card: CardPull, theme: PackTheme, holo: Boolean) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(9.dp))
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
+        Column(modifier = Modifier.matchParentSize()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
+            ) {
+                // Long chase names shrink instead of clipping — a
+                // collector card never truncates its own name.
+                BasicText(
+                    text = card.name,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    maxLines = 1,
+                    softWrap = false,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
+                    modifier = Modifier.weight(1f).padding(end = 6.dp),
+                )
+                // Critters print HP where Pokémon does: name bar, right.
+                if (theme.game == "critters" && card.stat.isNotBlank()) {
+                    Text(
+                        text = card.stat,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        modifier = Modifier.padding(end = 6.dp),
+                    )
+                }
+                RarityGem(card.rarity)
+            }
+            EmojiHero(
+                emoji = card.emoji,
+                fontSize = 64,
+                seed = card.name.hashCode(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+                    .border(
+                        width = if (holo) 1.5.dp else 1.dp,
+                        // Foil faces get a gilt frame around the art.
+                        color = if (holo) LemonYellow else MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(8.dp),
+                    )
+                    .clip(RoundedCornerShape(8.dp)),
+            )
+            // The type line, real-card style: a slim bar between art
+            // and text box, each game in its genre's idiom. Long
+            // lines shrink instead of clipping, like the name bar.
+            if (card.type.isNotBlank()) {
+                BasicText(
+                    text = card.type,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    maxLines = 1,
+                    softWrap = false,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp, stepSize = 1.sp),
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 7.dp),
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 12.dp).padding(top = 5.dp),
+                )
+            }
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+                if (card.flavor.isNotBlank()) {
+                    Text(
+                        text = card.flavor,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                    )
+                }
+                Text(
+                    text = card.rarity,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 3.dp),
+                )
+                // The bottom line: the collector print on the left
+                // (set fraction / set code / padded number), and —
+                // where the genre prints one — the battle stat on the
+                // right (Yu-Gi-Oh ATK/DEF, Magic power/toughness).
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 2.dp),
+                ) {
+                    Text(
+                        text = FakeCatalog.collectorNumberOf(theme.game, card),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 9.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (theme.game != "critters" && card.stat.isNotBlank()) {
+                        Text(
+                            text = card.stat,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
+        if (holo) HoloSheen()
     }
 }
 
