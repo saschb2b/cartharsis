@@ -1273,9 +1273,10 @@ internal fun RipCardFace(
                             .fillMaxWidth()
                             .padding(horizontal = 10.dp)
                             .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant,
-                                RoundedCornerShape(8.dp),
+                                width = if (holo) 1.5.dp else 1.dp,
+                                // Foil faces get a gilt frame around the art.
+                                color = if (holo) LemonYellow else MaterialTheme.colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(8.dp),
                             )
                             .clip(RoundedCornerShape(8.dp)),
                     )
@@ -1305,7 +1306,10 @@ internal fun RipCardFace(
     }
 }
 
-/** The diagonal gloss sweep that makes the chase card read as foil. */
+/**
+ * The foil treatment: a faint standing iridescence (the card reads as holo
+ * even at rest) under a tinted gloss band that sweeps like light over foil.
+ */
 @Composable
 private fun HoloSheen() {
     val t = rememberInfiniteTransition(label = "sheen")
@@ -1318,9 +1322,21 @@ private fun HoloSheen() {
     Canvas(Modifier.fillMaxSize()) {
         drawRect(
             Brush.linearGradient(
+                0.0f to SkyBlue.copy(alpha = 0.07f),
+                0.35f to HotPink.copy(alpha = 0.06f),
+                0.7f to LemonYellow.copy(alpha = 0.08f),
+                1.0f to ElectricPurple.copy(alpha = 0.06f),
+                start = Offset(0f, 0f),
+                end = Offset(size.width, size.height),
+            ),
+        )
+        drawRect(
+            Brush.linearGradient(
                 0.0f to Color.Transparent,
                 0.42f to Color.Transparent,
+                0.47f to SkyBlue.copy(alpha = 0.16f),
                 0.5f to Color.White.copy(alpha = 0.3f),
+                0.53f to HotPink.copy(alpha = 0.14f),
                 0.58f to Color.Transparent,
                 1.0f to Color.Transparent,
                 start = Offset(size.width * (x - 0.5f), 0f),
