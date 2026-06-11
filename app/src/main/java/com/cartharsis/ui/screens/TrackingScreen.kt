@@ -981,14 +981,38 @@ internal fun BoosterPackTear(theme: PackTheme, series: String, onTorn: () -> Uni
                         modifier = Modifier.padding(top = 3.dp),
                     )
                 }
-                // Bottom crimp.
+                // A still diagonal gloss, so the wrapper reads as foil.
+                Canvas(Modifier.matchParentSize()) {
+                    drawRect(
+                        Brush.linearGradient(
+                            0.0f to Color.Transparent,
+                            0.38f to Color.Transparent,
+                            0.5f to Color.White.copy(alpha = 0.10f),
+                            0.62f to Color.Transparent,
+                            1.0f to Color.Transparent,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, 0f),
+                        ),
+                    )
+                }
+                // The contents promise, like the real wrappers print — and
+                // honest: the rip deals exactly five, the last one foil.
+                Text(
+                    text = "5 CARDS · 1 FOIL INSIDE",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.5.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp),
+                )
+                // Bottom crimp, serrated like pressed foil.
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(14.dp)
                         .align(Alignment.BottomCenter)
                         .background(Color.Black.copy(alpha = 0.18f)),
-                )
+                ) { CrimpSerration() }
             }
             // The foil strip that tears away.
             Box(
@@ -1005,6 +1029,7 @@ internal fun BoosterPackTear(theme: PackTheme, series: String, onTorn: () -> Uni
                     .background(Brush.linearGradient(theme.wrapper))
                     .background(Color.White.copy(alpha = 0.12f)),
             ) {
+                CrimpSerration()
                 Text(
                     text = "✂ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─",
                     style = MaterialTheme.typography.labelSmall,
@@ -1387,6 +1412,24 @@ internal fun RipCardFace(
                 }
                 if (holo) HoloSheen()
             }
+        }
+    }
+}
+
+/** The pressed-foil texture on a wrapper crimp: faint vertical ticks. */
+@Composable
+private fun CrimpSerration() {
+    Canvas(Modifier.fillMaxSize()) {
+        val step = 5.dp.toPx()
+        var x = step / 2f
+        while (x < size.width) {
+            drawLine(
+                color = Color.White.copy(alpha = 0.10f),
+                start = Offset(x, 0f),
+                end = Offset(x, size.height),
+                strokeWidth = 1.5.dp.toPx(),
+            )
+            x += step
         }
     }
 }
