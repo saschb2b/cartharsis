@@ -19,7 +19,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -39,14 +38,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -81,9 +77,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
@@ -100,10 +94,7 @@ import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.LocalSavingsColor
 import com.cartharsis.ui.theme.SkyBlue
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -1237,48 +1228,10 @@ private fun ChaseGlow(flipped: Boolean) {
     }
 }
 
-/** The rarity's accent: the gem dot in the name bar and the footer tint. */
-@Composable
-private fun rarityAccent(rarity: String): Color = when {
-    rarity.startsWith("Common") -> MaterialTheme.colorScheme.outlineVariant
-    rarity.startsWith("Uncommon") -> SkyBlue
-    else -> LemonYellow
-}
-
 /**
- * The rarity gem in the name bar, shape-coded the way the genre does it:
- * circle for common, diamond for uncommon, star for everything rarer.
- */
-@Composable
-private fun RarityGem(rarity: String, modifier: Modifier = Modifier) {
-    val accent = rarityAccent(rarity)
-    when {
-        rarity.startsWith("Common") ->
-            Box(modifier.size(9.dp).clip(CircleShape).background(accent))
-        rarity.startsWith("Uncommon") ->
-            Box(modifier.size(10.dp).rotate(45f).clip(RoundedCornerShape(2.dp)).background(accent))
-        else -> Canvas(modifier.size(14.dp)) {
-            val outer = size.minDimension / 2f
-            val inner = outer * 0.45f
-            val star = Path().apply {
-                for (i in 0 until 10) {
-                    val r = if (i % 2 == 0) outer else inner
-                    val angle = -PI / 2 + i * PI / 5
-                    val x = center.x + (r * cos(angle)).toFloat()
-                    val y = center.y + (r * sin(angle)).toFloat()
-                    if (i == 0) moveTo(x, y) else lineTo(x, y)
-                }
-                close()
-            }
-            drawPath(star, accent)
-        }
-    }
-}
-
-/**
- * One card of the rip, laid out like a real one: a name bar with a rarity
- * gem, a framed art window on a per-card wash (the catalog's "product
- * photography" reused), and a rarity footer. The back stays wrapper-branded.
+ * One card of the rip. The face and back both come from per-game designs:
+ * GameCardFace lays the front out in its genre's structure (CardFaces.kt),
+ * GameCardBack paints the game's permanent back (CardBacks.kt).
  */
 @Composable
 internal fun RipCardFace(
@@ -1311,136 +1264,9 @@ internal fun RipCardFace(
                     .background(Brush.linearGradient(theme.wrapper))
                     .padding(7.dp),
             ) {
-                FaceContent(card, theme, holo)
+                GameCardFace(card, theme, holo)
             }
         }
-    }
-}
-
-@Composable
-private fun FaceContent(card: CardPull, theme: PackTheme, holo: Boolean) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(9.dp))
-            .background(MaterialTheme.colorScheme.surface),
-    ) {
-        Column(modifier = Modifier.matchParentSize()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 12.dp, end = 10.dp, top = 10.dp, bottom = 8.dp),
-            ) {
-                // Long chase names shrink instead of clipping — a
-                // collector card never truncates its own name.
-                BasicText(
-                    text = card.name,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    maxLines = 1,
-                    softWrap = false,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
-                    modifier = Modifier.weight(1f).padding(end = 6.dp),
-                )
-                // Critters print HP where Pokémon does: name bar, right.
-                if (theme.game == "critters" && card.stat.isNotBlank()) {
-                    Text(
-                        text = card.stat,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        modifier = Modifier.padding(end = 6.dp),
-                    )
-                }
-                RarityGem(card.rarity)
-            }
-            EmojiHero(
-                emoji = card.emoji,
-                fontSize = 64,
-                seed = card.name.hashCode(),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .border(
-                        width = if (holo) 1.5.dp else 1.dp,
-                        // Foil faces get a gilt frame around the art.
-                        color = if (holo) LemonYellow else MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .clip(RoundedCornerShape(8.dp)),
-            )
-            // The type line, real-card style: a slim bar between art
-            // and text box, each game in its genre's idiom. Long
-            // lines shrink instead of clipping, like the name bar.
-            if (card.type.isNotBlank()) {
-                BasicText(
-                    text = card.type,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    maxLines = 1,
-                    softWrap = false,
-                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp, stepSize = 1.sp),
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 7.dp),
-                )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 12.dp).padding(top = 5.dp),
-                )
-            }
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
-                if (card.flavor.isNotBlank()) {
-                    Text(
-                        text = card.flavor,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                    )
-                }
-                Text(
-                    text = card.rarity,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 3.dp),
-                )
-                // The bottom line: the collector print on the left
-                // (set fraction / set code / padded number), and —
-                // where the genre prints one — the battle stat on the
-                // right (Yu-Gi-Oh ATK/DEF, Magic power/toughness).
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 2.dp),
-                ) {
-                    Text(
-                        text = FakeCatalog.collectorNumberOf(theme.game, card),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (theme.game != "critters" && card.stat.isNotBlank()) {
-                        Text(
-                            text = card.stat,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
-        }
-        if (holo) HoloSheen()
     }
 }
 
@@ -1459,45 +1285,5 @@ private fun CrimpSerration() {
             )
             x += step
         }
-    }
-}
-
-/**
- * The foil treatment: a faint standing iridescence (the card reads as holo
- * even at rest) under a tinted gloss band that sweeps like light over foil.
- */
-@Composable
-private fun HoloSheen() {
-    val t = rememberInfiniteTransition(label = "sheen")
-    val x by t.animateFloat(
-        initialValue = -0.6f,
-        targetValue = 1.6f,
-        animationSpec = infiniteRepeatable(tween(1700, easing = LinearEasing)),
-        label = "sheenX",
-    )
-    Canvas(Modifier.fillMaxSize()) {
-        drawRect(
-            Brush.linearGradient(
-                0.0f to SkyBlue.copy(alpha = 0.07f),
-                0.35f to HotPink.copy(alpha = 0.06f),
-                0.7f to LemonYellow.copy(alpha = 0.08f),
-                1.0f to ElectricPurple.copy(alpha = 0.06f),
-                start = Offset(0f, 0f),
-                end = Offset(size.width, size.height),
-            ),
-        )
-        drawRect(
-            Brush.linearGradient(
-                0.0f to Color.Transparent,
-                0.42f to Color.Transparent,
-                0.47f to SkyBlue.copy(alpha = 0.16f),
-                0.5f to Color.White.copy(alpha = 0.3f),
-                0.53f to HotPink.copy(alpha = 0.14f),
-                0.58f to Color.Transparent,
-                1.0f to Color.Transparent,
-                start = Offset(size.width * (x - 0.5f), 0f),
-                end = Offset(size.width * (x + 0.5f), size.height),
-            ),
-        )
     }
 }
