@@ -100,7 +100,10 @@ import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.LocalSavingsColor
 import com.cartharsis.ui.theme.SkyBlue
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -1229,6 +1232,36 @@ private fun rarityAccent(rarity: String): Color = when {
 }
 
 /**
+ * The rarity gem in the name bar, shape-coded the way the genre does it:
+ * circle for common, diamond for uncommon, star for everything rarer.
+ */
+@Composable
+private fun RarityGem(rarity: String, modifier: Modifier = Modifier) {
+    val accent = rarityAccent(rarity)
+    when {
+        rarity.startsWith("Common") ->
+            Box(modifier.size(9.dp).clip(CircleShape).background(accent))
+        rarity.startsWith("Uncommon") ->
+            Box(modifier.size(10.dp).rotate(45f).clip(RoundedCornerShape(2.dp)).background(accent))
+        else -> Canvas(modifier.size(14.dp)) {
+            val outer = size.minDimension / 2f
+            val inner = outer * 0.45f
+            val star = Path().apply {
+                for (i in 0 until 10) {
+                    val r = if (i % 2 == 0) outer else inner
+                    val angle = -PI / 2 + i * PI / 5
+                    val x = center.x + (r * cos(angle)).toFloat()
+                    val y = center.y + (r * sin(angle)).toFloat()
+                    if (i == 0) moveTo(x, y) else lineTo(x, y)
+                }
+                close()
+            }
+            drawPath(star, accent)
+        }
+    }
+}
+
+/**
  * One card of the rip, laid out like a real one: a name bar with a rarity
  * gem, a framed art window on a per-card wash (the catalog's "product
  * photography" reused), and a rarity footer. The back stays wrapper-branded.
@@ -1335,13 +1368,7 @@ internal fun RipCardFace(
                             autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 14.sp, stepSize = 1.sp),
                             modifier = Modifier.weight(1f).padding(end = 6.dp),
                         )
-                        Box(
-                            Modifier
-                                .size(10.dp)
-                                .rotate(45f)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(rarityAccent(card.rarity)),
-                        )
+                        RarityGem(card.rarity)
                     }
                     EmojiHero(
                         emoji = card.emoji,
