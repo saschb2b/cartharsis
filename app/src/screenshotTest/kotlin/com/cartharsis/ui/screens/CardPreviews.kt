@@ -34,19 +34,28 @@ private val sampleUncommon = CardPull(
     stat = "90 HP",
 )
 
+// With the chases, this completes all seven element washes in the gallery —
+// Sky appears on no other rendered card.
+private val sampleSky = CardPull(
+    "🐦", "Chirplet", "Common", "Knows one song. Commits to it.",
+    type = "Basic Sky Critter",
+    stat = "40 HP",
+)
+
 @PreviewTest
-@Preview(name = "Critters common + uncommon", showBackground = true)
+@Preview(name = "Critters common + uncommon", showBackground = true, widthDp = 740)
 @Composable
 internal fun CommonAndUncommonPreview() {
     CartharsisTheme {
         Row(Modifier.padding(12.dp)) {
-            RipCardFace(card = sampleCommon, theme = packTheme("critters"), faceDown = false)
-            RipCardFace(
-                card = sampleUncommon,
-                theme = packTheme("critters"),
-                faceDown = false,
-                modifier = Modifier.padding(start = 12.dp),
-            )
+            listOf(sampleCommon, sampleUncommon, sampleSky).forEachIndexed { i, card ->
+                RipCardFace(
+                    card = card,
+                    theme = packTheme("critters"),
+                    faceDown = false,
+                    modifier = Modifier.padding(start = if (i == 0) 0.dp else 12.dp),
+                )
+            }
         }
     }
 }
