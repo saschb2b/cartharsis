@@ -396,5 +396,26 @@ Declined by owner: review sort/filter controls.
 - [ ] Proposal: pack-rip "tilt" parallax on the chase card (gyro/touch), in
       the Pocket mold — juicy but gimmick-adjacent, owner taste call
 
+## Phase 30 — TCG authenticity pass (toward MTG/Pokémon/Yu-Gi-Oh standards)
+- [x] Type line on every card, each game in its genre's idiom: Pokémon stage
+      lines ("Basic Flame Critter"), Yu-Gi-Oh brackets ("[Spellcaster /
+      Effect]"), Magic em-dash ("Legendary Creature — Human Wizard") —
+      slim bar over a hairline rule, shrink-to-fit, read by TalkBack, locked
+      by the flavor-sweep test
+- [x] Collector print in the bottom corner (Pokémon set fraction / YGO set
+      code / MTG padded number + rarity letter), seeded from the card name —
+      FakeCatalog.collectorNumberOf, stability/idiom/uniqueness tested
+- [x] Card back as a designed object: bordered inner panel, ringed medallion,
+      wordmark, TRADING CARD GAME caption
+- [x] Booster wrapper foil dress: serrated crimps (top strip + bottom seal),
+      still diagonal gloss, honest "5 CARDS · 1 FOIL INSIDE" contents line
+- [x] Rarity gem shape-coded the genre's way: circle common, diamond
+      uncommon, five-point star for chases (color-blind safe, too)
+- [x] Binder: tap a pulled chase to view the full card face in a dialog
+      (foil, type line, collector print); locked slots stay "???"
+- [x] Booster displays join the also-bought accessory rows
+- [x] Verified live on emulator: order → courier → unbox → tear → commons →
+      face-down back → chase flip (confetti) → binder → inspect dialog
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
