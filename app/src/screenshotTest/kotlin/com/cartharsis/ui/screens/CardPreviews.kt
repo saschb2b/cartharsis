@@ -88,6 +88,33 @@ internal fun CardBacksPreview() {
     }
 }
 
+// A trap is inlined (the commons pool is private by design); the other four
+// kinds — effect monster, ritual, fusion, relic/spell — are all chases.
+private val sampleTrap = CardPull(
+    "⚱️", "Sealed Urn", "Common", "Do not open. It gets cold.",
+    type = "[Trap / Counter]",
+)
+
+@PreviewTest
+@Preview(name = "Duelbound kinds, framed by color", showBackground = true, widthDp = 1230)
+@Composable
+internal fun DuelboundKindsPreview() {
+    // The genre reads a card's kind off its frame color before any text:
+    // amber monster, blue ritual, violet fusion, green relic, rose trap.
+    CartharsisTheme {
+        Row(Modifier.padding(12.dp)) {
+            (FakeCatalog.chaseCardsOf("duelbound") + sampleTrap).forEachIndexed { i, card ->
+                RipCardFace(
+                    card = card,
+                    theme = packTheme("duelbound"),
+                    faceDown = false,
+                    modifier = Modifier.padding(start = if (i == 0) 0.dp else 12.dp),
+                )
+            }
+        }
+    }
+}
+
 @PreviewTest
 @Preview(name = "Chase card, dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -30,6 +31,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +73,7 @@ import kotlin.math.sin
 internal fun GameCardFace(card: CardPull, theme: PackTheme, holo: Boolean) {
     when (theme.game) {
         "critters" -> CrittersFace(card, holo)
+        "duelbound" -> DuelboundFace(card, holo)
         else -> ClassicFace(card, theme, holo)
     }
 }
@@ -150,6 +153,191 @@ private fun HoloSheen() {
                 end = Offset(size.width * (x + 0.5f), size.height),
             ),
         )
+    }
+}
+
+// --------------------------------------------------------------- Duelbound
+
+private data class DuelKind(val frameHi: Color, val frameLo: Color, val plate: Color, val box: Color)
+
+/**
+ * The genre's load-bearing convention: the frame color names the card's
+ * kind before you read a word. Duelbound's bracketed type lines already
+ * carry the kind — monsters amber, fusions violet, rituals ice-blue,
+ * relics/spells green, traps rose.
+ */
+private fun duelKind(type: String): DuelKind {
+    val race = type.removePrefix("[").substringBefore(" /").removeSuffix("]")
+    return when {
+        type.contains("/ Fusion") ->
+            DuelKind(Color(0xFF9B7BC4), Color(0xFF7C5BA6), Color(0xFFCBB8E2), Color(0xFFEDE5F6))
+        type.contains("/ Ritual") ->
+            DuelKind(Color(0xFF7FA3D4), Color(0xFF5F83B8), Color(0xFFBCD0EA), Color(0xFFE8EFF8))
+        race == "Trap" ->
+            DuelKind(Color(0xFFC06490), Color(0xFFA04672), Color(0xFFE2AEC9), Color(0xFFF6E4ED))
+        race == "Spell" || race == "Relic" ->
+            DuelKind(Color(0xFF3E9D85), Color(0xFF2A7A66), Color(0xFF9FD3C6), Color(0xFFE0F0EB))
+        else ->
+            DuelKind(Color(0xFFCD9B57), Color(0xFFB97F3D), Color(0xFFE3C28C), Color(0xFFF2E7CC))
+    }
+}
+
+private val DuelInkDark = Color(0xFF221A12)
+private val DuelArtFrame = Color(0xFF3A2C1C)
+private val DuelStarGold = Color(0xFFE0A93E)
+
+/** Level stars, read off the printed ATK/DEF the way players gauge a card. */
+private fun duelLevel(stat: String): Int {
+    if (stat.isBlank()) return 0
+    val numbers = Regex("""\d+""").findAll(stat).map { it.value.toInt() }.toList()
+    val weight = (numbers.getOrElse(0) { 0 } + numbers.getOrElse(1) { 0 })
+    return (weight / 600).coerceIn(1, 8)
+}
+
+/**
+ * The Duelbound face, in the Yu-Gi-Oh mold: kind-colored frame edge to
+ * edge, a metallic name plate with an attribute orb, level stars, heavy-
+ * framed art, the set code under the art, and a tan text box that closes
+ * with ATK/DEF over a rule.
+ */
+@Composable
+private fun DuelboundFace(card: CardPull, holo: Boolean) {
+    val kind = duelKind(card.type)
+    val level = duelLevel(card.stat)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(9.dp))
+            .background(Brush.verticalGradient(listOf(kind.frameHi, kind.frameLo))),
+    ) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(kind.plate)
+                    .border(1.dp, DuelInkDark.copy(alpha = 0.45f), RoundedCornerShape(5.dp))
+                    .padding(horizontal = 7.dp, vertical = 4.dp),
+            ) {
+                BasicText(
+                    text = card.name,
+                    style = TextStyle(color = DuelInkDark, fontSize = 13.sp, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 13.sp, stepSize = 0.5.sp),
+                    modifier = Modifier.weight(1f).padding(end = 5.dp),
+                )
+                // The attribute orb in the corner of the plate.
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(13.dp)
+                        .clip(CircleShape)
+                        .background(DuelInkDark),
+                ) {
+                    Text("✦", style = TextStyle(color = kind.plate, fontSize = 7.sp))
+                }
+            }
+            // Level stars, right-aligned like the genre stacks them.
+            if (level > 0) {
+                Text(
+                    text = "★".repeat(level),
+                    style = TextStyle(
+                        color = DuelStarGold,
+                        fontSize = 10.sp,
+                        shadow = Shadow(color = DuelInkDark.copy(alpha = 0.7f), offset = Offset(0f, 2f)),
+                    ),
+                    maxLines = 1,
+                    modifier = Modifier.align(Alignment.End).padding(top = 2.dp, end = 2.dp),
+                )
+            }
+            // The art, set deep in a heavy dark frame.
+            EmojiHero(
+                emoji = card.emoji,
+                fontSize = 58,
+                seed = card.name.hashCode(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp)
+                    .padding(top = if (level > 0) 2.dp else 6.dp)
+                    .border(3.dp, DuelArtFrame, RoundedCornerShape(3.dp))
+                    .border(
+                        width = 4.dp,
+                        color = if (holo) DuelStarGold.copy(alpha = 0.8f) else Color.Transparent,
+                        shape = RoundedCornerShape(3.dp),
+                    )
+                    .clip(RoundedCornerShape(3.dp)),
+            )
+            // The set code rides under the art, right-aligned — genre habit.
+            Text(
+                text = FakeCatalog.collectorNumberOf("duelbound", card),
+                style = TextStyle(color = DuelInkDark.copy(alpha = 0.75f), fontSize = 7.5.sp),
+                maxLines = 1,
+                modifier = Modifier.align(Alignment.End).padding(top = 2.dp, end = 4.dp),
+            )
+            // The text box: type line, effect-flavor, then ATK/DEF over a rule.
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(kind.box)
+                    .border(1.dp, DuelInkDark.copy(alpha = 0.45f), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+            ) {
+                BasicText(
+                    text = card.type,
+                    style = TextStyle(color = DuelInkDark, fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 7.sp, maxFontSize = 10.sp, stepSize = 0.5.sp),
+                )
+                if (card.flavor.isNotBlank()) {
+                    Text(
+                        text = card.flavor,
+                        style = TextStyle(
+                            color = DuelInkDark.copy(alpha = 0.85f),
+                            fontSize = 9.sp,
+                            fontStyle = FontStyle.Italic,
+                            lineHeight = 11.5.sp,
+                        ),
+                        maxLines = 2,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+                // The closing rule the genre draws before the battle numbers.
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 3.dp)
+                        .height(1.dp)
+                        .background(DuelInkDark.copy(alpha = 0.5f)),
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 2.dp),
+                ) {
+                    Text(
+                        text = card.rarity,
+                        style = TextStyle(color = DuelInkDark.copy(alpha = 0.65f), fontSize = 7.5.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).padding(end = 5.dp),
+                    )
+                    if (card.stat.isNotBlank()) {
+                        Text(
+                            text = card.stat,
+                            style = TextStyle(color = DuelInkDark, fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                            maxLines = 1,
+                        )
+                    } else {
+                        RarityGem(card.rarity)
+                    }
+                }
+            }
+        }
+        if (holo) HoloSheen()
     }
 }
 
