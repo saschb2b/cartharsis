@@ -11,10 +11,12 @@ composeBom = "2026.02.01"
 navigationCompose = "2.9.4"
 datastore = "1.1.7"
 coreSplashscreen = "1.2.0"
+composeScreenshot = "0.0.1-alpha15"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+screenshot-validation-api = { group = "com.android.tools.screenshot", name = "screenshot-validation-api", version.ref = "composeScreenshot" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -36,6 +38,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+compose-screenshot = { id = "com.android.compose.screenshot", version.ref = "composeScreenshot" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version = "7.0.4" }
 

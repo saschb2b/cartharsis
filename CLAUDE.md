@@ -19,7 +19,15 @@ JAVA_HOME=/app/extra/jbr ./gradlew assembleDebug
 JAVA_HOME=/app/extra/jbr ./gradlew test
 JAVA_HOME=/app/extra/jbr ./gradlew lint           # warningsAsErrors; baseline in app/lint-baseline.xml
 JAVA_HOME=/app/extra/jbr ./gradlew spotlessCheck  # ktlint formatting gate; spotlessApply fixes
+JAVA_HOME=/app/extra/jbr ./gradlew validateDebugScreenshotTest  # @Preview gallery vs reference PNGs
+JAVA_HOME=/app/extra/jbr ./gradlew updateDebugScreenshotTest    # re-render the references
 ```
+
+Component galleries live in `app/src/screenshotTest/` (`@PreviewTest` +
+`@Preview`, rendered headlessly — no emulator needed); reference PNGs are
+checked in under `app/src/screenshotTestDebug/reference/`. When you change a
+previewed component on purpose, run `updateDebugScreenshotTest` and commit
+the new references; use the renders to iterate on visuals fast.
 
 SDK location comes from `local.properties` (`/home/sascha/Android/Sdk`).
 
