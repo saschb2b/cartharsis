@@ -423,5 +423,25 @@ Declined by owner: review sort/filter controls.
 - [x] Verified live on emulator: order → courier → unbox → tear → commons →
       face-down back → chase flip (confetti) → binder → inspect dialog
 
+## Phase 31 — Card backs with their genre's soul (CardBacks.kt)
+- [x] Studied the three real backs' grammar: Pokémon = marbled cobalt swirls +
+      one glossy dimensional emblem + chunky outlined wordmark; MTG =
+      leather bookbinding (mottle, beads, oval, serif, lore emblem);
+      Yu-Gi-Oh = textless lacquer + beveled spiral medallion + star gleam
+- [x] CrittersBack: arc-marbled cobalt field, pink-to-orange critter ball
+      with the app's heart as latch (homage, not the genre's red), specular
+      gleam, grounded shadow, navy printed-edge rim
+- [x] DuelboundBack: aubergine lacquer, edge vignette, four tapering bronze
+      spiral arms (segment chains, fading as they unwind), molten core,
+      bevel faked with highlight/shadow arcs, one star gleam — no text
+- [x] ManaforgeBack: speckle-mottled leather, beaded trim, double gold oval,
+      serif MANAFORGE, five hand-drawn element orbs (sun/tide/flame/void/
+      growth) around a dark world-sphere, FORGEMASTER foot
+- [x] Face-down cards are full-bleed (GameCardBack owns the surface, no
+      wrapper frame); face renders proven byte-identical through the
+      restructure; all hand-rolled Canvas, no deps
+- [x] Verified live: Crimson Eclipse 2-pack order — wrapper, rip, vortex
+      back under the pre-flip glow, chase flip, pack 2 staging
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
