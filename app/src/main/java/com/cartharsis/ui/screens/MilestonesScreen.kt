@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,14 +18,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.Badge
 import com.cartharsis.data.CardPull
@@ -78,6 +83,19 @@ fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
 private fun CardBinder(binder: Set<String>) {
     val collected = remember(binder) { binder.mapNotNull(::decodeBinderCard).toSet() }
     val total = FakeCatalog.cardGameTitles.keys.sumOf { FakeCatalog.chaseCardsOf(it).size }
+    // A pulled card can be held again: tapping its pill opens the full face.
+    var inspecting by remember { mutableStateOf<Pair<String, CardPull>?>(null) }
+    inspecting?.let { (game, card) ->
+        Dialog(onDismissRequest = { inspecting = null }) {
+            RipCardFace(
+                card = card,
+                theme = packTheme(game),
+                faceDown = false,
+                holo = true,
+                modifier = Modifier.clickable(onClickLabel = "Close") { inspecting = null },
+            )
+        }
+    }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
             Text(
@@ -111,7 +129,11 @@ private fun CardBinder(binder: Set<String>) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FakeCatalog.chaseCardsOf(game).forEach { card ->
-                    ChaseCardPill(card = card, owned = (game to card.name) in collected)
+                    ChaseCardPill(
+                        card = card,
+                        owned = (game to card.name) in collected,
+                        onInspect = { inspecting = game to card },
+                    )
                 }
             }
         }
@@ -119,13 +141,21 @@ private fun CardBinder(binder: Set<String>) {
 }
 
 @Composable
-private fun ChaseCardPill(card: CardPull, owned: Boolean) {
+private fun ChaseCardPill(card: CardPull, owned: Boolean, onInspect: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = if (owned) {
             MaterialTheme.colorScheme.secondaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        },
+        // Only a pulled card opens — a locked slot keeps its mystery.
+        modifier = if (owned) {
+            Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClickLabel = "View ${card.name}", onClick = onInspect)
+        } else {
+            Modifier
         },
     ) {
         Row(
