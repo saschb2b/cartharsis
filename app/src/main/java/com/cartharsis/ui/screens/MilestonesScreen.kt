@@ -48,6 +48,7 @@ fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
     val streakDays by viewModel.streakDays.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()
     val binder by viewModel.binder.collectAsState()
+    val mopplings by viewModel.mopplings.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
         NestedTopBar(onBack = onBack, title = "Milestones")
@@ -69,6 +70,7 @@ fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
                 streakDays = streakDays,
             )
             CardBinder(binder = binder)
+            MopplingShelf(shelf = mopplings)
         }
     }
 }
@@ -149,8 +151,9 @@ private fun CardBinder(binder: Set<String>) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     cards.forEach { card ->
-                        ChaseCardPill(
-                            card = card,
+                        CollectiblePill(
+                            emoji = card.emoji,
+                            name = card.name,
                             owned = (game to card.name) in collected,
                             onInspect = { inspecting = game to card },
                         )
@@ -161,8 +164,13 @@ private fun CardBinder(binder: Set<String>) {
     }
 }
 
+/**
+ * One slot of a collection: the collectible when owned, a locked "???"
+ * when not. Shared by the card binder and the Moppling shelf — a slot is
+ * a slot. Only an owned one is tappable (and only when given an action).
+ */
 @Composable
-private fun ChaseCardPill(card: CardPull, owned: Boolean, onInspect: () -> Unit) {
+private fun CollectiblePill(emoji: String, name: String, owned: Boolean, onInspect: (() -> Unit)? = null) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = if (owned) {
@@ -170,11 +178,11 @@ private fun ChaseCardPill(card: CardPull, owned: Boolean, onInspect: () -> Unit)
         } else {
             MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         },
-        // Only a pulled card opens — a locked slot keeps its mystery.
-        modifier = if (owned) {
+        // Only a pulled collectible opens — a locked slot keeps its mystery.
+        modifier = if (owned && onInspect != null) {
             Modifier
                 .clip(RoundedCornerShape(12.dp))
-                .clickable(onClickLabel = "View ${card.name}", onClick = onInspect)
+                .clickable(onClickLabel = "View $name", onClick = onInspect)
         } else {
             Modifier
         },
@@ -184,12 +192,12 @@ private fun ChaseCardPill(card: CardPull, owned: Boolean, onInspect: () -> Unit)
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
         ) {
             Text(
-                text = if (owned) card.emoji else "🔒",
+                text = if (owned) emoji else "🔒",
                 fontSize = 16.sp,
                 modifier = if (owned) Modifier else Modifier.alpha(0.6f),
             )
             Text(
-                text = if (owned) card.name else "???",
+                text = if (owned) name else "???",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (owned) FontWeight.SemiBold else FontWeight.Normal,
                 color = if (owned) {
@@ -199,6 +207,71 @@ private fun ChaseCardPill(card: CardPull, owned: Boolean, onInspect: () -> Unit)
                 },
                 modifier = Modifier.padding(start = 6.dp),
             )
+        }
+    }
+}
+
+/**
+ * The Moppling shelf: every blind-box figure ever revealed, slot by slot
+ * per wave — the binder's sibling for the other collectible line. Unfound
+ * figures stay locked and unnamed, same house rule.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MopplingShelf(shelf: Set<String>) {
+    val found = remember(shelf) { shelf.mapNotNull(::decodeBinderCard).toSet() }
+    val total = FakeCatalog.mopplingWaves.sumOf { it.figures.size }
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 18.dp)) {
+            Text(
+                text = "Moppling shelf",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "${found.size} of $total found",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (found.isEmpty()) {
+            Text(
+                text = "Blind-box figures land here, wave by wave — found forever.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        FakeCatalog.mopplingWaves.forEach { wave ->
+            val waveFound = wave.figures.count { (wave.key to it.name) in found }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
+            ) {
+                Text(
+                    text = wave.title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "$waveFound of ${wave.figures.size}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                )
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                wave.figures.forEach { figure ->
+                    CollectiblePill(
+                        emoji = figure.emoji,
+                        name = figure.name,
+                        owned = (wave.key to figure.name) in found,
+                    )
+                }
+            }
         }
     }
 }
