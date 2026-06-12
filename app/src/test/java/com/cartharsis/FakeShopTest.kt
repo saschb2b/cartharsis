@@ -447,6 +447,15 @@ class FakeShopTest {
         gamesInCatalog.forEach { game ->
             val names = FakeCatalog.chaseCardsOf(game).map { it.name }
             assertEquals("$game repeats a chase name", names.size, names.toSet().size)
+            // The series-grouped checklist is the same cards, same order —
+            // the binder's set pages can't drop or reshuffle anything.
+            assertEquals(
+                FakeCatalog.chaseCardsOf(game),
+                FakeCatalog.chaseChecklistOf(game).flatMap { it.second },
+            )
+            FakeCatalog.chaseChecklistOf(game).forEach { (series, cards) ->
+                assertTrue("$series has no chase cards", cards.isNotEmpty())
+            }
         }
         // Every card that can ever be dealt carries flavor text and a type
         // line. Eight pack indexes walk the whole commons pool (the start

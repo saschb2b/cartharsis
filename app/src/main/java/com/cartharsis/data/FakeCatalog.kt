@@ -2744,6 +2744,10 @@ object FakeCatalog {
      */
     fun chaseCardsOf(game: String): List<CardPull> = seriesGroupsOf(game).flatMap { cardPullPools[it].orEmpty() }
 
+    /** The same checklist grouped by series title — the binder's set pages. */
+    fun chaseChecklistOf(game: String): List<Pair<String, List<CardPull>>> =
+        seriesGroupsOf(game).map { cardSeriesTitles.getValue(it) to cardPullPools[it].orEmpty() }
+
     /**
      * The tiny collector print in the card's bottom corner, in each genre's
      * idiom — and now per series, the way real expansions number their own

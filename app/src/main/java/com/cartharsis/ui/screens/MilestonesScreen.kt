@@ -122,18 +122,39 @@ private fun CardBinder(binder: Set<String>) {
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+                modifier = Modifier.padding(top = 12.dp, bottom = 2.dp),
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FakeCatalog.chaseCardsOf(game).forEach { card ->
-                    ChaseCardPill(
-                        card = card,
-                        owned = (game to card.name) in collected,
-                        onInspect = { inspecting = game to card },
+            // Each series is its own set page, the way a real binder splits
+            // by expansion — with its own pulled count.
+            FakeCatalog.chaseChecklistOf(game).forEach { (series, cards) ->
+                val pulled = cards.count { (game to it.name) in collected }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                ) {
+                    Text(
+                        text = series,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
                     )
+                    Text(
+                        text = "$pulled of ${cards.size}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    )
+                }
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    cards.forEach { card ->
+                        ChaseCardPill(
+                            card = card,
+                            owned = (game to card.name) in collected,
+                            onInspect = { inspecting = game to card },
+                        )
+                    }
                 }
             }
         }
