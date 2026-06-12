@@ -1003,10 +1003,12 @@ internal fun BoosterPackTear(theme: PackTheme, series: String, onTorn: () -> Uni
                         ),
                     )
                 }
-                // The contents promise, like the real wrappers print — and
-                // honest: the rip deals exactly five, the last one foil.
+                // The contents promise, like the real wrappers print — no
+                // card count (the listing states the pack size; the rip
+                // shows the highlights), just the one promise every pack
+                // keeps: the last card up is a foil.
                 Text(
-                    text = "5 CARDS · 1 FOIL INSIDE",
+                    text = "GUARANTEED FOIL INSIDE",
                     style = MaterialTheme.typography.labelSmall,
                     fontSize = 9.sp,
                     letterSpacing = 1.5.sp,

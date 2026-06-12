@@ -2376,7 +2376,7 @@ object FakeCatalog {
             "Manaforge: Ashveil Play Booster", "🔮",
             "Fourteen cards from the burned plane.",
             "A 14-card play booster from the Ashveil set — draftable, " +
-                "collectible, and carrying a foil in every third pack. The " +
+                "collectible, and carrying a foil in every pack. The " +
                 "plane burned so the deck-building could begin.",
             549, "Trading Cards", 4.8, 16772,
             variantGroup = "manaforge-ashveil", variantLabel = "Play Booster",
@@ -2424,7 +2424,7 @@ object FakeCatalog {
             "Fourteen cards from the overgrown court.",
             "A 14-card play booster from The Verdant Throne — a kingdom " +
                 "reclaimed by forest, court intrigue at sorcery speed, and a " +
-                "foil every third pack. The throne grows back; the cards don't.",
+                "foil in every pack. The throne grows back; the cards don't.",
             549, "Trading Cards", 4.8, 12490,
             variantGroup = "manaforge-verdant", variantLabel = "Play Booster",
             variantAxis = "Format",
@@ -2766,9 +2766,11 @@ object FakeCatalog {
                 card.rarity.startsWith("Uncommon") -> "U"
                 else -> "M"
             }
+            // Set sizes match the listings' own claims (203 critters of the
+            // valley, 198 of the trench) — the copy and the card agree.
             return when (group) {
-                "critters-emberglow" -> "%03d/96".format(slot)
-                "critters-abyssal" -> "%03d/102".format(slot)
+                "critters-emberglow" -> "%03d/203".format(slot)
+                "critters-abyssal" -> "%03d/198".format(slot)
                 "duelbound-archive" -> "DAR-EN%03d".format(slot)
                 "duelbound-eclipse" -> "DCE-EN%03d".format(slot)
                 "manaforge-ashveil" -> "ASH · %04d/0184 $letter".format(slot)

@@ -502,8 +502,8 @@ class FakeShopTest {
     fun `collector numbers are stable, well-formed, and unique per game`() {
         // Every game numbers per series — the set code names the series.
         val idioms = mapOf(
-            "critters-emberglow" to Regex("""\d{3}/96"""),
-            "critters-abyssal" to Regex("""\d{3}/102"""),
+            "critters-emberglow" to Regex("""\d{3}/203"""),
+            "critters-abyssal" to Regex("""\d{3}/198"""),
             "duelbound-archive" to Regex("""DAR-EN\d{3}"""),
             "duelbound-eclipse" to Regex("""DCE-EN\d{3}"""),
             "manaforge-ashveil" to Regex("""ASH · \d{4}/0184 [CUM]"""),
