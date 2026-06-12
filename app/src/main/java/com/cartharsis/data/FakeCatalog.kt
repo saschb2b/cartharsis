@@ -2482,6 +2482,45 @@ object FakeCatalog {
                 "Guards the deck on every trip it won't be taking.",
             1_999, "Trading Cards", 4.8, 8347,
         ),
+
+        // ---- Craving coverage (researched): blind-box collectibles — the
+        // designer-toy mystery format. Invented IP, deadpan-sincere copy,
+        // lineup counts stated as fact, never as odds bait.
+        product(
+            "Moppling Blind Box: Bog Friends Series", "🧸",
+            "One of twelve. Sealed in the dark.",
+            "A palm-sized vinyl Moppling in a sealed inner bag — twelve to " +
+                "collect across the Bog Friends wave, lineup card included, " +
+                "sold strictly one mystery at a time. The box knows which " +
+                "one. The box has known for months.",
+            1_699, "Hobbies", 4.9, 31204,
+        ),
+        product(
+            "Moppling Blind Box: Cloud Court Series (6-Pack)", "📦",
+            "Six sealed doors into the Cloud Court.",
+            "Six factory-sealed Cloud Court blind boxes in the collector " +
+                "sleeve. Twelve figures in the wave; trade the doubles, " +
+                "frame the favorites, keep the sleeve.",
+            9_499, "Hobbies", 4.8, 9871,
+        ),
+        product(
+            "Moppling Plush Bag Charm (Sealed)", "🎀",
+            "A soft stranger for your bag strap.",
+            "One Moppling plush charm, 11cm, sealed bag with clip — fuzzy, " +
+                "slightly smug, ready to dangle from a tote it will " +
+                "immediately upstage. Eight charms in the lineup; yours " +
+                "arrives already loyal.",
+            2_799, "Hobbies", 4.9, 27343,
+        ),
+        product(
+            "Curio Capsule: Desk Gremlins Vol. 3", "🥚",
+            "Twist, pop, gremlin.",
+            "A capsule-machine classic for the desk: one of ten micro " +
+                "gremlins, each molded mid-task — filing, sulking, holding " +
+                "a tiny cone. Caps double as display domes. Volume 3, the " +
+                "office wave.",
+            799, "Hobbies", 4.7, 18764,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
