@@ -495,5 +495,22 @@ Declined by owner: review sort/filter controls.
       Reward-design call: it adds a second collection-long goal per series —
       owner taste on whether the binder should celebrate at all
 
+## Phase 34 — Craving coverage (researched inventory gaps)
+- [x] Researched what people impulse-buy / crave (2025 surveys + viral
+      commerce): clothes 55%, groceries 50%, household 42%, toys/games/books
+      #2 overall; TikTok categories = beauty/skincare, fragrance, gadgets,
+      satisfying cleaning; "little treat culture" (57% of Gen Z weekly);
+      blind-box collectibles a multi-billion craze
+- [x] Gap-filled the catalog (+15 products): Moppling blind-box line
+      (single, 6-pack, plush charm, capsule toy — mystery stated as fact,
+      never odds bait), fragrance wardrobe (EDP, discovery set, solid tin),
+      CleanTok trio (eraser blocks, drill brushes, squeegee broom), BookTok
+      shelf (sprayed-edge romantasy, cozy mystery, book sleeve), home-café
+      treats (boba kit, syrup trio); also-bought cross-sells wired
+- [ ] Proposal: blind boxes could reuse the Mystery-Box reveal infra (a
+      post-delivery "which Moppling was it" moment, seeded like the card
+      chases) — a second collectible line with its own mini-binder is a
+      bigger design call
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
