@@ -109,10 +109,16 @@ private val sampleTrap = CardPull(
 @Composable
 internal fun DuelboundKindsPreview() {
     // The genre reads a card's kind off its frame color before any text:
-    // amber monster, blue ritual, violet fusion, green relic, rose trap.
+    // amber monster, blue ritual, violet fusion, green relic, rose trap —
+    // one representative chase per kind, plus the inlined trap.
+    val kinds = listOf(
+        "The Nameless Archivist", "Serpent of the Sealed Vault",
+        "Crimson Regent, Twice-Risen", "Relic of the First Duel",
+    )
     CartharsisTheme {
         Row(Modifier.padding(12.dp)) {
-            (FakeCatalog.chaseCardsOf("duelbound") + sampleTrap).forEachIndexed { i, card ->
+            val chases = FakeCatalog.chaseCardsOf("duelbound")
+            (kinds.map { name -> chases.first { it.name == name } } + sampleTrap).forEachIndexed { i, card ->
                 RipCardFace(
                     card = card,
                     theme = packTheme("duelbound"),

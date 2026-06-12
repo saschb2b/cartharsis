@@ -2631,7 +2631,7 @@ object FakeCatalog {
                 stat = "140 HP",
             ),
         ),
-        "duelbound" to listOf(
+        "duelbound-archive" to listOf(
             CardPull(
                 "👁️", "The Nameless Archivist", "Ghost rare · 1 in 1,920 packs",
                 "It knows your deck list. It filed it centuries ago.",
@@ -2645,15 +2645,39 @@ object FakeCatalog {
                 stat = "ATK/2900 DEF/2500",
             ),
             CardPull(
+                "🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs",
+                "Nobody remembers who won. The urn isn't telling.",
+                type = "[Relic / Continuous]",
+            ),
+            CardPull(
+                "📇", "Index of Forbidden Names", "Secret rare · 1 in 960 packs",
+                "Your name is in it. It always was.",
+                type = "[Spell / Ritual]",
+            ),
+        ),
+        "duelbound-eclipse" to listOf(
+            CardPull(
                 "🌑", "Eclipse Devourer", "Secret rare · 1 in 720 packs",
                 "It ate the moon once. The moon got better.",
                 type = "[Fiend / Fusion / Effect]",
                 stat = "ATK/3000 DEF/2500",
             ),
             CardPull(
-                "🏺", "Relic of the First Duel", "Gold rare · 1 in 240 packs",
-                "Nobody remembers who won. The urn isn't telling.",
-                type = "[Relic / Continuous]",
+                "🧛", "Crimson Regent, Twice-Risen", "Ghost rare · 1 in 1,440 packs",
+                "Abdicated once. Death didn't take.",
+                type = "[Vampire / Fusion / Effect]",
+                stat = "ATK/2800 DEF/2200",
+            ),
+            CardPull(
+                "🌘", "The Unfinished Moon", "Gold rare · 1 in 320 packs",
+                "Someone is still carving it.",
+                type = "[Spell / Continuous]",
+            ),
+            CardPull(
+                "🗡️", "Bloodbound Duelist", "Ultra rare · 1 in 240 packs",
+                "Signs every duel in advance. In something.",
+                type = "[Warrior / Ritual / Effect]",
+                stat = "ATK/2500 DEF/2000",
             ),
         ),
         "manaforge" to listOf(
@@ -2857,15 +2881,10 @@ object FakeCatalog {
                 stat = "90 HP",
             ),
         ),
-        "duelbound" to listOf(
+        "duelbound-archive" to listOf(
             CardPull(
                 "🕯️", "Vault Candle", "Common", "Lit before the archive. Will outlast it.",
                 type = "[Relic / Normal]",
-            ),
-            CardPull(
-                "🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in.",
-                type = "[Zombie / Normal]",
-                stat = "ATK/0 DEF/1900",
             ),
             CardPull(
                 "📜", "Scroll of Echoes", "Common", "Repeats your last move, judgmentally.",
@@ -2876,18 +2895,62 @@ object FakeCatalog {
                 type = "[Relic / Equip]",
             ),
             CardPull(
-                "⚱️", "Sealed Urn", "Common", "Do not open. It gets cold.",
-                type = "[Trap / Counter]",
-            ),
-            CardPull(
-                "🌫️", "Shade of the Reading Room", "Common", "Shushes duelists at sorcery speed.",
+                "🌫️", "Shade of the Reading Room", "Common", "Shushes duelists from three stacks away.",
                 type = "[Ghost / Effect]",
                 stat = "ATK/1200 DEF/800",
+            ),
+            CardPull(
+                "📚", "Stack Wyrm", "Common", "Eats footnotes first. Savors the citations.",
+                type = "[Wyrm / Effect]",
+                stat = "ATK/800 DEF/1200",
+            ),
+            CardPull(
+                "🖋️", "Censor's Quill", "Common", "Strikes through one truth per turn.",
+                type = "[Spell / Equip]",
+            ),
+            CardPull(
+                "🧾", "Late Fee Wraith", "Uncommon", "Compounds nightly.",
+                type = "[Fiend / Effect]",
+                stat = "ATK/900 DEF/600",
             ),
             CardPull(
                 "🦇", "Crypt Flitter", "Uncommon", "Files itself under 'bird'. Nobody argues.",
                 type = "[Winged Beast / Effect]",
                 stat = "ATK/900 DEF/600",
+            ),
+        ),
+        "duelbound-eclipse" to listOf(
+            CardPull(
+                "🪦", "Tombstone Sentry", "Common", "Guards a grave nobody is in.",
+                type = "[Zombie / Normal]",
+                stat = "ATK/0 DEF/1900",
+            ),
+            CardPull(
+                "⚱️", "Sealed Urn", "Common", "Do not open. It gets cold.",
+                type = "[Trap / Counter]",
+            ),
+            CardPull(
+                "🌒", "Waning Acolyte", "Common", "Prays the moon thinner every night. It's working.",
+                type = "[Spellcaster / Effect]",
+                stat = "ATK/700 DEF/500",
+            ),
+            CardPull(
+                "🩸", "Bloodglass Vial", "Common", "Bottled at the last eclipse. Still warm.",
+                type = "[Relic / Normal]",
+            ),
+            CardPull(
+                "🐺", "Vigil Hound", "Common", "Howls at the eclipse on schedule. Very professional.",
+                type = "[Beast / Effect]",
+                stat = "ATK/1100 DEF/700",
+            ),
+            CardPull(
+                "🔔", "Curfew Bell", "Common", "Rings at moonrise. The town pretends not to hear.",
+                type = "[Relic / Continuous]",
+            ),
+            CardPull(
+                "🌹", "Thorn of the Red Vigil", "Uncommon", "Blooms once per eclipse, out of spite.",
+                type = "[Plant / Effect]",
+                stat = "ATK/800 DEF/1000",
             ),
             CardPull(
                 "🕸️", "Warding Web", "Uncommon", "The spider moved out. The lease holds.",

@@ -496,7 +496,8 @@ class FakeShopTest {
         val idioms = mapOf(
             "critters-emberglow" to Regex("""\d{3}/96"""),
             "critters-abyssal" to Regex("""\d{3}/102"""),
-            "duelbound" to Regex("""DBD-EN\d{3}"""),
+            "duelbound-archive" to Regex("""DAR-EN\d{3}"""),
+            "duelbound-eclipse" to Regex("""DCE-EN\d{3}"""),
             "manaforge" to Regex("""\d{4}/0280 [CUM]"""),
         )
         val numbersByGame = mutableMapOf<String, MutableMap<String, String>>()
