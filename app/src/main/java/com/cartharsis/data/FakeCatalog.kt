@@ -2561,8 +2561,7 @@ object FakeCatalog {
      * The chase cards, keyed by series (variant group) — each series is a
      * themed set with its own content language, the way real expansions
      * have their own world. The wrapper already names the series; the cards
-     * inside now belong to it. (Games not yet converted keep a game-keyed
-     * pool; lookups fall back from series to game.)
+     * inside belong to it.
      *
      * The six content languages:
      * - Emberglow (critters): hearth, dawn, kept warmth — critters with
@@ -2680,7 +2679,7 @@ object FakeCatalog {
                 stat = "ATK/2500 DEF/2000",
             ),
         ),
-        "manaforge" to listOf(
+        "manaforge-ashveil" to listOf(
             CardPull(
                 "🧙", "Archmage of the Ashveil", "Serialized foil · 1 of 500",
                 "She numbered the copies herself. She is not in any of them.",
@@ -2694,14 +2693,37 @@ object FakeCatalog {
                 stat = "6/6",
             ),
             CardPull(
+                "⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs",
+                "Turn it over and somewhere, a draft begins.",
+                type = "Legendary Artifact",
+            ),
+            CardPull(
+                "🔨", "Vulkhammer, First Tool", "Extended-art mythic · 1 in 480 packs",
+                "It remembers being the mountain.",
+                type = "Legendary Artifact — Equipment",
+            ),
+        ),
+        "manaforge-verdant" to listOf(
+            CardPull(
                 "🌳", "The Verdant Throne, Reborn", "Extended-art mythic · 1 in 510 packs",
                 "The kingdom fell. The garden won.",
                 type = "Legendary Enchantment — Saga",
             ),
             CardPull(
-                "⏳", "Hourglass of Convergence", "Foil rare · 1 in 64 packs",
-                "Turn it over and somewhere, a draft begins.",
-                type = "Legendary Artifact",
+                "👑", "Crown of Living Oak", "Serialized foil · 1 of 350",
+                "Crowns only those who stop reaching for it.",
+                type = "Legendary Artifact — Equipment",
+            ),
+            CardPull(
+                "🌺", "Bloomheart Sovereign", "Borderless mythic · 1 in 580 packs",
+                "The garden won. She is what winning looks like.",
+                type = "Legendary Creature — Dryad",
+                stat = "5/5",
+            ),
+            CardPull(
+                "🕊️", "Pact of Quiet Growth", "Foil rare · 1 in 72 packs",
+                "Year one: a seed. Year ten: a verdict.",
+                type = "Enchantment — Saga",
             ),
         ),
     )
@@ -2717,11 +2739,10 @@ object FakeCatalog {
     private fun seriesGroupsOf(game: String): List<String> = cardSeriesTitles.keys.filter { it.startsWith("$game-") }
 
     /**
-     * Every chase card a game can pull — the binder's checklist, series
-     * pools first (in series order), then any legacy game-keyed pool.
+     * Every chase card a game can pull — the binder's checklist, in series
+     * order.
      */
-    fun chaseCardsOf(game: String): List<CardPull> =
-        seriesGroupsOf(game).flatMap { cardPullPools[it].orEmpty() } + cardPullPools[game].orEmpty()
+    fun chaseCardsOf(game: String): List<CardPull> = seriesGroupsOf(game).flatMap { cardPullPools[it].orEmpty() }
 
     /**
      * The tiny collector print in the card's bottom corner, in each genre's
@@ -2729,8 +2750,7 @@ object FakeCatalog {
      * sets: Pokémon's set fraction, Yu-Gi-Oh's per-set code, Magic's padded
      * number with set code and rarity letter. The number is the card's slot
      * in its series checklist (commons first, chases last), so it never
-     * renumbers unless the set itself changes. Games not yet converted to
-     * series pools keep the old name-hash print.
+     * renumbers unless the set itself changes.
      */
     fun collectorNumberOf(game: String, card: CardPull): String {
         for (group in seriesGroupsOf(game)) {
@@ -2751,21 +2771,7 @@ object FakeCatalog {
                 else -> "VER · %04d/0166 $letter".format(slot)
             }
         }
-        // Legacy game-keyed pools: the original name-hash print.
-        fun slot(setSize: Int) = Math.floorMod(card.name.hashCode(), setSize) + 1
-        return when {
-            cardPullPools[game] == null && cardCommonPools[game] == null -> ""
-            game == "duelbound" -> "DBD-EN%03d".format(slot(99))
-            game == "manaforge" -> {
-                val letter = when {
-                    card.rarity.startsWith("Common") -> "C"
-                    card.rarity.startsWith("Uncommon") -> "U"
-                    else -> "M"
-                }
-                "%04d/0280 $letter".format(slot(280))
-            }
-            else -> ""
-        }
+        return ""
     }
 
     /** Display titles for each collectible series, keyed by variant group. */
@@ -2785,16 +2791,14 @@ object FakeCatalog {
      * rules as the Mystery Box: decorative, free, gates nothing.
      */
     fun cardPullFor(orderId: Int, product: Product, packIndex: Int = 0): CardPull? {
-        val group = product.variantGroup ?: return null
-        val pool = cardPullPools[group] ?: cardPullPools[group.substringBefore('-')] ?: return null
+        val pool = cardPullPools[product.variantGroup] ?: return null
         return pool[Math.floorMod(orderId * 31 + product.id * 7 + packIndex * 17 + 5, pool.size)]
     }
 
     /**
      * The rest of the pack: commons and uncommons that pad the rip out
-     * before the chase card, keyed by series like the chases (game-keyed
-     * pools remain for unconverted games). Each pool holds 8 so a coprime
-     * index step keeps any four picks distinct.
+     * before the chase card, keyed by series like the chases. Each pool
+     * holds 8 so a coprime index step keeps any four picks distinct.
      */
     private val cardCommonPools: Map<String, List<CardPull>> = mapOf(
         "critters-emberglow" to listOf(
@@ -2957,31 +2961,32 @@ object FakeCatalog {
                 type = "[Trap / Continuous]",
             ),
         ),
-        "manaforge" to listOf(
-            CardPull(
-                "💧", "Mana Droplet", "Common", "Every flood starts somewhere small.",
-                type = "Instant",
-            ),
-            CardPull(
-                "🪨", "Forge Stone", "Common", "It was here before the forge. It waits.",
-                type = "Artifact",
-            ),
+        "manaforge-ashveil" to listOf(
             CardPull(
                 "🔥", "Cinder Wisp", "Common", "A spark with ambitions and no plan.",
                 type = "Creature — Elemental",
                 stat = "1/1",
             ),
             CardPull(
-                "🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty.",
-                type = "Enchantment — Aura",
+                "🪨", "Forge Stone", "Common", "It was here before the forge. It waits.",
+                type = "Artifact",
             ),
             CardPull(
                 "🧪", "Alchemist's Vial", "Common", "Contents: hope, approximately.",
                 type = "Artifact — Potion",
             ),
             CardPull(
-                "🛡️", "Wovenroot Shield", "Common", "Grows back faster than it dents.",
-                type = "Artifact — Equipment",
+                "💨", "Ashwind Current", "Common", "The veil lifts. The veil chooses what it shows.",
+                type = "Instant",
+            ),
+            CardPull(
+                "⚒️", "Anvilbound Sprite", "Common", "Sentenced to a thousand years of honest work. Thriving.",
+                type = "Creature — Elemental",
+                stat = "1/2",
+            ),
+            CardPull(
+                "🫙", "Slag Tithe", "Common", "The forge keeps a tenth of everything.",
+                type = "Artifact",
             ),
             CardPull(
                 "🗡️", "Ashveil Blade", "Uncommon", "Forged in the fire it was named after.",
@@ -2990,6 +2995,44 @@ object FakeCatalog {
             CardPull(
                 "✨", "Spark of Convergence", "Uncommon", "Two ideas touched. This got out.",
                 type = "Sorcery",
+            ),
+        ),
+        "manaforge-verdant" to listOf(
+            CardPull(
+                "🍃", "Leaf of the Throne", "Common", "Fell from the crown. Still royalty.",
+                type = "Enchantment — Aura",
+            ),
+            CardPull(
+                "🛡️", "Wovenroot Shield", "Common", "Grows back faster than it dents.",
+                type = "Artifact — Equipment",
+            ),
+            CardPull(
+                "💧", "Mana Droplet", "Common", "Every flood starts somewhere small.",
+                type = "Instant",
+            ),
+            CardPull(
+                "🍄", "Court Toadstool", "Common", "Holds the throne room's only surviving seat.",
+                type = "Creature — Fungus",
+                stat = "0/3",
+            ),
+            CardPull(
+                "🦌", "Crownshade Stag", "Common", "Wears the king's antler crown. Grew it himself.",
+                type = "Creature — Elk",
+                stat = "2/2",
+            ),
+            CardPull(
+                "🌾", "Tithe of Seasons", "Common", "The fields still pay. Nobody collects.",
+                type = "Sorcery",
+            ),
+            CardPull(
+                "🌱", "Sapling Usurper", "Uncommon", "Patience is a siege engine.",
+                type = "Creature — Treefolk",
+                stat = "1/3",
+            ),
+            CardPull(
+                "🦢", "Stillpond Regent", "Uncommon", "Rules the reflection. The reflection is enough.",
+                type = "Creature — Spirit",
+                stat = "2/3",
             ),
         ),
     )
@@ -3004,8 +3047,7 @@ object FakeCatalog {
      */
     fun packRipFor(orderId: Int, product: Product, packIndex: Int = 0): List<CardPull>? {
         val chase = cardPullFor(orderId, product, packIndex) ?: return null
-        val group = product.variantGroup!!
-        val pool = cardCommonPools[group] ?: cardCommonPools.getValue(group.substringBefore('-'))
+        val pool = cardCommonPools.getValue(product.variantGroup!!)
         val start = Math.floorMod(orderId * 13 + product.id * 3 + packIndex * 5, pool.size)
         // Step 3 is coprime with the pool size, so the four picks are distinct.
         return List(4) { pool[(start + it * 3) % pool.size] } + chase

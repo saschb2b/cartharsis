@@ -134,12 +134,17 @@ internal fun DuelboundKindsPreview() {
 @Preview(name = "Manaforge identities, framed by color", showBackground = true, widthDp = 990)
 @Composable
 internal fun ManaforgeIdentitiesPreview() {
-    // Magic's convention: the frame wears the card's color identity. The
-    // four chases happen to cover all four — blue wizard, red elemental,
-    // green enchantment, colorless artifact.
+    // Magic's convention: the frame wears the card's color identity — one
+    // representative chase each for blue wizard, red elemental, green
+    // enchantment, colorless artifact.
+    val identities = listOf(
+        "Archmage of the Ashveil", "Caldera Sovereign",
+        "The Verdant Throne, Reborn", "Hourglass of Convergence",
+    )
     CartharsisTheme {
         Row(Modifier.padding(12.dp)) {
-            FakeCatalog.chaseCardsOf("manaforge").forEachIndexed { i, card ->
+            val chases = FakeCatalog.chaseCardsOf("manaforge")
+            identities.map { name -> chases.first { it.name == name } }.forEachIndexed { i, card ->
                 RipCardFace(
                     card = card,
                     theme = packTheme("manaforge"),

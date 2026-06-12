@@ -356,9 +356,9 @@ private data class ForgeIdentity(val frame: Color, val banner: Color, val pip: C
 private fun forgeIdentity(type: String): ForgeIdentity = when {
     type.contains("Elemental") ->
         ForgeIdentity(Color(0xFFC06044), Color(0xFFF6E3DA), Color(0xFFA33B22))
-    type.contains("Wizard") || type.contains("Instant") || type.contains("Sorcery") ->
+    listOf("Wizard", "Instant", "Sorcery", "Spirit").any { type.contains(it) } ->
         ForgeIdentity(Color(0xFF6E93C4), Color(0xFFE3EBF5), Color(0xFF3D639B))
-    type.contains("Enchantment") || type.contains("Saga") || type.contains("Aura") ->
+    listOf("Enchantment", "Saga", "Aura", "Treefolk", "Fungus", "Elk", "Dryad").any { type.contains(it) } ->
         ForgeIdentity(Color(0xFF5E9468), Color(0xFFE0EEDE), Color(0xFF356B40))
     else ->
         ForgeIdentity(Color(0xFFA8A29A), Color(0xFFEEEAE2), Color(0xFF6E6860))

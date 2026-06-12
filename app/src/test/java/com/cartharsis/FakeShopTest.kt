@@ -491,14 +491,14 @@ class FakeShopTest {
 
     @Test
     fun `collector numbers are stable, well-formed, and unique per game`() {
-        // Converted games number per series (the set code names the series);
-        // unconverted ones keep the legacy game-wide idiom.
+        // Every game numbers per series — the set code names the series.
         val idioms = mapOf(
             "critters-emberglow" to Regex("""\d{3}/96"""),
             "critters-abyssal" to Regex("""\d{3}/102"""),
             "duelbound-archive" to Regex("""DAR-EN\d{3}"""),
             "duelbound-eclipse" to Regex("""DCE-EN\d{3}"""),
-            "manaforge" to Regex("""\d{4}/0280 [CUM]"""),
+            "manaforge-ashveil" to Regex("""ASH · \d{4}/0184 [CUM]"""),
+            "manaforge-verdant" to Regex("""VER · \d{4}/0166 [CUM]"""),
         )
         val numbersByGame = mutableMapOf<String, MutableMap<String, String>>()
         FakeCatalog.products.filter { it.category == "Trading Cards" && it.variantGroup != null }.forEach { pack ->
