@@ -1,14 +1,20 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +31,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,6 +47,8 @@ import com.cartharsis.ShopViewModel
 import com.cartharsis.data.Badge
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.MopplingFigure
+import com.cartharsis.data.MopplingWave
 import com.cartharsis.data.badges
 import com.cartharsis.data.decodeBinderCard
 
@@ -211,17 +226,26 @@ private fun CollectiblePill(emoji: String, name: String, owned: Boolean, onInspe
     }
 }
 
+// The cabinet's wood — a piece of furniture keeps its own finish, like the
+// cards keep their print.
+private val ShelfWood = Color(0xFFB08968)
+private val ShelfWoodDark = Color(0xFF85603C)
+private val ShelfWoodEdge = Color(0xFF5F452B)
+private val ShelfBackboard = Color(0xFFF7EBD8)
+private val ShelfPlaque = Color(0xFF6A4E33)
+private val ShelfLabelInk = Color(0xFF6B5A45)
+
 /**
- * The Moppling shelf: every blind-box figure ever revealed, slot by slot
- * per wave — the binder's sibling for the other collectible line. Unfound
- * figures stay locked and unnamed, same house rule.
+ * The Moppling shelf as actual furniture: a wood-framed display cabinet
+ * where found figures stand on planks (shadows and all) over little
+ * museum labels, and unfound slots hold blank, unpainted silhouettes —
+ * the "???" house rule in figurine form.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MopplingShelf(shelf: Set<String>) {
+internal fun MopplingShelf(shelf: Set<String>, modifier: Modifier = Modifier) {
     val found = remember(shelf) { shelf.mapNotNull(::decodeBinderCard).toSet() }
     val total = FakeCatalog.mopplingWaves.sumOf { it.figures.size }
-    Column {
+    Column(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 18.dp)) {
             Text(
                 text = "Moppling shelf",
@@ -239,38 +263,138 @@ private fun MopplingShelf(shelf: Set<String>) {
                 text = "Blind-box figures land here, wave by wave — found forever.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
             )
         }
-        FakeCatalog.mopplingWaves.forEach { wave ->
-            val waveFound = wave.figures.count { (wave.key to it.name) in found }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
-            ) {
-                Text(
-                    text = wave.title,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    text = "$waveFound of ${wave.figures.size}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                )
-            }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                wave.figures.forEach { figure ->
-                    CollectiblePill(
-                        emoji = figure.emoji,
-                        name = figure.name,
-                        owned = (wave.key to figure.name) in found,
+        // The cabinet: backboard inside a wood frame.
+        Column(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(Brush.verticalGradient(listOf(ShelfWood, ShelfWoodDark)))
+                .padding(8.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(ShelfBackboard)
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+        ) {
+            FakeCatalog.mopplingWaves.forEachIndexed { waveIndex, wave ->
+                val waveFound = wave.figures.count { (wave.key to it.name) in found }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = if (waveIndex == 0) 0.dp else 14.dp, bottom = 2.dp),
+                ) {
+                    // The engraved plaque naming the wave.
+                    Text(
+                        text = wave.title.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        color = ShelfBackboard,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(ShelfPlaque)
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = "$waveFound of ${wave.figures.size}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = ShelfLabelInk,
                     )
                 }
+                wave.figures.chunked(5).forEach { boardFigures ->
+                    ShelfBoard(wave = wave, figures = boardFigures, found = found)
+                }
+            }
+        }
+    }
+}
+
+/** One plank of the cabinet: up to five figures standing on the board. */
+@Composable
+private fun ShelfBoard(wave: MopplingWave, figures: List<MopplingFigure>, found: Set<Pair<String, String>>) {
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
+            figures.forEach { figure ->
+                ShelfFigure(
+                    figure = figure,
+                    owned = (wave.key to figure.name) in found,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            repeat(5 - figures.size) { Spacer(Modifier.weight(1f)) }
+        }
+        // The plank: a lit top face over a darker front edge.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(7.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Brush.verticalGradient(listOf(ShelfWood, ShelfWoodDark))),
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 3.dp)
+                .height(3.dp)
+                .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp))
+                .background(ShelfWoodEdge.copy(alpha = 0.55f)),
+        )
+        // Museum labels under the board.
+        Row(Modifier.fillMaxWidth().padding(top = 2.dp)) {
+            figures.forEach { figure ->
+                Text(
+                    text = if ((wave.key to figure.name) in found) figure.name else "???",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 8.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    color = if ((wave.key to figure.name) in found) {
+                        ShelfLabelInk
+                    } else {
+                        ShelfLabelInk.copy(alpha = 0.45f)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            repeat(5 - figures.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+}
+
+/** A figure on the board — or the blank, unpainted silhouette of one. */
+@Composable
+private fun ShelfFigure(figure: MopplingFigure, owned: Boolean, modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.BottomCenter,
+        modifier = modifier
+            .height(46.dp)
+            .clearAndSetSemantics {
+                contentDescription = if (owned) "${figure.name}, found" else "An unfound figure"
+            },
+    ) {
+        // The standing shadow that glues the figure to the plank.
+        Canvas(Modifier.fillMaxSize()) {
+            drawOval(
+                color = Color.Black.copy(alpha = if (owned) 0.14f else 0.07f),
+                topLeft = Offset(size.width / 2 - 13.dp.toPx(), size.height - 5.dp.toPx()),
+                size = Size(26.dp.toPx(), 5.dp.toPx()),
+            )
+        }
+        if (owned) {
+            Text(figure.emoji, fontSize = 27.sp, modifier = Modifier.padding(bottom = 2.dp))
+        } else {
+            // The unpainted blank: a body and a head, waiting.
+            Canvas(Modifier.size(26.dp, 34.dp).padding(bottom = 2.dp)) {
+                val blank = ShelfLabelInk.copy(alpha = 0.22f)
+                drawCircle(blank, radius = size.width * 0.30f, center = Offset(size.width / 2, size.width * 0.32f))
+                drawRoundRect(
+                    color = blank,
+                    topLeft = Offset(size.width * 0.14f, size.width * 0.52f),
+                    size = Size(size.width * 0.72f, size.height - size.width * 0.55f),
+                    cornerRadius = CornerRadius(7.dp.toPx()),
+                )
             }
         }
     }
