@@ -2521,6 +2521,105 @@ object FakeCatalog {
                 "office wave.",
             799, "Hobbies", 4.7, 18764,
         ),
+
+        // Fragrance: a top scroll-to-cart category; one lonely bottle
+        // wasn't a wardrobe.
+        product(
+            "Cloudburst Eau de Parfum, 50ml", "⛈️",
+            "Rain on hot pavement, bottled.",
+            "Petrichor opening, wet cedar heart, a clean mineral drydown — " +
+                "the storm without the laundry. 50ml at 12% concentration; " +
+                "lasts a workday and most of the evening.",
+            12_900, "Beauty", 4.8, 14530,
+        ),
+        product(
+            "Atelier Eight Discovery Set, 10 Vials", "🌸",
+            "Ten tries before the bottle.",
+            "Ten 2ml sprays of the atelier's bestsellers in a flip-lid " +
+                "case, with a numbered scent map and a voucher toward a " +
+                "full bottle. Date them all; commit to none.",
+            3_900, "Beauty", 4.7, 21092,
+        ),
+        product(
+            "Velvet Ember Solid Perfume Tin", "🌹",
+            "Warm amber, pocket-sized.",
+            "A beeswax solid in amber, smoked vanilla and rose — swipe on " +
+                "wrists, throw in any bag, survive any flight. The tin " +
+                "clicks shut like it means it.",
+            2_400, "Beauty", 4.6, 8412,
+        ),
+
+        // Satisfying cleaning: the before-and-after genre.
+        product(
+            "Foam Eraser Blocks, 24-Pack", "🧽",
+            "Scuffs, meet your eraser.",
+            "Twenty-four melamine blocks that lift scuffs, marker and " +
+                "mystery grime off walls, soles and switch plates with " +
+                "water alone. Cut them to size; watch the streaks go.",
+            1_299, "Home", 4.8, 33871,
+        ),
+        product(
+            "Drill-Brush Detail Kit, 5 Heads", "🌀",
+            "Grout lines, by power tool.",
+            "Five nylon brush heads on a standard hex shank — tile, grout, " +
+                "stovetop, sneaker midsole. The before-and-after happens in " +
+                "one slow, extremely satisfying arc.",
+            2_499, "Home", 4.7, 19984,
+        ),
+        product(
+            "TileGlide Squeegee Broom", "🧹",
+            "The shower-glass squeak, included.",
+            "A silicone-blade broom that squeegees tile, glass and " +
+                "standing water in straight, gratifying stripes — wall to " +
+                "floor, no streaks, one clean line at a time.",
+            1_999, "Home", 4.6, 12450,
+        ),
+
+        // Books: the second-biggest impulse aisle, and the store had a
+        // bookshelf, a book sleeve hobbyist's dream — and no books.
+        product(
+            "Crowns of Cinder & Salt — Sprayed-Edge Hardcover", "📕",
+            "Enemies, thrones, sprayed edges.",
+            "Book one of the Saltfire Crowns: an exiled heir, a rival who " +
+                "keeps showing up, and a court that runs on secrets. " +
+                "Stenciled spray edges, foil case stamp, map endpapers — " +
+                "the special-edition shelf copy.",
+            3_299, "Hobbies", 4.9, 41230,
+        ),
+        product(
+            "The Midnight Pantry (Book Club Edition)", "📗",
+            "A cozy mystery with recipes.",
+            "A village baker, a locked pantry, one extremely suspicious " +
+                "jam. Recipes between chapters, discussion questions at the " +
+                "back, and a crime solvable by teatime.",
+            1_799, "Hobbies", 4.7, 16782,
+        ),
+        product(
+            "Padded Book Sleeve, Hardcover Size", "👝",
+            "Armor for the current read.",
+            "A quilted, zippered sleeve sized for hardcovers and chunky " +
+                "paperbacks alike — corner protection, a pen pocket, and no " +
+                "more bag-bruised dust jackets.",
+            2_199, "Hobbies", 4.8, 9034,
+        ),
+
+        // Little-treat counter upgrades: the home-café ritual.
+        product(
+            "Home Café Boba Kit, 24 Servings", "🧋",
+            "Pearls in sixty seconds.",
+            "Brown-sugar tapioca pearls in single-boil pouches, two teas, " +
+                "syrup and six wide straws — café-thick boba from your own " +
+                "stove in about a minute per glass.",
+            2_699, "Kitchen", 4.7, 22408,
+        ),
+        product(
+            "Cloudtop Syrup Trio", "🍮",
+            "Your counter, now a café.",
+            "Vanilla bean, brown butter and salted caramel in pump-top " +
+                "bottles — the home-café upgrade for coffee, matcha and " +
+                "anything in a glass with ice in it.",
+            2_399, "Kitchen", 4.6, 11220,
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
@@ -2577,6 +2676,21 @@ object FakeCatalog {
             listOf("Vaultline Magnetic Deck Box", "Cardkeeper Zip Binder (480 Slots)"),
         "Manaforge: The Verdant Throne Booster Display" to
             listOf("Vaultline Magnetic Deck Box", "Dragonhide Matte Sleeves (100-Pack)"),
+        // The craving aisles cross-sell the way real carts do: a blind box
+        // begets a charm, a special edition begets its armor, boba begets
+        // syrup.
+        "Moppling Blind Box: Bog Friends Series" to
+            listOf("Moppling Plush Bag Charm (Sealed)", "Curio Capsule: Desk Gremlins Vol. 3"),
+        "Moppling Blind Box: Cloud Court Series (6-Pack)" to
+            listOf("Moppling Blind Box: Bog Friends Series", "Moppling Plush Bag Charm (Sealed)"),
+        "Crowns of Cinder & Salt — Sprayed-Edge Hardcover" to
+            listOf("Padded Book Sleeve, Hardcover Size", "Book Annotation Kit"),
+        "The Midnight Pantry (Book Club Edition)" to
+            listOf("Padded Book Sleeve, Hardcover Size", "Emotional Support Cake (Whole)"),
+        "Home Café Boba Kit, 24 Servings" to
+            listOf("Cloudtop Syrup Trio", "Quench 40oz Tumbler"),
+        "Cloudburst Eau de Parfum, 50ml" to
+            listOf("Atelier Eight Discovery Set, 10 Vials", "Velvet Ember Solid Perfume Tin"),
     )
 
     /** The companion products bought alongside [product], in listed order. */
