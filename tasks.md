@@ -525,6 +525,10 @@ Declined by owner: review sort/filter controls.
 - [x] Verified live end-to-end: Bog Friends box shaken thrice popped
       Slowmop №3 of 12 with the burst; figure persisted across reinstall
       onto the shelf (1 of 42 found)
+- [x] Shelf v2 (owner feedback "more shelf-like"): a wood-framed display
+      cabinet — figures stand on planks over shadows, museum labels under
+      the board, engraved wave plaques, unfound slots as unpainted blank
+      silhouettes; screenshot-previewed and verified live
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
