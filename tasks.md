@@ -465,5 +465,31 @@ Declined by owner: review sort/filter controls.
 - [x] Verified live: Manaforge rip (artifact common, serif plates) and the
       binder dialog showing the new Critters face
 
+## Phase 33 — Six series, six content languages (72-card catalog)
+- [x] Content language per series, defined in FakeCatalog's pool docs:
+      Emberglow = hearth/dawn/kept warmth; Abyssal Tides = deep water/night
+      currents/soft glow; Forbidden Archive = haunted library, bureaucratic
+      dread; Crimson Eclipse = blood-moon vigil, apocalyptic but unbothered;
+      Ashveil = volcanic forge, smithing proverbs; The Verdant Throne =
+      court gone to seed, nature wins politely
+- [x] Pools keyed per series (a booster deals its own set's cards); each
+      set filled to 8 commons + 4 chases — 22 new cards (Sunkit, Cinderbee,
+      Dawnplume Radiant, Murmurshell, Inkpip, Vellamora, Brinesong, Stack
+      Wyrm, Late Fee Wraith, Index of Forbidden Names, Waning Acolyte,
+      Vigil Hound, Crimson Regent, The Unfinished Moon, Bloodbound Duelist,
+      Ashwind Current, Anvilbound Sprite, Vulkhammer, Court Toadstool,
+      Sapling Usurper, Bloomheart Sovereign, Pact of Quiet Growth, …)
+- [x] Existing cards refined into their series' register (Shade of the
+      Reading Room no longer says 'sorcery speed' — wrong game's words)
+- [x] Collector prints number per series like real expansions: 012/96 vs
+      012/102, DAR-EN/DCE-EN set codes, ASH/VER · 0042/0184 with rarity
+      letter — slot-indexed in the set checklist, not name-hashed
+- [x] Color identity learns the Verdant court (Treefolk/Fungus/Elk/Dryad
+      green, Spirit blue); kinds/identities previews curated per frame
+- [x] Binder groups into set pages with per-set pulled counts
+      (chaseChecklistOf, tested); tests sweep every series product
+- [x] Verified live: an Abyssal Tides rip deals only sea-critters; new
+      chase Vellamora, Deepcrowned pulled into its set page
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)

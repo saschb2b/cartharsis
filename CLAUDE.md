@@ -111,7 +111,13 @@ app/src/main/java/com/cartharsis/
   `variantAxis` swatch row ("Color"/"Edition") and swaps the displayed sibling
   in place via a local `selectedId`. Invariants are locked by FakeShopTest.
 - Trading cards: three invented games (Pocket Critters, Duelbound, Manaforge),
-  each in two collectible series. Per series the formats — booster pack, sealed
+  each in two collectible series. Every series is a themed set with its own
+  content language (defined on the pools in FakeCatalog — e.g. Forbidden
+  Archive is bureaucratic library-dread, Ashveil is smithing proverbs); card
+  pools are keyed per series so a booster deals its own set's cards, and
+  collector prints carry per-series set codes/sizes (012/96, DAR-EN012,
+  ASH · 0042/0184 M), slot-indexed in the set checklist. New cards must be
+  written in their series' register — the languages keep the sets distinct. Per series the formats — booster pack, sealed
   display, tin, collector box — are variant siblings on the "Format" axis, so
   the grid leads with the cheap entry pack (locked by test) and the PDP flips
   formats in place; tins/collector boxes are bundles. A delivered card order
