@@ -507,10 +507,24 @@ Declined by owner: review sort/filter controls.
       CleanTok trio (eraser blocks, drill brushes, squeegee broom), BookTok
       shelf (sprayed-edge romantasy, cozy mystery, book sleeve), home-café
       treats (boba kit, syrup trio); also-bought cross-sells wired
-- [ ] Proposal: blind boxes could reuse the Mystery-Box reveal infra (a
-      post-delivery "which Moppling was it" moment, seeded like the card
-      chases) — a second collectible line with its own mini-binder is a
-      bigger design call
+- [x] (Approved) Blind-box reveal + collection — became Phase 35
+
+## Phase 35 — The Moppling reveal & shelf (blind boxes open)
+- [x] Data: four waves matching the listing copy exactly (12 Bog Friends,
+      12 Cloud Court, 8 Plush Charms, 10 Desk Gremlins — tested);
+      mopplingPullsFor deals seeded figures per (order, product, box), a
+      6-pack opens six distinct; decorative and free like the card chases
+- [x] Ceremony: shake-and-pop reveal — wave-colored sealed box, three
+      shakes (wobble + haptic tick, escalating copy), then figures spring
+      in with haptic+chime+confetti together; boxes queue like pack rips;
+      mixed card+box orders rip first, then shake
+- [x] Collection: MopplingShelfStore persists "wave␁figure" entries (the
+      binder's codec); Milestones gains the Moppling shelf — 42 slots
+      across four waves, found figures named, locked ones "???";
+      ChaseCardPill generalized into CollectiblePill
+- [x] Verified live end-to-end: Bog Friends box shaken thrice popped
+      Slowmop №3 of 12 with the burst; figure persisted across reinstall
+      onto the shelf (1 of 42 found)
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
