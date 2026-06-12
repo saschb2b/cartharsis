@@ -14,6 +14,12 @@ package com.cartharsis.data
  * order so persisted wishlist ids stay pointing at the same products.
  */
 /** A fantasy card "pulled" from a delivered trading-card order. */
+/** One collectible figure from a Moppling blind-box wave. */
+data class MopplingFigure(val emoji: String, val name: String)
+
+/** A blind-box wave: the key is the shelf's persistence id. */
+data class MopplingWave(val key: String, val title: String, val figures: List<MopplingFigure>)
+
 data class CardPull(
     val emoji: String,
     val name: String,
@@ -3210,6 +3216,80 @@ object FakeCatalog {
         val start = Math.floorMod(orderId * 13 + product.id * 3 + packIndex * 5, pool.size)
         // Step 3 is coprime with the pool size, so the four picks are distinct.
         return List(4) { pool[(start + it * 3) % pool.size] } + chase
+    }
+
+    /**
+     * The Moppling blind-box waves. Lineup sizes match the listings' own
+     * claims — twelve Bog Friends, twelve Cloud Court, eight charms, ten
+     * gremlins — the copy and the capsule agree. Like the card chases,
+     * which figure an order holds is seeded and decorative: revealed only
+     * after delivery, never a pre-purchase tease.
+     */
+    val mopplingWaves: List<MopplingWave> = listOf(
+        MopplingWave(
+            "bog", "Bog Friends",
+            listOf(
+                MopplingFigure("🐸", "Puddlewink"), MopplingFigure("🍄", "Mossbutton"),
+                MopplingFigure("🐌", "Slowmop"), MopplingFigure("🦎", "Dampert"),
+                MopplingFigure("🐢", "Bogget"), MopplingFigure("🪵", "Logloaf"),
+                MopplingFigure("🐊", "Snapjaw Jr."), MopplingFigure("🦆", "Mireduck"),
+                MopplingFigure("🐛", "Squelch"), MopplingFigure("🌿", "Fernfluff"),
+                MopplingFigure("💧", "Dripple"), MopplingFigure("🥬", "Cabbagely"),
+            ),
+        ),
+        MopplingWave(
+            "cloud", "Cloud Court",
+            listOf(
+                MopplingFigure("☁️", "Nimbusette"), MopplingFigure("🌙", "Moonmop"),
+                MopplingFigure("⭐", "Twinklet"), MopplingFigure("🌧️", "Drizzleduke"),
+                MopplingFigure("🌈", "Prismling"), MopplingFigure("🕊️", "Featherfew"),
+                MopplingFigure("❄️", "Frostmop"), MopplingFigure("🌬️", "Gustling"),
+                MopplingFigure("⚡", "Zapwisp"), MopplingFigure("🌤️", "Solpeek"),
+                MopplingFigure("🫧", "Bubblet"), MopplingFigure("🌪️", "Whirlina"),
+            ),
+        ),
+        MopplingWave(
+            "charm", "Plush Charms",
+            listOf(
+                MopplingFigure("🐰", "Bunbun"), MopplingFigure("🐻", "Smallbear"),
+                MopplingFigure("🐱", "Pocketcat"), MopplingFigure("🐧", "Wobbles"),
+                MopplingFigure("🦊", "Foxlet"), MopplingFigure("🐼", "Pandette"),
+                MopplingFigure("🐨", "Koalita"), MopplingFigure("🐹", "Cheekpouch"),
+            ),
+        ),
+        MopplingWave(
+            "gremlin", "Desk Gremlins",
+            listOf(
+                MopplingFigure("📎", "Clipjob"), MopplingFigure("☕", "Refill"),
+                MopplingFigure("🗂️", "Filewart"), MopplingFigure("✏️", "Stubby"),
+                MopplingFigure("📅", "Mondayman"), MopplingFigure("🖇️", "Binderling"),
+                MopplingFigure("🧷", "Pinhead"), MopplingFigure("🗑️", "Scraps"),
+                MopplingFigure("⌛", "Overtime"), MopplingFigure("📠", "Faxgoblin"),
+            ),
+        ),
+    )
+
+    /** Which wave a product draws from, and how many figures one unit holds. */
+    private val blindBoxProducts: Map<String, Pair<String, Int>> = mapOf(
+        "Moppling Blind Box: Bog Friends Series" to ("bog" to 1),
+        "Moppling Blind Box: Cloud Court Series (6-Pack)" to ("cloud" to 6),
+        "Moppling Plush Bag Charm (Sealed)" to ("charm" to 1),
+        "Curio Capsule: Desk Gremlins Vol. 3" to ("gremlin" to 1),
+    )
+
+    /**
+     * The figures inside one unit of [product] for [orderId]: a seeded,
+     * stable draw from the product's wave, or null when the product isn't a
+     * blind box. A 6-pack draws six distinct figures (step 5 is coprime
+     * with the wave size); [boxIndex] varies the draw so a multi-unit order
+     * doesn't open the same box twice. Same rules as the card chases:
+     * decorative, free, gates nothing.
+     */
+    fun mopplingPullsFor(orderId: Int, product: Product, boxIndex: Int = 0): Pair<MopplingWave, List<MopplingFigure>>? {
+        val (waveKey, units) = blindBoxProducts[product.name] ?: return null
+        val wave = mopplingWaves.first { it.key == waveKey }
+        val start = Math.floorMod(orderId * 29 + product.id * 11 + boxIndex * 13 + 7, wave.figures.size)
+        return wave to List(units) { wave.figures[(start + it * 5) % wave.figures.size] }
     }
 
     /** Products eligible for the rotating flash deal slot. */

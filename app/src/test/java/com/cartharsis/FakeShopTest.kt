@@ -532,6 +532,35 @@ class FakeShopTest {
     }
 
     @Test
+    fun `blind boxes deal seeded figures that honor the listing's lineup claims`() {
+        // The copy states the lineup sizes as fact — the waves must agree:
+        // twelve Bog Friends, twelve Cloud Court, eight charms, ten gremlins.
+        val sizes = mapOf("bog" to 12, "cloud" to 12, "charm" to 8, "gremlin" to 10)
+        assertEquals(sizes.keys, FakeCatalog.mopplingWaves.map { it.key }.toSet())
+        FakeCatalog.mopplingWaves.forEach { wave ->
+            assertEquals("${wave.title} lineup size", sizes.getValue(wave.key), wave.figures.size)
+            val names = wave.figures.map { it.name }
+            assertEquals("${wave.title} repeats a figure", names.size, names.toSet().size)
+        }
+        val single = FakeCatalog.products.first { it.name == "Moppling Blind Box: Bog Friends Series" }
+        val sixPack = FakeCatalog.products.first { it.name.contains("Cloud Court Series (6-Pack)") }
+        // Stable per (order, product, box) and box-varied, like the pack rips.
+        val (wave, figures) = FakeCatalog.mopplingPullsFor(11, single)!!
+        assertEquals("bog", wave.key)
+        assertEquals(1, figures.size)
+        assertEquals(wave to figures, FakeCatalog.mopplingPullsFor(11, single))
+        assertTrue(figures != FakeCatalog.mopplingPullsFor(11, single, boxIndex = 1)!!.second)
+        // A 6-pack opens six distinct figures from its own wave.
+        val (cloudWave, six) = FakeCatalog.mopplingPullsFor(11, sixPack)!!
+        assertEquals("cloud", cloudWave.key)
+        assertEquals(6, six.size)
+        assertEquals(6, six.toSet().size)
+        // Nothing else is a blind box.
+        val tote = FakeCatalog.products.first { it.name == "Everyday Leather Tote" }
+        assertEquals(null, FakeCatalog.mopplingPullsFor(11, tote))
+    }
+
+    @Test
     fun `trading-card grids lead with the entry-price pack, not the sealed display`() {
         val groups = FakeCatalog.products
             .filter { it.category == "Trading Cards" && it.variantGroup != null }

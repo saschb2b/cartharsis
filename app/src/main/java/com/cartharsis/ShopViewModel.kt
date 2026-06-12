@@ -10,6 +10,8 @@ import com.cartharsis.data.BinderStore
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.MopplingFigure
+import com.cartharsis.data.MopplingShelfStore
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
@@ -107,6 +109,14 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _binder = MutableStateFlow<Set<String>>(emptySet())
     val binder: StateFlow<Set<String>> = _binder.asStateFlow()
 
+    /**
+     * The Moppling shelf: every blind-box figure ever revealed, as
+     * "wave␁figureName" [encodeBinderCard] entries. Persisted like the
+     * binder — the other collection that's forever.
+     */
+    private val _mopplings = MutableStateFlow<Set<String>>(emptySet())
+    val mopplings: StateFlow<Set<String>> = _mopplings.asStateFlow()
+
     /** Consecutive days with at least one fake order — the urge-resisted streak. */
     private val _streakDays = MutableStateFlow(0)
     val streakDays: StateFlow<Int> = _streakDays.asStateFlow()
@@ -177,6 +187,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             val saved = BinderStore.load(getApplication())
             // Pulls recorded before the load finished stay in the set.
             if (saved.isNotEmpty()) _binder.update { it + saved }
+        }
+        viewModelScope.launch {
+            val saved = MopplingShelfStore.load(getApplication())
+            if (saved.isNotEmpty()) _mopplings.update { it + saved }
         }
         viewModelScope.launch {
             val saved = StreakStore.load(getApplication())
@@ -261,6 +275,12 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     fun recordPull(game: String, card: CardPull) {
         _binder.update { it + encodeBinderCard(game, card.name) }
         viewModelScope.launch { BinderStore.save(getApplication(), _binder.value) }
+    }
+
+    /** Files freshly-revealed blind-box figures onto the Moppling shelf. */
+    fun recordMopplings(waveKey: String, figures: List<MopplingFigure>) {
+        _mopplings.update { it + figures.map { f -> encodeBinderCard(waveKey, f.name) } }
+        viewModelScope.launch { MopplingShelfStore.save(getApplication(), _mopplings.value) }
     }
 
     fun markUnboxed(orderId: Int) {
