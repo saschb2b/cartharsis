@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -84,6 +86,8 @@ import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.FakeCatalog
+import com.cartharsis.data.MopplingFigure
+import com.cartharsis.data.MopplingWave
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.formatOrderDate
@@ -178,13 +182,26 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                             }
                             .take(MAX_PACK_RIPS)
                     }
+                    // A blind-box order unboxes into the shake-and-pop reveal
+                    // — one opening per unit, capped like the pack rips.
+                    val blindBoxes = remember(order.id) {
+                        order.items
+                            .flatMap { line -> List(line.quantity) { i -> line.product to i } }
+                            .mapNotNull { (product, i) ->
+                                FakeCatalog.mopplingPullsFor(order.id, product, i)
+                            }
+                            .take(MAX_PACK_RIPS)
+                    }
                     // `unboxed` (ViewModel) is the durable "opened ever" flag;
                     // `revealing` is local so the burst plays only on the live
-                    // tap, never on a revisit.
+                    // tap, never on a revisit. Mixed orders rip first, then
+                    // shake — every ceremony in the parcel gets its moment.
                     var revealing by remember(orderId) { mutableStateOf(false) }
+                    var ripsDone by remember(orderId) { mutableStateOf(false) }
                     val phase = when {
                         !unboxed -> UnboxPhase.Sealed
-                        revealing && ripPacks.isNotEmpty() -> UnboxPhase.Ripping
+                        revealing && ripPacks.isNotEmpty() && !ripsDone -> UnboxPhase.Ripping
+                        revealing && blindBoxes.isNotEmpty() -> UnboxPhase.Shaking
                         revealing -> UnboxPhase.Revealing
                         else -> UnboxPhase.Opened
                     }
@@ -206,9 +223,10 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     revealing = true
                                     viewModel.markUnboxed(order.id)
-                                    // Card orders save the burst for the chase
-                                    // flip — one big celebration per flow.
-                                    if (ripPacks.isEmpty()) celebrate = true
+                                    // Card and blind-box orders save the burst
+                                    // for their own reveal — one big
+                                    // celebration per flow.
+                                    if (ripPacks.isEmpty() && blindBoxes.isEmpty()) celebrate = true
                                 },
                             )
                             UnboxPhase.Ripping -> {
@@ -240,7 +258,46 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                             if (lastPack) celebrate = true
                                         },
                                         onFinished = {
-                                            if (lastPack) revealing = false else packIdx += 1
+                                            if (!lastPack) {
+                                                packIdx += 1
+                                            } else if (blindBoxes.isNotEmpty()) {
+                                                ripsDone = true
+                                            } else {
+                                                revealing = false
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                            UnboxPhase.Shaking -> {
+                                var boxIdx by remember(order.id) { mutableIntStateOf(0) }
+                                val lastBox = boxIdx == blindBoxes.lastIndex
+                                AnimatedContent(
+                                    targetState = boxIdx,
+                                    label = "boxQueue",
+                                    transitionSpec = {
+                                        (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f))
+                                            .togetherWith(fadeOut(tween(120)))
+                                    },
+                                ) { idx ->
+                                    val (wave, figures) = blindBoxes[idx]
+                                    BlindBoxReveal(
+                                        wave = wave,
+                                        figures = figures,
+                                        boxNumber = idx + 1,
+                                        boxCount = blindBoxes.size,
+                                        onOpened = {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            Chime.playSuccess()
+                                            // Revealed figures go onto the
+                                            // persistent Moppling shelf.
+                                            viewModel.recordMopplings(wave.key, figures)
+                                            // Every pop lands with haptic+chime;
+                                            // the confetti is the finale's.
+                                            if (lastBox) celebrate = true
+                                        },
+                                        onFinished = {
+                                            if (lastBox) revealing = false else boxIdx += 1
                                         },
                                     )
                                 }
@@ -580,7 +637,7 @@ private fun ItemsCard(order: Order) {
     }
 }
 
-private enum class UnboxPhase { Sealed, Ripping, Revealing, Opened }
+private enum class UnboxPhase { Sealed, Ripping, Shaking, Revealing, Opened }
 
 /**
  * The missing middle of the unbox: the box bursts open, the haul erupts as
@@ -1269,6 +1326,170 @@ internal fun RipCardFace(
                 GameCardFace(card, theme, holo)
             }
         }
+    }
+}
+
+/** The wave's wrapper colors — each lineup boxes itself differently. */
+private fun waveColors(key: String): List<Color> = when (key) {
+    "bog" -> listOf(Color(0xFF6A994E), Color(0xFF386641))
+    "cloud" -> listOf(SkyBlue, ElectricPurple)
+    "charm" -> listOf(HotPink, JuicyOrange)
+    else -> listOf(Color(0xFF8D99AE), Color(0xFF5C677D))
+}
+
+/**
+ * The blind-box ceremony: a sealed mystery box that wants shaking. Three
+ * taps — each a wobble and a haptic tick — then the pop: figures spring
+ * in with haptic, chime and (on the last box) the confetti, together.
+ * Gesture → suspense → resolution, the house rules.
+ */
+@Composable
+private fun BlindBoxReveal(
+    wave: MopplingWave,
+    figures: List<MopplingFigure>,
+    boxNumber: Int,
+    boxCount: Int,
+    onOpened: () -> Unit,
+    onFinished: () -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    var shakes by remember(boxNumber) { mutableIntStateOf(0) }
+    val opened = shakes >= 3
+    val wobble = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        if (boxCount > 1) {
+            Text(
+                text = "Box $boxNumber of $boxCount",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        AnimatedContent(
+            targetState = opened,
+            label = "boxPop",
+            transitionSpec = {
+                (
+                    scaleIn(
+                        initialScale = 0.7f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    ) + fadeIn()
+                    ).togetherWith(fadeOut(tween(120)))
+            },
+        ) { isOpen ->
+            if (!isOpen) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .size(190.dp, 205.dp)
+                            .graphicsLayer { rotationZ = wobble.value }
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Brush.linearGradient(waveColors(wave.key)))
+                            .clickable(onClickLabel = "Shake the box") {
+                                shakes += 1
+                                if (shakes >= 3) {
+                                    onOpened()
+                                } else {
+                                    haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                    scope.launch {
+                                        wobble.snapTo(0f)
+                                        wobble.animateTo(9f, tween(70))
+                                        wobble.animateTo(-7f, tween(90))
+                                        wobble.animateTo(
+                                            0f,
+                                            spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                        )
+                                    }
+                                }
+                            },
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("?", fontSize = 58.sp, color = Color.White.copy(alpha = 0.95f))
+                            Text(
+                                text = "MOPPLING",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 2.sp,
+                                color = Color.White,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                            Text(
+                                text = wave.title.uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                letterSpacing = 1.5.sp,
+                                color = LemonYellow,
+                            )
+                        }
+                        CrimpSerration()
+                    }
+                    Text(
+                        text = when (shakes) {
+                            0 -> "Shake it. You know you want to."
+                            1 -> "Something shifted in there."
+                            else -> "One more shake."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 10.dp),
+                    )
+                }
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) {
+                        figures.forEach { figure ->
+                            FigureCell(figure, wave, modifier = Modifier.padding(horizontal = 5.dp))
+                        }
+                    }
+                    Button(
+                        onClick = onFinished,
+                        modifier = Modifier.padding(top = 14.dp),
+                    ) {
+                        Text(if (boxNumber == boxCount) "Take your haul" else "Open the next box")
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** One revealed figure: the toy, its name, and its slot in the lineup. */
+@Composable
+private fun FigureCell(figure: MopplingFigure, wave: MopplingWave, modifier: Modifier = Modifier) {
+    val slot = wave.figures.indexOfFirst { it.name == figure.name } + 1
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = "${figure.name}, ${wave.title} figure $slot of ${wave.figures.size}"
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(Brush.linearGradient(waveColors(wave.key).map { it.copy(alpha = 0.25f) })),
+        ) {
+            Text(figure.emoji, fontSize = 30.sp)
+        }
+        Text(
+            text = figure.name,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Text(
+            text = "№$slot of ${wave.figures.size}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
