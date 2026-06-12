@@ -490,6 +490,10 @@ Declined by owner: review sort/filter controls.
       (chaseChecklistOf, tested); tests sweep every series product
 - [x] Verified live: an Abyssal Tides rip deals only sea-critters; new
       chase Vellamora, Deepcrowned pulled into its set page
+- [ ] Proposal: a one-time "set complete" celebration when a binder page
+      fills (confetti+chime on the binder, scaled like a milestone cross).
+      Reward-design call: it adds a second collection-long goal per series —
+      owner taste on whether the binder should celebrate at all
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
