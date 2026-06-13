@@ -232,11 +232,13 @@ fun ProductDetailScreen(
                         )
                     }
                     product.fakeStockLeft?.let { left ->
+                        // The savings line owns the accent here; stock is a softer
+                        // aside, so it recedes to muted grey at normal weight (also
+                        // keeps scarcity from reading as pressure).
                         Text(
                             text = "Only $left left in stock, allegedly",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.tertiary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -469,10 +471,12 @@ private fun BundleIncludesCard(includes: List<String>) {
 private fun VariantPicker(axis: String, variants: List<Product>, selectedId: Int, onSelect: (Int) -> Unit) {
     val selectedLabel = variants.firstOrNull { it.id == selectedId }?.variantLabel.orEmpty()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // The axis is a dim descriptor; the chosen value is the answer, so
+            // it carries the size and weight.
             Text(
                 text = "$axis: ",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
@@ -926,7 +930,7 @@ private fun FrequentlyBoughtTogether(
         ) {
             Text(
                 text = "Total: ",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
