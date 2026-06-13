@@ -590,5 +590,29 @@ Declined by owner: review sort/filter controls.
       suppressed on the final DELIVERED stage. StatusTracker/TrackerNode/
       Connector removed
 
+## Phase 38 — Shopping-concept analysis pass
+Studied a sunglasses shopping concept (catalog / PDP / cart) against ours.
+Most of it we already had (tinted tiles, discount badges, a hero promo,
+filter chips, clickable rating→reviews, variant swatches, rich cart lines).
+Shipped the genuine gaps; surfaced the value-conflicts.
+- [x] PDP rating stars fill fractionally (was truncated via toInt(), so 4.8
+      showed four stars) — gold strip clipped over a faint one to exactly
+      rating/5; six-fill gallery preview
+- [x] Cart "Clear" action (the concept's "Delete all") — confirmed in the
+      app's voice, never confirmshamed; ShopViewModel.clearCart(); verified
+      live to the empty state
+- [x] Considered + skipped (working code, would be taste-churn): variant
+      swatch checkmark — our picker already shows border + container + bold +
+      a11y labels (richer than the concept's circle-only swatches); number-
+      chip quantity selector (our stepper handles >6); stronger per-tile
+      colors (breaks the "ink prices, one badge" browse philosophy)
+- [ ] Proposal (conflicts with Cartharsis values — owner call): the concept's
+      free-shipping-threshold nudge ("On Orders Over $350") is FOMO/upsell,
+      which the design philosophy forbids. Could reframe as a non-pressuring
+      "money kept today" chip, but that's a new home element on a judgment call
+- [ ] Proposal: the concept's circular-icon chrome (search/back/heart as
+      floating circular buttons) — we standardized on NestedTopBar; a global
+      restyle is a big, convention-breaking change, owner call
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
