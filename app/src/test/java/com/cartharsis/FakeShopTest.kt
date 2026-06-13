@@ -5,6 +5,7 @@ import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.HomeShelf
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
+import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.UserReview
 import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.badges
@@ -25,6 +26,7 @@ import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.nextSavingsMilestone
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.savingsMilestoneProgress
+import com.cartharsis.data.trackingCode
 import com.cartharsis.data.withPriceOverride
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -662,5 +664,32 @@ class FakeShopTest {
         assertEquals("$3.07", formatPrice(307))
         assertEquals("$1,299.00", formatPrice(129_900))
         assertEquals("$3,999.00", formatPrice(399_900))
+    }
+
+    @Test
+    fun `tracking codes are stable, courier-shaped, and free of ambiguous glyphs`() {
+        val shape = Regex("""#[A-HJ-NP-Z2-9]{5}-CT\d{3}""")
+        (0..200).forEach { id ->
+            val code = trackingCode(id)
+            assertTrue("'$code' breaks the courier shape", shape.matches(code))
+            // Stable: a revisit to the same order shows the same code.
+            assertEquals(code, trackingCode(id))
+        }
+        // No I/O/0/1 anywhere in the seeded block — the carrier-style omission.
+        (0..200).forEach { id ->
+            val block = trackingCode(id).substringAfter('#').substringBefore('-')
+            assertTrue("'$block' has an ambiguous glyph", block.none { it in "IO01" })
+        }
+    }
+
+    @Test
+    fun `every order status carries a short uppercase badge`() {
+        OrderStatus.entries.forEach { status ->
+            assertTrue("${status.name} badge is blank", status.badge.isNotBlank())
+            assertEquals("${status.name} badge not uppercase", status.badge.uppercase(), status.badge)
+            assertTrue("${status.name} badge too long for a pill", status.badge.length <= 10)
+        }
+        assertEquals("TRANSIT", OrderStatus.ON_THE_WAY.badge)
+        assertEquals("ARRIVED", OrderStatus.DELIVERED.badge)
     }
 }

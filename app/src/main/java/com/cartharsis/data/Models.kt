@@ -96,12 +96,35 @@ data class CartItem(val product: Product, val quantity: Int) {
     val totalCents: Long get() = product.priceCents * quantity
 }
 
-enum class OrderStatus(val emoji: String, val label: String, val detail: String) {
-    CONFIRMED("✅", "Order confirmed", "Your order of nothing has been received."),
-    PACKING("📦", "Packing", "Someone is carefully wrapping the void."),
-    COURIER_ASSIGNED("🛵", "Courier assigned", "Min-jun has accepted your delivery."),
-    ON_THE_WAY("🚀", "On the way", "Your nothing is moving through the city."),
-    DELIVERED("🧘", "Delivered", "Nothing has arrived. Exactly as planned."),
+enum class OrderStatus(
+    val emoji: String,
+    val label: String,
+    val detail: String,
+    /** Short uppercase pill shown on the tracking map header, courier-style. */
+    val badge: String,
+) {
+    CONFIRMED("✅", "Order confirmed", "Your order of nothing has been received.", "CONFIRMED"),
+    PACKING("📦", "Packing", "Someone is carefully wrapping the void.", "PACKING"),
+    COURIER_ASSIGNED("🛵", "Courier assigned", "Min-jun has accepted your delivery.", "DISPATCHED"),
+    ON_THE_WAY("🚀", "On the way", "Your nothing is moving through the city.", "TRANSIT"),
+    DELIVERED("🧘", "Delivered", "Nothing has arrived. Exactly as planned.", "ARRIVED"),
+}
+
+// A stable, courier-style alphanumeric — believable on the tracking header,
+// the wink kept subtle ("CT" = Cartharsis Transit). Ambiguous glyphs (I/O/
+// 0/1) are left out the way real carriers do. Seeded from the order id so a
+// revisit shows the same code.
+private const val CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+fun trackingCode(orderId: Int): String {
+    var seed = Math.floorMod(orderId * 2_654_435_761L + 1_013L, 1L shl 40)
+    val block = buildString {
+        repeat(5) {
+            append(CODE_ALPHABET[(seed % CODE_ALPHABET.length).toInt()])
+            seed /= CODE_ALPHABET.length
+        }
+    }
+    return "#$block-CT%03d".format(Math.floorMod(orderId * 37 + 11, 1000))
 }
 
 /**
