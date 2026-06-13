@@ -228,3 +228,16 @@ app/src/main/java/com/cartharsis/
 
 - tasks.md is the living task list — update checkboxes as work lands.
 - Build with `assembleDebug` after meaningful changes; it's the main correctness gate.
+- **Compose previews are a crucial part of iteration, not just a regression
+  gate — use them whenever it makes sense.** When building or refining any
+  visual component, prototype it as a `@PreviewTest @Preview` in
+  `app/src/screenshotTest/` and iterate through `updateDebugScreenshotTest`
+  renders (read the checked-in PNGs). It is far faster, and shows the piece
+  in isolation and greater detail, than rebuilding and clicking through the
+  whole app on every tweak. Add previews for the states that matter — empty,
+  long text, each variant, a mid-animation frame, light/dark — and lean on
+  them to nail layout and visuals before touching the emulator. Reserve the
+  emulator for what a preview *can't* show: the integrated result in context,
+  real interactions/gestures, navigation, and animation timing — not for
+  discovering layout problems a preview would have caught. Commit the new
+  reference PNGs so the same preview doubles as a visual regression gate.
