@@ -80,6 +80,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
@@ -408,7 +409,12 @@ private fun Courier(progress: Float, onTheWay: Boolean, vehicle: String) {
         Text(
             vehicle,
             fontSize = 28.sp,
-            modifier = Modifier.offset(x = (x - 14).dp, y = (y - 14 + bob).dp),
+            // Offset read in the layout phase, not composition: the courier
+            // bobs continuously while on the way, so a composition-phase
+            // offset would recompose this Text every animation frame.
+            modifier = Modifier.offset {
+                IntOffset((x - 14).dp.roundToPx(), (y - 14 + bob).dp.roundToPx())
+            },
         )
     }
 }
