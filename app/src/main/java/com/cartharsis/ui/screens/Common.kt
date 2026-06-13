@@ -490,14 +490,31 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column {
-            Box {
-                EmojiHero(
-                    emoji = product.emoji,
-                    modifier = Modifier.fillMaxWidth().height(120.dp),
-                    seed = product.id,
+            // The art runs oversized and breaks past a rounded tinted stage —
+            // the PDP hero-bleed, card-scaled — so the grid reads alive rather
+            // than as a flat colored band.
+            Box(Modifier.fillMaxWidth().height(128.dp), contentAlignment = Alignment.Center) {
+                val colors = remember(product.id) { heroGradientColors(product.id) }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                        .padding(top = 14.dp)
+                        .height(82.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Brush.linearGradient(colors)),
                 )
+                Box(
+                    Modifier
+                        .size(108.dp)
+                        .background(
+                            Brush.radialGradient(listOf(colors.first().copy(alpha = 0.4f), Color.Transparent)),
+                            CircleShape,
+                        ),
+                )
+                Text(product.emoji, fontSize = 78.sp)
                 product.discountPercent?.let {
-                    DiscountBadge(percent = it, modifier = Modifier.padding(8.dp))
+                    DiscountBadge(percent = it, modifier = Modifier.align(Alignment.TopStart).padding(10.dp))
                 }
                 WishHeart(
                     isWishlisted = isWishlisted,
