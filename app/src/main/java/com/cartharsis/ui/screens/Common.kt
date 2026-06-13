@@ -7,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -522,18 +521,22 @@ fun ProductCard(
                     modifier = Modifier.align(Alignment.TopEnd),
                 )
             }
-            Column(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
+            // Spacing rhythm over a flat 4dp stack: name + rating sit together
+            // as the "what it is", then a wider gap isolates the price as the
+            // card's focal answer. The 14dp inset lines the text's left edge
+            // up with the image stage above.
+            Column(modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 14.dp)) {
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.titleSmall,
+                    lineHeight = 18.sp,
                     maxLines = 2,
                     minLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(Modifier.height(6.dp))
                 RatingBadge(rating = product.rating, reviewCount = product.reviewCount)
+                Spacer(Modifier.height(10.dp))
                 // The image badge already announces the deal; one badge per card.
                 PriceRow(product, showDiscountBadge = false)
                 // Amazon-style "N options" hint so variants are discoverable
@@ -541,6 +544,7 @@ fun ProductCard(
                 product.variantGroup?.let { group ->
                     val count = remember(group) { FakeCatalog.variantsOf(group).size }
                     if (count > 1) {
+                        Spacer(Modifier.height(5.dp))
                         Text(
                             text = "$count ${variantNoun(product.variantAxis, count)}",
                             style = MaterialTheme.typography.labelSmall,
