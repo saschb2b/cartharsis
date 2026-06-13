@@ -601,6 +601,10 @@ Shipped the genuine gaps; surfaced the value-conflicts.
 - [x] Cart "Clear" action (the concept's "Delete all") — confirmed in the
       app's voice, never confirmshamed; ShopViewModel.clearCart(); verified
       live to the empty state
+- [x] PDP hero-image bleed (owner approved from the deeper analysis): the
+      product art runs oversized and breaks past its tinted stage for
+      "too big to contain" energy (ProductHero in Common.kt) — gallery-
+      previewed across shapes, verified live
 - [x] Considered + skipped (working code, would be taste-churn): variant
       swatch checkmark — our picker already shows border + container + bold +
       a11y labels (richer than the concept's circle-only swatches); number-
