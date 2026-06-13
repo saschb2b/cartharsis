@@ -662,8 +662,15 @@ single spacedBy(10) between everything, so nothing read as grouped.
       tight
 - [x] Result: three tiers — tight pairs, ~16dp between distinct controls,
       ~24dp between sections, 10dp within the grid; verified live
-- [ ] Proposal: the same internal<external pass could help other screens
-      (Orders, Milestones, Cart) if they read uniform — owner call on scope
+- [x] Extended the internal<external pass to the other screens:
+      - Orders: the order log breaks ~24dp clear of the impact summary
+      - Milestones: every item is a major section → consistent ~22dp breaks
+        (was 12dp + ad-hoc 6/6/18 header tops); moppling-shelf golden refreshed
+      - PDP: the identity block (eyebrow/title/subtitle) groups tight, then
+        the 10dp base separates it from the rating
+      - Surveyed + left alone (correct as-is): Cart and Wishlist are uniform
+        item *lists* (even spacing is right); Checkout already uses section
+        labels with breaks; Tracking's delivered view already spaces at 16dp
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
