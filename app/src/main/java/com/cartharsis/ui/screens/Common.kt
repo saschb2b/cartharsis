@@ -567,26 +567,44 @@ fun MiniProductCard(product: Product, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        EmojiHero(
-            emoji = product.emoji,
-            modifier = Modifier.fillMaxWidth().height(76.dp),
-            fontSize = 36,
-            seed = product.id,
-        )
-        Column(Modifier.padding(10.dp)) {
+        // The same hero-bleed as the grid card, scaled down: art spills past
+        // a rounded inset stage, grounded by a glow.
+        Box(Modifier.fillMaxWidth().height(92.dp), contentAlignment = Alignment.Center) {
+            val colors = remember(product.id) { heroGradientColors(product.id) }
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 12.dp)
+                    .height(58.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.linearGradient(colors)),
+            )
+            Box(
+                Modifier
+                    .size(78.dp)
+                    .background(
+                        Brush.radialGradient(listOf(colors.first().copy(alpha = 0.4f), Color.Transparent)),
+                        CircleShape,
+                    ),
+            )
+            Text(product.emoji, fontSize = 52.sp)
+        }
+        Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 12.dp)) {
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.labelMedium,
+                lineHeight = 15.sp,
                 maxLines = 2,
                 minLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.height(6.dp))
             Text(
                 text = formatPrice(product.priceCents),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 2.dp),
             )
         }
     }
