@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -51,6 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -104,7 +106,11 @@ fun formatCompactCount(n: Int): String = when {
     else -> "${n / 1_000}k"
 }
 
-/** Full star row — the product page treatment. */
+/**
+ * Full star row — the product page treatment. The fill is fractional: a
+ * gold star strip is clipped over a faint one to the exact `rating/5`, so a
+ * 4.8 reads as nearly-five rather than a truncated four.
+ */
 @Composable
 fun RatingStars(rating: Double, reviewCount: Int? = null) {
     val description = "Rated $rating out of 5" +
@@ -113,16 +119,28 @@ fun RatingStars(rating: Double, reviewCount: Int? = null) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clearAndSetSemantics { contentDescription = description },
     ) {
-        val full = rating.toInt()
-        Text(
-            text = "★".repeat(full) + "☆".repeat(5 - full),
-            color = MaterialTheme.colorScheme.tertiary,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        val fraction = (rating / 5.0).coerceIn(0.0, 1.0).toFloat()
+        Box {
+            Text(
+                text = "★★★★★",
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.28f),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            // The gold layer, clipped to the exact fractional width.
+            Text(
+                text = "★★★★★",
+                color = MaterialTheme.colorScheme.tertiary,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.drawWithContent {
+                    clipRect(right = size.width * fraction) { this@drawWithContent.drawContent() }
+                },
+            )
+        }
         Text(
             text = " $rating" + (reviewCount?.let { " (%,d)".format(it) } ?: ""),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp),
         )
     }
 }
