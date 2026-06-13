@@ -195,7 +195,9 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
+                // Distinct top controls breathe at the medium gap (~16dp),
+                // not the tight 10dp base used within a group.
+                modifier = Modifier.padding(top = 6.dp).fillMaxWidth(),
                 placeholder = { Text("Search for things you'll never receive") },
                 leadingIcon = { Text("🔍") },
                 trailingIcon = {
@@ -212,20 +214,22 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 
         if (query.isBlank()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                AppearOnce(homeSeed, delayMillis = 90, enabled = !entranceDone) {
-                    val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
-                    // The 1Hz countdown is collected here, inside the banner
-                    // item, so each tick recomposes one row — not the whole
-                    // scrolling grid.
-                    val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
-                    FlashDealBanner(
-                        emoji = deal.emoji,
-                        name = deal.name,
-                        price = formatPrice(deal.priceCents),
-                        originalPrice = deal.originalPriceCents?.let(::formatPrice),
-                        countdown = formatCountdown(secondsLeft),
-                        onClick = { onProductClick(deal.id) },
-                    )
+                Box(Modifier.padding(top = 6.dp)) {
+                    AppearOnce(homeSeed, delayMillis = 90, enabled = !entranceDone) {
+                        val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
+                        // The 1Hz countdown is collected here, inside the banner
+                        // item, so each tick recomposes one row — not the whole
+                        // scrolling grid.
+                        val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
+                        FlashDealBanner(
+                            emoji = deal.emoji,
+                            name = deal.name,
+                            price = formatPrice(deal.priceCents),
+                            originalPrice = deal.originalPriceCents?.let(::formatPrice),
+                            countdown = formatCountdown(secondsLeft),
+                            onClick = { onProductClick(deal.id) },
+                        )
+                    }
                 }
             }
         }
@@ -233,6 +237,7 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(
                 modifier = Modifier
+                    .padding(top = 6.dp)
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
