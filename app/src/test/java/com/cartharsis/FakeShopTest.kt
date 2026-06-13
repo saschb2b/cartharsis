@@ -585,6 +585,25 @@ class FakeShopTest {
     }
 
     @Test
+    fun `listing and review copy carries no em-dashes`() {
+        // The shop copy is held to the no-slop register: the em-dash-as-aside
+        // tell stays out of every tagline, description, and review a shopper
+        // reads. (Card type lines like "Legendary Creature - Wizard" keep their
+        // dash, but those live on CardPull.type, not in any field checked here.)
+        val emDash = '—'
+        FakeCatalog.products.forEach { product ->
+            assertFalse("${product.name} tagline has an em-dash", emDash in product.tagline)
+            assertFalse("${product.name} description has an em-dash", emDash in product.description)
+            product.reviews.forEach { review ->
+                assertFalse(
+                    "review by ${review.author} on ${product.name} has an em-dash: ${review.text}",
+                    emDash in review.text,
+                )
+            }
+        }
+    }
+
+    @Test
     fun `user review codec round-trips, including hostile text`() {
         val nasty = UserReview(42, 3, "lines\nand|pipes and \"quotes\" and 🦖", 1_765_000_000_000)
         assertEquals(nasty, decodeUserReview(encodeUserReview(nasty)))
