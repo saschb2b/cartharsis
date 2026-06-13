@@ -394,11 +394,14 @@ internal fun FlashDealBanner(
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // An eyebrow kicker, not a headline: small and tracked so the
+                // product name below is the line that leads.
                 Text(
                     text = "⚡ FLASH DEAL",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.8.sp,
+                    color = Color.White.copy(alpha = 0.85f),
                 )
                 Surface(
                     color = Color.Black.copy(alpha = 0.25f),
