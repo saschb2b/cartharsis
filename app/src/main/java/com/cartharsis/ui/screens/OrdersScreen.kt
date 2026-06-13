@@ -314,7 +314,7 @@ private fun KeptHero(centsKept: Long) {
  * spelled out beside it.
  */
 @Composable
-private fun SavingsVault(centsKept: Long) {
+internal fun SavingsVault(centsKept: Long) {
     val next = nextSavingsMilestone(centsKept)
     val target = savingsMilestoneProgress(centsKept)
     val progress by animateFloatAsState(

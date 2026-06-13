@@ -340,7 +340,7 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 }
 
 @Composable
-private fun FlashDealBanner(
+internal fun FlashDealBanner(
     emoji: String,
     name: String,
     price: String,
