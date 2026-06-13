@@ -1,7 +1,17 @@
 package com.cartharsis.data
 
+import androidx.compose.runtime.Immutable
+
 data class Review(val author: String, val rating: Int, val text: String)
 
+/**
+ * A catalog product. Marked [Immutable] because nothing here ever mutates in
+ * place — the catalog is a fixed `val`, and price overrides / variant swaps
+ * produce new instances via `copy`. The promise lets Compose skip a card
+ * whose product is structurally unchanged, even across the fresh instances
+ * that `withPriceOverride` hands out each recomposition.
+ */
+@Immutable
 data class Product(
     val id: Int,
     val name: String,
@@ -94,6 +104,13 @@ enum class OrderStatus(val emoji: String, val label: String, val detail: String)
     DELIVERED("🧘", "Delivered", "Nothing has arrived. Exactly as planned."),
 }
 
+/**
+ * An order, [Immutable] for the same reason as [Product]: the items list is
+ * snapshotted at checkout and never mutated, and status/progress changes
+ * create a new instance via `copy`. Lets order rows skip while only the
+ * actively-delivering order's progress ticks.
+ */
+@Immutable
 data class Order(
     val id: Int,
     val items: List<CartItem>,

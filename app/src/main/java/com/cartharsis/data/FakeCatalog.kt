@@ -1,5 +1,7 @@
 package com.cartharsis.data
 
+import androidx.compose.runtime.Immutable
+
 /**
  * The entire "marketplace". Nothing here is real, purchasable, or shippable.
  *
@@ -17,7 +19,9 @@ package com.cartharsis.data
 /** One collectible figure from a Moppling blind-box wave. */
 data class MopplingFigure(val emoji: String, val name: String)
 
-/** A blind-box wave: the key is the shelf's persistence id. */
+/** A blind-box wave: the key is the shelf's persistence id. Immutable — the
+ * figure list is a fixed catalog `val`, so shelf rows can skip. */
+@Immutable
 data class MopplingWave(val key: String, val title: String, val figures: List<MopplingFigure>)
 
 data class CardPull(
