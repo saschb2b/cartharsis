@@ -81,6 +81,20 @@ object FakeCatalog {
         Review("Klaus W.", 1, "One star. I waited by the door all day like a fool. (Reordering now.)"),
         Review("Bea L.", 2, "Two stars because my real packages disappoint me now."),
         Review("Oskar T.", 5, "My fifth order. My savings account left a five-star review of me."),
+        Review("Hassan E.", 5, "The box was empty in the best way. So is my credit card statement."),
+        Review("Bridget N.", 5, "Added it to my cart at midnight and woke up richer."),
+        Review("Soo-ah L.", 5, "Returns are effortless. There is nothing to send back."),
+        Review("Matteo R.", 4, "Docked a star because I almost bought something real afterward. Almost."),
+        Review("Pernille K.", 5, "My partner asked where the package was. I said it transcended delivery."),
+        Review("Darius O.", 5, "The courier waved at my window and carried the void onward. Professional."),
+        Review("Indira S.", 5, "Unsubscribed from three real stores after this. My bank sent flowers."),
+        Review("Wesley T.", 4, "I keep checking the tracking out of habit. The little dot is very soothing."),
+        Review("Mira H.", 5, "Support replied instantly. There was no problem, because there was no product."),
+        Review("Cleo M.", 3, "Three stars. I loved the wanting, then remembered the wanting was the point."),
+        Review("Ferdinand B.", 2, "Two stars. Real deliveries feel like chores now. This one spoiled me."),
+        Review("Otto V.", 1, "One star. I set a place at the table for it. Reordering tonight regardless."),
+        Review("Yusuf A.", 5, "Budgeted for this and the budget never moved. Accounting calls it a miracle."),
+        Review("Linnea F.", 5, "Best impulse I never acted on."),
     )
 
     /**
