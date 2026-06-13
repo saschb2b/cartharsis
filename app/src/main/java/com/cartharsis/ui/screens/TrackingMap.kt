@@ -407,13 +407,16 @@ internal fun DeliveryTimeline(order: Order, modifier: Modifier = Modifier) {
 
 @Composable
 private fun TimelineRow(status: OrderStatus, isCurrent: Boolean, isLast: Boolean) {
+    // The current stage breathes — except DELIVERED, which is a destination,
+    // not an in-progress step (mirrors the old horizontal tracker).
+    val pulsing = isCurrent && status != OrderStatus.DELIVERED
     Row(Modifier.height(IntrinsicSize.Min)) {
-        // Marker column: a ringed dot, then a line filling down to the next.
+        // Marker column: a solid dot, then a line filling down to the next.
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(28.dp),
         ) {
-            TimelineDot(isCurrent = isCurrent)
+            TimelineDot(pulsing = pulsing)
             if (!isLast) {
                 Box(
                     Modifier
@@ -451,11 +454,11 @@ private fun TimelineRow(status: OrderStatus, isCurrent: Boolean, isLast: Boolean
     }
 }
 
-/** A solid accent marker, pulsing when current. Deliberately not a ringed
- * "donut" — a concentric dot reads as a vinyl record. */
+/** A solid accent marker, breathing while [pulsing]. Deliberately not a
+ * ringed "donut" — a concentric dot reads as a vinyl record. */
 @Composable
-private fun TimelineDot(isCurrent: Boolean) {
-    val scale = if (isCurrent) {
+private fun TimelineDot(pulsing: Boolean) {
+    val scale = if (pulsing) {
         val t = rememberInfiniteTransition(label = "dotPulse")
         t.animateFloat(
             initialValue = 1f,

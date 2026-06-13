@@ -63,6 +63,18 @@ internal fun RouteMapArrivingPreview() {
     }
 }
 
+/** The full five-stage log, as the delivered ceremony now shows it. */
+@PreviewTest
+@Preview(name = "Delivery timeline, all stages", showBackground = true, widthDp = 360)
+@Composable
+internal fun DeliveryTimelineFullPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(20.dp)) {
+            DeliveryTimeline(order = sampleOrder(OrderStatus.DELIVERED, 1f))
+        }
+    }
+}
+
 /** The whole concept on one render: map, overlapping header card, timeline. */
 @PreviewTest
 @Preview(name = "Tracking map, full", showBackground = true, widthDp = 400, heightDp = 880)

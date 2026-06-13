@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,7 +46,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -318,7 +316,24 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                         }
                     }
                 }
-                StatusTracker(order)
+                // The same vertical timeline the transit map uses — here the
+                // full log, all five stages latest-first — in a card so it
+                // sits among the ceremony's other cards.
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Delivery timeline",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
+                        DeliveryTimeline(order)
+                    }
+                }
                 ItemsCard(order)
             }
             if (celebrate) {
@@ -398,111 +413,6 @@ private fun TransitTracking(order: Order, vehicle: String, onBack: () -> Unit) {
             ItemsCard(order)
             Spacer(Modifier.height(24.dp))
         }
-    }
-}
-
-/**
- * Pizza-tracker stage row: done stages filled, the current one breathing,
- * the courier leg filling live with trip progress.
- */
-@Composable
-private fun StatusTracker(order: Order) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Column(Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OrderStatus.entries.forEachIndexed { index, status ->
-                    if (index > 0) {
-                        val fill = when {
-                            order.status >= status -> 1f
-                            order.status.ordinal == index - 1 && order.status == OrderStatus.ON_THE_WAY ->
-                                order.progress
-                            else -> 0f
-                        }
-                        Connector(fill = fill, modifier = Modifier.weight(1f))
-                    }
-                    TrackerNode(status = status, orderStatus = order.status)
-                }
-            }
-            AnimatedContent(targetState = order.status, label = "stage") { status ->
-                Column(Modifier.padding(top = 10.dp)) {
-                    Text(
-                        text = status.label,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = status.detail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TrackerNode(status: OrderStatus, orderStatus: OrderStatus) {
-    val reached = orderStatus >= status
-    val current = orderStatus == status
-    val scale = if (current && status != OrderStatus.DELIVERED) {
-        val transition = rememberInfiniteTransition(label = "nodePulse")
-        transition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.12f,
-            animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
-            label = "nodeScale",
-        ).value
-    } else {
-        1f
-    }
-    val stateLabel = when {
-        current -> "current"
-        reached -> "done"
-        else -> "upcoming"
-    }
-    Surface(
-        shape = CircleShape,
-        color = if (reached) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        modifier = Modifier
-            .size(40.dp)
-            .scale(scale)
-            .clearAndSetSemantics { contentDescription = "${status.label}: $stateLabel" },
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = status.emoji,
-                fontSize = 18.sp,
-                modifier = Modifier.alpha(if (reached) 1f else 0.35f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Connector(fill: Float, modifier: Modifier = Modifier) {
-    val animated by animateFloatAsState(targetValue = fill, animationSpec = tween(350), label = "connector")
-    Box(
-        modifier = modifier
-            .padding(horizontal = 3.dp)
-            .height(4.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(animated.coerceIn(0f, 1f))
-                .background(MaterialTheme.colorScheme.primary),
-        )
     }
 }
 
