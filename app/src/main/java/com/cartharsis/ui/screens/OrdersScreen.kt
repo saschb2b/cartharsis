@@ -178,10 +178,13 @@ private fun OrdersList(
             }
         } else {
             item {
+                // The order log is its own section, set ~24dp clear of the
+                // impact summary above (internal<external), then it binds to
+                // its cards at the 12dp base below.
                 Text(
                     text = "Your nothing, delivered",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 12.dp),
                 )
             }
         }
