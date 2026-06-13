@@ -584,10 +584,11 @@ Declined by owner: review sort/filter controls.
 - [x] Header code autosizes (no truncation at large font scales)
 - [x] Verified live end to end: confirmed -> transit (courier moving,
       waypoints, growing timeline) -> delivered ceremony -> unbox celebration
-- [ ] Proposal: the delivered ceremony still shows the old horizontal
-      pizza-tracker (StatusTracker) — now stylistically inconsistent with the
-      transit vertical timeline. Unifying them would touch the "keep the
-      ceremony intact" line, so it's an owner call
+- [x] Unified the delivered ceremony onto the same vertical timeline (owner
+      approved): the horizontal pizza-tracker is gone, the delivered view now
+      shows the full five-stage DeliveryTimeline in a card; the pulse is
+      suppressed on the final DELIVERED stage. StatusTracker/TrackerNode/
+      Connector removed
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
