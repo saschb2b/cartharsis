@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/productivity/autopilot/SKILL.md",
       "computedHash": "9439212adf2497251e9807e5aded17298ef80914f13e10673fd6ffc4b5617ee3"
+    },
+    "no-slop": {
+      "source": "saschb2b/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/no-slop/SKILL.md",
+      "computedHash": "88d8e83e50f27fbd1ceff41dbf455bb9411b2da4a178ab42aedfa354816603a6"
     }
   }
 }
