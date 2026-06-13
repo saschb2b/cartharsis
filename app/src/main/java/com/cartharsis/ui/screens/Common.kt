@@ -274,6 +274,14 @@ private val softHeroGradients: List<List<Color>> =
  * stable "packaging" tint, shared by EmojiHero and the PDP hero stage. */
 internal fun heroGradientColors(seed: Int): List<Color> = softHeroGradients[abs(seed) % softHeroGradients.size]
 
+/** The (stage, glow) brush pair for a card's hero-bleed, memoized per seed. */
+@Composable
+private fun rememberStageBrushes(seed: Int): Pair<Brush, Brush> = remember(seed) {
+    val colors = heroGradientColors(seed)
+    Brush.linearGradient(colors) to
+        Brush.radialGradient(listOf(colors.first().copy(alpha = 0.4f), Color.Transparent))
+}
+
 /** Big emoji on a soft per-product gradient — the entire "product photography" budget. */
 @Composable
 fun EmojiHero(emoji: String, modifier: Modifier = Modifier, fontSize: Int = 64, seed: Int = 0) {
@@ -493,7 +501,9 @@ fun ProductCard(
             // the PDP hero-bleed, card-scaled — so the grid reads alive rather
             // than as a flat colored band.
             Box(Modifier.fillMaxWidth().height(128.dp), contentAlignment = Alignment.Center) {
-                val colors = remember(product.id) { heroGradientColors(product.id) }
+                // Brushes memoized per product so a fling doesn't re-allocate
+                // the gradient and glow on every card that scrolls past.
+                val (stageBrush, glowBrush) = rememberStageBrushes(product.id)
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -501,16 +511,9 @@ fun ProductCard(
                         .padding(top = 14.dp)
                         .height(82.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .background(Brush.linearGradient(colors)),
+                        .background(stageBrush),
                 )
-                Box(
-                    Modifier
-                        .size(108.dp)
-                        .background(
-                            Brush.radialGradient(listOf(colors.first().copy(alpha = 0.4f), Color.Transparent)),
-                            CircleShape,
-                        ),
-                )
+                Box(Modifier.size(108.dp).background(glowBrush, CircleShape))
                 Text(product.emoji, fontSize = 78.sp)
                 product.discountPercent?.let {
                     DiscountBadge(percent = it, modifier = Modifier.align(Alignment.TopStart).padding(10.dp))
@@ -570,7 +573,7 @@ fun MiniProductCard(product: Product, onClick: () -> Unit) {
         // The same hero-bleed as the grid card, scaled down: art spills past
         // a rounded inset stage, grounded by a glow.
         Box(Modifier.fillMaxWidth().height(92.dp), contentAlignment = Alignment.Center) {
-            val colors = remember(product.id) { heroGradientColors(product.id) }
+            val (stageBrush, glowBrush) = rememberStageBrushes(product.id)
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -578,16 +581,9 @@ fun MiniProductCard(product: Product, onClick: () -> Unit) {
                     .padding(top = 12.dp)
                     .height(58.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Brush.linearGradient(colors)),
+                    .background(stageBrush),
             )
-            Box(
-                Modifier
-                    .size(78.dp)
-                    .background(
-                        Brush.radialGradient(listOf(colors.first().copy(alpha = 0.4f), Color.Transparent)),
-                        CircleShape,
-                    ),
-            )
+            Box(Modifier.size(78.dp).background(glowBrush, CircleShape))
             Text(product.emoji, fontSize = 52.sp)
         }
         Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 12.dp)) {
