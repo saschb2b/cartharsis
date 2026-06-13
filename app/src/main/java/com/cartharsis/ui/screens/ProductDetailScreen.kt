@@ -181,20 +181,24 @@ fun ProductDetailScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(
-                    text = product.category.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Text(
-                    text = product.tagline,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // The identity block — eyebrow, title, subtitle — is one tight
+                // unit, not three lines equidistant from the rating below it.
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = product.category.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = product.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        text = product.tagline,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
