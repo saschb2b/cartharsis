@@ -52,6 +52,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -599,7 +601,7 @@ private fun SpecRow(label: String, value: String) {
  * (fake) average so it always tells a coherent story.
  */
 @Composable
-private fun RatingSummary(product: Product) {
+internal fun RatingSummary(product: Product) {
     val shares = remember(product.id) { ratingDistribution(product.rating) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -665,7 +667,7 @@ private fun ratingDistribution(rating: Double): List<Float> {
 
 /** Star picker + text field — the whole "write a review" surface. */
 @Composable
-private fun ReviewEditor(
+internal fun ReviewEditor(
     initialRating: Int,
     initialText: String,
     onCancel: () -> Unit,
@@ -722,7 +724,7 @@ private fun ReviewEditor(
 
 /** The user's own review — pinned above the regulars, editable, deletable. */
 @Composable
-private fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () -> Unit) {
+internal fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -751,10 +753,7 @@ private fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () -
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Text(
-                    text = "★".repeat(review.rating),
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
+                ReviewStars(review.rating)
             }
             if (review.text.isNotBlank()) {
                 Text(
@@ -786,8 +785,35 @@ private fun reviewAgeLabel(productId: Int, index: Int): String {
 
 private fun reviewHelpfulCount(productId: Int, index: Int): Int = (productId * 37 + index * 53) % 412 + 3
 
+/**
+ * A single review's stars, always the full five: `rating` gold over a faint
+ * remainder, so a one-star reads as "1 of 5" instead of a lonely glyph. Same
+ * faint-under/gold-over treatment as the RatingStars summary, sized for a card.
+ */
 @Composable
-private fun ReviewCard(author: String, rating: Int, text: String, ageLabel: String, helpfulCount: Int) {
+private fun ReviewStars(rating: Int) {
+    val fraction = (rating / 5f).coerceIn(0f, 1f)
+    Box(
+        modifier = Modifier.clearAndSetSemantics { contentDescription = "$rating out of 5 stars" },
+    ) {
+        Text(
+            text = "★★★★★",
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.28f),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            text = "★★★★★",
+            color = MaterialTheme.colorScheme.tertiary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.drawWithContent {
+                clipRect(right = size.width * fraction) { this@drawWithContent.drawContent() }
+            },
+        )
+    }
+}
+
+@Composable
+internal fun ReviewCard(author: String, rating: Int, text: String, ageLabel: String, helpfulCount: Int) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -818,10 +844,7 @@ private fun ReviewCard(author: String, rating: Int, text: String, ageLabel: Stri
                         color = LocalSavingsColor.current,
                     )
                 }
-                Text(
-                    text = "★".repeat(rating),
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
+                ReviewStars(rating)
             }
             Text(
                 text = text,
