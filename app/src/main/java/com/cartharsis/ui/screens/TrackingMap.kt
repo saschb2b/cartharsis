@@ -10,13 +10,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,6 +29,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -33,11 +40,16 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.data.Order
+import com.cartharsis.data.OrderStatus
+import com.cartharsis.data.trackingCode
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
+import com.cartharsis.ui.theme.MintGreen
 import kotlin.math.hypot
 
 // The map "paper" and its road network — a stylized city, not a real one.
@@ -114,8 +126,8 @@ internal fun RouteMap(
             color = ElectricPurple,
             modifier = Modifier.offset {
                 IntOffset(
-                    (ROUTE.first().x * w - 9).dp.roundToPx(),
-                    (ROUTE.first().y * h - 9).dp.roundToPx(),
+                    (ROUTE.first().x * w - 7).dp.roundToPx(),
+                    (ROUTE.first().y * h - 7).dp.roundToPx(),
                 )
             },
         )
@@ -231,14 +243,16 @@ private fun DrawScope.drawRoute(traveledFraction: Float) {
     }
 }
 
+/** The origin marker: a solid dot lifted off the map by a shadow — not a
+ * white-ringed concentric dot, which would read as a record. */
 @Composable
 private fun RouteDot(color: Color, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .size(18.dp)
-            .background(Color.White, CircleShape)
-            .padding(3.dp)
-            .background(color, CircleShape),
+    Surface(
+        shape = CircleShape,
+        color = color,
+        shadowElevation = 2.dp,
+        modifier = modifier.size(15.dp),
+        content = {},
     )
 }
 
@@ -265,6 +279,187 @@ private fun HomeMarker(nearArrival: Boolean, modifier: Modifier = Modifier) {
             Text("🏠", fontSize = (17 * scale).sp)
         }
     }
+}
+
+/**
+ * The order header card, overlapping the map's bottom edge per the concept:
+ * the package thumbnail, an "Order Id" label + the courier-style tracking
+ * code, the status badge, and a location row.
+ */
+@Composable
+internal fun TrackingHeaderCard(order: Order, location: String, modifier: Modifier = Modifier) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(48.dp).clip(RoundedCornerShape(12.dp))) {
+                    EmojiHero(
+                        emoji = order.items.first().product.emoji,
+                        modifier = Modifier.fillMaxSize(),
+                        fontSize = 24,
+                        seed = order.items.first().product.id,
+                    )
+                }
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(
+                        text = "Order Id",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = trackingCode(order.id),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                }
+                StatusBadge(order.status)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 14.dp),
+            ) {
+                Text("📍", fontSize = 14.sp)
+                Column(Modifier.padding(start = 8.dp)) {
+                    Text(
+                        text = "Location",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = location,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The status pill — mint once arrived, accent while still in motion. */
+@Composable
+private fun StatusBadge(status: OrderStatus) {
+    val accent = if (status == OrderStatus.DELIVERED) MintGreen else HotPink
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = accent.copy(alpha = 0.15f),
+    ) {
+        Text(
+            text = status.badge,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = accent,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+        )
+    }
+}
+
+// Cumulative seconds from order placement to each stage — mirrors the timing
+// in ShopViewModel.runDeliverySimulation (3s pack, +5s courier, +4s on the
+// way, +45s trip). The whole delivery lands inside a minute, which is the
+// joke; "+12s" reads as the wink the chrome is allowed.
+private val STAGE_OFFSET_SECONDS = mapOf(
+    OrderStatus.CONFIRMED to 0,
+    OrderStatus.PACKING to 3,
+    OrderStatus.COURIER_ASSIGNED to 8,
+    OrderStatus.ON_THE_WAY to 12,
+    OrderStatus.DELIVERED to 57,
+)
+
+/**
+ * The delivery timeline, latest event on top, the way the concept logs an
+ * order's history: a connected column of ringed dot markers, each with a
+ * bold stage label, the elapsed offset on the right, and the detail line.
+ * Shows only events that have happened (status <= current), so it reads as
+ * a log rather than a checklist.
+ */
+@Composable
+internal fun DeliveryTimeline(order: Order, modifier: Modifier = Modifier) {
+    val events = OrderStatus.entries.filter { it <= order.status }.reversed()
+    Column(modifier) {
+        events.forEachIndexed { index, status ->
+            TimelineRow(
+                status = status,
+                isCurrent = status == order.status,
+                isLast = index == events.lastIndex,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimelineRow(status: OrderStatus, isCurrent: Boolean, isLast: Boolean) {
+    Row(Modifier.height(IntrinsicSize.Min)) {
+        // Marker column: a ringed dot, then a line filling down to the next.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(28.dp),
+        ) {
+            TimelineDot(isCurrent = isCurrent)
+            if (!isLast) {
+                Box(
+                    Modifier
+                        .width(2.dp)
+                        .weight(1f)
+                        .background(HotPink.copy(alpha = 0.35f)),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 4.dp, bottom = if (isLast) 0.dp else 18.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = status.label,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "+${STAGE_OFFSET_SECONDS[status] ?: 0}s",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = status.detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+    }
+}
+
+/** A solid accent marker, pulsing when current. Deliberately not a ringed
+ * "donut" — a concentric dot reads as a vinyl record. */
+@Composable
+private fun TimelineDot(isCurrent: Boolean) {
+    val scale = if (isCurrent) {
+        val t = rememberInfiniteTransition(label = "dotPulse")
+        t.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.22f,
+            animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
+            label = "dotScale",
+        ).value
+    } else {
+        1f
+    }
+    Box(
+        modifier = Modifier
+            .padding(top = 2.dp)
+            .size(14.dp)
+            .scale(scale)
+            .background(HotPink, CircleShape),
+    )
 }
 
 /** The rounded, floating back affordance the concept overlays on the map. */
