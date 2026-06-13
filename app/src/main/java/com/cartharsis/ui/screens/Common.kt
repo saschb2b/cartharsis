@@ -206,9 +206,17 @@ fun DiscountBadge(percent: Int, modifier: Modifier = Modifier) {
  * Fades + lifts its content in once, replaying whenever [key] changes. Used to
  * stagger the home sections on each open (different [delayMillis] per section)
  * so the storefront feels alive every time, even when content repeats.
+ *
+ * Pass [enabled] = false once the entrance has played to render the content
+ * plainly — a lazy item recycled back on-screen mid-scroll must not restart
+ * the fade, which both costs animation frames and flickers during a fling.
  */
 @Composable
-fun AppearOnce(key: Any, delayMillis: Int, content: @Composable () -> Unit) {
+fun AppearOnce(key: Any, delayMillis: Int, enabled: Boolean = true, content: @Composable () -> Unit) {
+    if (!enabled) {
+        content()
+        return
+    }
     var shown by remember(key) { mutableStateOf(false) }
     LaunchedEffect(key) {
         delay(delayMillis.toLong())
@@ -238,12 +246,19 @@ private val heroGradients = listOf(
     listOf(SkyBlue, ElectricPurple),
 )
 
+// Each gradient pair's softened (alpha 0.14) form, precomputed once — the
+// grid churns these hardest during a fling, so we don't re-soften per card.
+private val softHeroGradients: List<List<Color>> =
+    heroGradients.map { pair -> pair.map { it.copy(alpha = 0.14f) } }
+
 /** Big emoji on a soft per-product gradient — the entire "product photography" budget. */
 @Composable
 fun EmojiHero(emoji: String, modifier: Modifier = Modifier, fontSize: Int = 64, seed: Int = 0) {
-    val colors = heroGradients[abs(seed) % heroGradients.size].map { it.copy(alpha = 0.14f) }
+    val brush = remember(seed) {
+        Brush.linearGradient(softHeroGradients[abs(seed) % softHeroGradients.size])
+    }
     Box(
-        modifier = modifier.background(Brush.linearGradient(colors)),
+        modifier = modifier.background(brush),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = emoji, fontSize = fontSize.sp)

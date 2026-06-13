@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.MintGreen
 import java.util.Calendar
+import kotlinx.coroutines.delay
 
 /** Chip icons: a category you can recognize before you can read it. */
 private val categoryEmoji = mapOf(
@@ -70,7 +72,6 @@ private fun hourOfDayFor(seedMillis: Long): Int =
 fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
     val flashDeal by viewModel.flashDeal.collectAsState()
-    val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
@@ -102,6 +103,22 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         ordered.map { it.withPriceOverride(priceDrops[it.id]) }
     }
 
+    // Resolve the recently-viewed strip once per id-set change, not on every
+    // recomposition (each lookup is a linear catalog scan).
+    val recentProducts = remember(recentlyViewed) {
+        recentlyViewed.mapNotNull { id -> viewModel.catalog.firstOrNull { it.id == id } }
+    }
+
+    // The entrance animation plays once per fresh open, then retires: lazy
+    // items are disposed off-screen, so without this flag every scroll back
+    // up would replay the staggered fade — animation work (and a flicker)
+    // in the middle of a fling.
+    var entranceDone by remember(homeSeed) { mutableStateOf(false) }
+    LaunchedEffect(homeSeed) {
+        delay(1_200)
+        entranceDone = true
+    }
+
     // Themed shelves, recomputed only when the seed changes (a fresh open), so
     // they stay put while you browse but renew on every re-open.
     val shelves = remember(homeSeed) {
@@ -123,7 +140,7 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            AppearOnce(homeSeed, delayMillis = 0) {
+            AppearOnce(homeSeed, delayMillis = 0, enabled = !entranceDone) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
@@ -179,8 +196,12 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 
         if (query.isBlank()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                AppearOnce(homeSeed, delayMillis = 90) {
+                AppearOnce(homeSeed, delayMillis = 90, enabled = !entranceDone) {
                     val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
+                    // The 1Hz countdown is collected here, inside the banner
+                    // item, so each tick recomposes one row — not the whole
+                    // scrolling grid.
+                    val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
                     FlashDealBanner(
                         emoji = deal.emoji,
                         name = deal.name,
@@ -213,7 +234,6 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
             }
         }
 
-        val recentProducts = recentlyViewed.mapNotNull { id -> viewModel.catalog.firstOrNull { it.id == id } }
         if (query.isBlank() && recentProducts.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column {
@@ -241,7 +261,7 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
             itemsIndexed(shelves, span = { _, _ ->
                 GridItemSpan(maxLineSpan)
             }, key = { _, s -> "shelf-${s.title}" }) { index, shelf ->
-                AppearOnce(homeSeed, delayMillis = 150 + index * 70) {
+                AppearOnce(homeSeed, delayMillis = 150 + index * 70, enabled = !entranceDone) {
                     Column(Modifier.animateItem()) {
                         SectionHeader(
                             title = shelf.title,
