@@ -73,6 +73,12 @@ private val categoryEmoji = mapOf(
 private fun hourOfDayFor(seedMillis: Long): Int =
     Calendar.getInstance().apply { timeInMillis = seedMillis }.get(Calendar.HOUR_OF_DAY)
 
+// The flash-deal banner's brushes are constant, so they're allocated once
+// rather than rebuilt on every 1 Hz countdown tick.
+private val FlashDealGradient = Brush.linearGradient(listOf(HotPink, ElectricPurple))
+private val FlashDealGlow =
+    Brush.radialGradient(listOf(Color.White.copy(alpha = 0.28f), Color.Transparent))
+
 @Composable
 fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
@@ -357,7 +363,7 @@ internal fun FlashDealBanner(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Brush.linearGradient(listOf(HotPink, ElectricPurple)))
+            .background(FlashDealGradient)
             .clickable(onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -368,10 +374,7 @@ internal fun FlashDealBanner(
             Box(
                 Modifier
                     .size(72.dp)
-                    .background(
-                        Brush.radialGradient(listOf(Color.White.copy(alpha = 0.28f), Color.Transparent)),
-                        CircleShape,
-                    ),
+                    .background(FlashDealGlow, CircleShape),
             )
             Text(text = emoji, fontSize = 60.sp)
         }
