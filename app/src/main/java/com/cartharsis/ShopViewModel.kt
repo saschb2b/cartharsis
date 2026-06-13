@@ -355,6 +355,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removeFromCart(productId: Int) = setQuantity(productId, 0)
 
+    /** Empties the whole cart at once — the "want everything, keep nothing" button. */
+    fun clearCart() {
+        _cart.value = emptyList()
+    }
+
     /** The classic cart retreat: not buying it, not letting go of it either. */
     fun moveToWishlist(productId: Int) {
         removeFromCart(productId)

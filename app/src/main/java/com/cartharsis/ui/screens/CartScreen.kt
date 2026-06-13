@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -24,6 +26,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,20 +51,61 @@ fun CartScreen(viewModel: ShopViewModel, onCheckout: () -> Unit, onBrowse: () ->
     }
 
     val itemCount = cart.sumOf { it.quantity }
+    var confirmClear by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "Your cart",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = if (itemCount == 1) "1 item" else "$itemCount items",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = "Your cart",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Text(
+                    text = if (itemCount == 1) "1 item" else "$itemCount items",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // The concept's "Delete all" — emptying the whole cart at once,
+            // confirmed (it's bulk and instant), never confirmshamed.
+            TextButton(
+                onClick = { confirmClear = true },
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) {
+                Text("🗑 Clear", style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        if (confirmClear) {
+            AlertDialog(
+                onDismissRequest = { confirmClear = false },
+                title = { Text("Clear the cart?") },
+                text = {
+                    Text(
+                        if (itemCount == 1) {
+                            "Removes the one thing you weren't going to buy anyway."
+                        } else {
+                            "Removes all $itemCount things you weren't going to buy anyway."
+                        },
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.clearCart()
+                            confirmClear = false
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Text("Clear it all")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmClear = false }) {
+                        Text("Keep wanting")
+                    }
+                },
             )
         }
         LazyColumn(
