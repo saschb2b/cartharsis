@@ -650,5 +650,20 @@ FlashDealBanner, one commit at a time:
 - [ ] Proposal: the emoji could bleed off the banner's left edge for more
       drama (vs the contained spotlight) — judgment call, current reads well
 
+## Phase 41 — Home spacing hierarchy (was too uniform)
+Researched spacing systems (4/8-pt grid, the internal<external / proximity
+rule: tight within a group, larger between "islands"). The home grid used a
+single spacedBy(10) between everything, so nothing read as grouped.
+- [x] Section starts (each shelf, the grid header) add a SectionGap so a new
+      island stands ~24dp clear; section headers flipped to bind down to
+      their content (was top=4/bottom=8 — closer to the section above)
+- [x] Top controls (search, banner, chips) breathe at the ~16dp medium gap
+      instead of the tight 10dp base; the greeting brand+subtitle pair stays
+      tight
+- [x] Result: three tiers — tight pairs, ~16dp between distinct controls,
+      ~24dp between sections, 10dp within the grid; verified live
+- [ ] Proposal: the same internal<external pass could help other screens
+      (Orders, Milestones, Cart) if they read uniform — owner call on scope
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
