@@ -78,7 +78,11 @@ app/src/main/java/com/cartharsis/
         ├── WishlistScreen.kt    # Hearted items + price-drop badges
         ├── CartScreen.kt
         ├── CheckoutScreen.kt    # Fake payment → confetti success
-        ├── TrackingScreen.kt    # Animated courier delivery simulation
+        ├── TrackingScreen.kt    # In-transit: routed-map experience
+        │                        #   (TrackingMap.kt); delivered: unbox ceremony
+        ├── TrackingMap.kt       # RouteMap (street grid + routed path +
+        │                        #   courier), order header card, vertical
+        │                        #   delivery timeline — the tracking redesign
         ├── OrdersScreen.kt      # "Your impact" payoff: kept-money hero, savings
         │                        #   vault, milestones entry row, order cards,
         │                        #   empty state
@@ -100,6 +104,15 @@ app/src/main/java/com/cartharsis/
   place (shared id, alert-once) — one buzz per order. Arrival is interactive:
   a live-watched delivery presents a sealed parcel and the celebration
   (confetti, haptic, money tick, Mystery Box reveal) fires on the unbox tap.
+- The tracking screen has two faces (`TrackingScreen` early-returns on
+  status). In transit it's a full-bleed routed-map experience (`TrackingMap.kt`,
+  modeled on a courier-app concept): a stylized street grid with a dopamine
+  route the courier crawls by arc length, a floating back button (no app bar),
+  an overlapping order header (thumbnail + `trackingCode` + status `badge` +
+  whimsical waypoint location), and a vertical delivery timeline (solid
+  markers — never ringed "donut" dots, which read as a record — latest event
+  first, with playful `+Ns` offsets). Delivered keeps the Scaffold +
+  `NestedTopBar` and the unbox ceremony. All hand-rolled Canvas, no map SDK.
 - Price drops are an overlay map (`priceDrops: id → cents`) applied at display/
   cart-add time via `Product.withPriceOverride` — the catalog itself is immutable.
   Cart lines snapshot the price at add time.

@@ -564,5 +564,30 @@ Declined by owner: review sort/filter controls.
       while backgrounded — minor (the ViewModel tickers run regardless),
       owner call on the dependency
 
+## Phase 37 — Tracking map redesign (courier-app concept)
+- [x] Reworked the in-transit tracking screen to a routed-map concept
+      (TrackingMap.kt): a hand-rolled stylized street grid with a dopamine
+      route the courier crawls by arc length, a floating back button (no app
+      bar, dodges the status bar), an overlapping order header card
+      (thumbnail + trackingCode + status badge + whimsical waypoint location),
+      and a vertical delivery timeline (latest-first, +Ns offsets)
+- [x] Markers are solid dots, NOT ringed "donut" dots (owner: a concentric
+      dot reads as a vinyl record / bad meaning)
+- [x] data: stable courier-shaped trackingCode(orderId) (#7KQ4Z-CT091, no
+      ambiguous glyphs) + OrderStatus.badge; both tested
+- [x] Built previewable-first per owner request — RouteMap (3 states) + a
+      full combined preview are the iteration surface and visual gate
+- [x] Early-return splits the screen: transit = new map experience;
+      delivered = Scaffold + unbox ceremony, untouched. Retired
+      CourierMap/Courier/HomePin/EtaCard (RouteMap supersedes); en-route
+      vignettes survive as a header caption
+- [x] Header code autosizes (no truncation at large font scales)
+- [x] Verified live end to end: confirmed -> transit (courier moving,
+      waypoints, growing timeline) -> delivered ceremony -> unbox celebration
+- [ ] Proposal: the delivered ceremony still shows the old horizontal
+      pizza-tracker (StatusTracker) — now stylistically inconsistent with the
+      transit vertical timeline. Unifying them would touch the "keep the
+      ceremony intact" line, so it's an owner call
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
