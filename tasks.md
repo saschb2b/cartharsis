@@ -530,5 +530,39 @@ Declined by owner: review sort/filter controls.
       the board, engraved wave plaques, unfound slots as unpainted blank
       silhouettes; screenshot-previewed and verified live
 
+## Phase 36 — Performance polish pass
+- [x] Home scroll: scoped the 1Hz flash-deal countdown into its own grid
+      item (was recomposing the whole screen + grid lambda every second);
+      gated the staggered entrance animation off after first play (was
+      replaying on recycled lazy items mid-fling); memoized EmojiHero's
+      gradient/brush and the recently-viewed lookup. gfxinfo: janky 7.2%
+      -> 3.4%, worst frame 65ms -> 32ms
+- [x] Stability: marked Product / Order / MopplingWave @Immutable (each
+      carries a List → was compiler-unstable → cards non-skippable).
+      Verified via Compose compiler metrics: all six model types now
+      'stable', ProductCard/MiniProductCard/RipCardFace 'restartable
+      skippable'. Upgrades skipping from instance- to structural-equality,
+      so the shelves (fresh displayProduct copies) and order/cart/binder
+      rows skip when unchanged
+- [x] Layout-phase deferral: courier dot's animated offset moved from
+      Modifier.offset(x.dp, y.dp) (composition) to Modifier.offset { }
+      (layout) — it bobs on an infinite animation the whole trip, so it
+      was recomposing every frame. Verified live mid-delivery
+- [x] Surveyed & cleared: release build already R8-minified + resource-
+      shrunk; scrollState.value read is in an event handler not
+      composition; lazy lists already keyed; no other per-second
+      full-screen recompositions
+- Deliberately NOT changed: the Mystery-Box reveal reads its Animatable
+      at the top of composition (per-frame recompose for 2.8s), but it's
+      a one-shot nobody flagged and full deferral means restructuring a
+      delicate working animation — not worth the risk
+- [ ] Proposal: add a Baseline Profile (baseline-profile gradle plugin +
+      generator) to warm first-launch/first-scroll JIT — build-infra add,
+      modest benefit on an app this size, owner call
+- [ ] Proposal: swap collectAsState -> collectAsStateWithLifecycle (needs
+      lifecycle-runtime-compose dep) so flows stop delivering recompositions
+      while backgrounded — minor (the ViewModel tickers run regardless),
+      owner call on the dependency
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
