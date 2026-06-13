@@ -1,10 +1,13 @@
 package com.cartharsis.ui.screens
 
+import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +46,31 @@ internal fun ProductCardStatesPreview() {
                 ProductCard(variantProduct, {}, isWishlisted = false, {}, Modifier.width(168.dp))
             }
             ProductCard(longNameProduct, {}, isWishlisted = false, {}, Modifier.width(168.dp))
+        }
+    }
+}
+
+/** The cards on a dark surface — the hero-bleed glow and tinted stages
+ * need to read against night, not just the cream light theme. */
+@PreviewTest
+@Preview(
+    name = "Cards, dark",
+    showBackground = true,
+    widthDp = 380,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+internal fun CardsDarkPreview() {
+    CartharsisTheme {
+        Column(
+            Modifier.background(MaterialTheme.colorScheme.background).padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ProductCard(plainProduct, {}, isWishlisted = false, {}, Modifier.width(168.dp))
+                ProductCard(saleProduct, {}, isWishlisted = true, {}, Modifier.width(168.dp))
+            }
+            MiniProductCard(product = variantProduct, onClick = {})
         }
     }
 }
