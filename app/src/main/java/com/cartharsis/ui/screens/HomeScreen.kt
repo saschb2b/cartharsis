@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
@@ -396,13 +398,16 @@ internal fun FlashDealBanner(
                     )
                 }
             }
+            Spacer(Modifier.height(3.dp))
             Text(
                 text = name,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = price,
@@ -419,6 +424,8 @@ internal fun FlashDealBanner(
                 }
             }
         }
+        // A real gap before the CTA so the name never butts against it.
+        Spacer(Modifier.width(12.dp))
         Surface(color = JuicyOrange, shape = RoundedCornerShape(12.dp)) {
             Text(
                 text = "GRAB IT",
