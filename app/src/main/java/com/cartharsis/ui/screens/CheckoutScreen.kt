@@ -367,7 +367,7 @@ private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modif
         Crossfade(targetState = showHoldHint, label = "holdHint") { hinting ->
             Text(
                 text = if (hinting) {
-                    "Keep holding — commitment takes a second"
+                    "Keep holding, commitment takes a second"
                 } else {
                     "Hold to pay ${formatPrice(totalCents)}"
                 },

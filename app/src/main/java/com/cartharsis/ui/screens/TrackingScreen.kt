@@ -349,7 +349,7 @@ private val courierMoments = listOf(
     "🐕 Briefly stopped to pet a dog",
     "🚦 Caught every green light so far",
     "🌤️ Weather over the route: imaginary and mild",
-    "🪢 Double-checked the straps — the nothing is secure",
+    "🪢 Double-checked the straps, the nothing is secure",
     "🎶 Courier is humming. Good sign.",
 )
 
@@ -357,7 +357,7 @@ private val courierMoments = listOf(
 // header card's "current location", bucketed on trip progress.
 private val transitWaypoints = listOf(
     "Imaginary Highway, Exit 0",
-    "Midtown — paused at a red light",
+    "Midtown, paused at a red light",
     "Crossing the Anticipation Bridge",
     "Anticipation Street, Dopamine City",
 )

@@ -5,8 +5,8 @@ import androidx.compose.runtime.Immutable
 /**
  * The entire "marketplace". Nothing here is real, purchasable, or shippable.
  *
- * Listings play it straight — invented brands, realistic specs and prices,
- * sincere copy — because the research behind the app says believability is
+ * Listings play it straight, invented brands, realistic specs and prices,
+ * sincere copy, because the research behind the app says believability is
  * what makes the anticipation work. The satire lives in the frame around the
  * shelf: the reviews below, the notifications, the checkout. Reviews are
  * assigned deterministically from a shared pool so the catalog is stable
@@ -19,7 +19,7 @@ import androidx.compose.runtime.Immutable
 /** One collectible figure from a Moppling blind-box wave. */
 data class MopplingFigure(val emoji: String, val name: String)
 
-/** A blind-box wave: the key is the shelf's persistence id. Immutable — the
+/** A blind-box wave: the key is the shelf's persistence id. Immutable, the
  * figure list is a fixed catalog `val`, so shelf rows can skip. */
 @Immutable
 data class MopplingWave(val key: String, val title: String, val figures: List<MopplingFigure>)
@@ -28,14 +28,14 @@ data class CardPull(
     val emoji: String,
     val name: String,
     val rarity: String,
-    /** The one-line flavor text under the art — deadpan, like the listings. */
+    /** The one-line flavor text under the art, deadpan, like the listings. */
     val flavor: String = "",
     /**
      * The type line between art and text box, in the idiom of the real game
      * each invented one homages: Pocket Critters wears Pokémon stage lines
      * ("Basic Flame Critter"), Duelbound wears Yu-Gi-Oh brackets
      * ("[Spellcaster / Effect]"), Manaforge wears Magic's em-dash
-     * ("Legendary Creature — Human Wizard").
+     * ("Legendary Creature, Human Wizard").
      */
     val type: String = "",
     /**
@@ -84,7 +84,7 @@ object FakeCatalog {
     )
 
     /**
-     * Each category has its own regulars — a graphics card and a fried
+     * Each category has its own regulars, a graphics card and a fried
      * chicken bucket should not share a reviewer voice.
      */
     private val categoryPools = mapOf(
@@ -370,7 +370,7 @@ object FakeCatalog {
         product(
             "Imported Snack Box: Mystery Edition", "🎁",
             "47 snacks. Zero repeats.",
-            "A curated surprise box of 47 snacks from twelve countries — chips, " +
+            "A curated surprise box of 47 snacks from twelve countries: chips, " +
                 "candies, biscuits, and at least one flavor you'll need to describe " +
                 "to a friend afterward.",
             7_900, "Snacks", 4.7, 8146,
@@ -540,7 +540,7 @@ object FakeCatalog {
             "NoiseGone Buds", "🎵",
             "The Pro sound, pocket-sized.",
             "Adaptive noise cancellation in 5-gram earbuds with multipoint, wireless " +
-                "charging, and six hours per charge — thirty with the case.",
+                "charging, and six hours per charge, thirty with the case.",
             19_900, "Audio", 4.6, 10412, originalPriceCents = 24_900,
         ),
         product(
@@ -971,7 +971,7 @@ object FakeCatalog {
             "Rechargeable Headlamp, 400lm", "🔦",
             "Hands-free until sunrise.",
             "400 lumens with flood and spot modes, red night vision, USB-C charging, " +
-                "and IPX6 rain-proofing — at 50 grams.",
+                "and IPX6 rain-proofing. At 50 grams.",
             3_400, "Outdoors", 4.6, 7726,
         ),
         product(
@@ -1184,7 +1184,7 @@ object FakeCatalog {
         ),
 
         // ---- Current-product expansion (appended; ids stay stable) ----
-        // Tech — the gadgets people actually doom-scroll into carts right now.
+        // Tech, the gadgets people actually doom-scroll into carts right now.
         product(
             "Halo Smart Ring", "💍",
             "Your sleep score, on your finger.",
@@ -1253,7 +1253,7 @@ object FakeCatalog {
             "Volt 100W GaN Charger", "🔌",
             "One brick, every device.",
             "Gallium-nitride internals shrink a 100W four-port charger to the size of " +
-                "a deck of cards — laptop, phone, tablet, and buds at once. The " +
+                "a deck of cards: laptop, phone, tablet, and buds at once. The " +
                 "cable nest in your bag remains, sadly, real.",
             5_900, "Tech", 4.8, 11233,
         ),
@@ -1266,7 +1266,7 @@ object FakeCatalog {
             22_900, "Tech", 4.6, 3052,
         ),
 
-        // Audio — the speakers and buds that fill carts now.
+        // Audio, the speakers and buds that fill carts now.
         product(
             "Pebble Go Portable Speaker", "🔈",
             "Pocket-sized, room-filling.",
@@ -1308,7 +1308,7 @@ object FakeCatalog {
             29_900, "Audio", 4.6, 5118,
         ),
 
-        // Gaming — the gear and titles in everyone's cart this year.
+        // Gaming, the gear and titles in everyone's cart this year.
         product(
             "Pocket Arcade Retro Handheld", "🕹️",
             "Forty years of games, one pocket.",
@@ -1358,7 +1358,7 @@ object FakeCatalog {
             5_900, "Gaming", 4.7, 28533,
         ),
 
-        // Kitchen — the viral countertop wave.
+        // Kitchen, the viral countertop wave.
         product(
             "Quench 40oz Tumbler", "🥤",
             "Hydration as a personality.",
@@ -1408,7 +1408,7 @@ object FakeCatalog {
             9_900, "Kitchen", 4.8, 7320, originalPriceCents = 12_900,
         ),
 
-        // Beauty — the routine upgrades all over your feed.
+        // Beauty, the routine upgrades all over your feed.
         product(
             "Lumi LED Face Mask", "💆",
             "Salon light therapy at home.",
@@ -1419,7 +1419,7 @@ object FakeCatalog {
         ),
         product(
             "AirStyle Multi-Styler", "💨",
-            "Dry, curl, and smooth — no extreme heat.",
+            "Dry, curl, and smooth. No extreme heat.",
             "A styling wand that curls with airflow instead of scorching plates, " +
                 "with magnetic attachments for waves, volume, and a fast blow-dry. " +
                 "The viral one. Transforms your hair, leaves your wallet untouched.",
@@ -1450,7 +1450,7 @@ object FakeCatalog {
             3_400, "Beauty", 4.8, 22019,
         ),
 
-        // Self-Care — the at-home recovery and wind-down wave.
+        // Self-Care, the at-home recovery and wind-down wave.
         product(
             "Glow Red Light Panel", "🔴",
             "Ten minutes of warm, red calm.",
@@ -1489,11 +1489,11 @@ object FakeCatalog {
             "A sauna you wrap yourself in.",
             "A far-infrared blanket that delivers a deep, sweaty session on your own " +
                 "couch, with a waterproof inner layer and a simple controller. The " +
-                "wellness ritual without the gym membership — or the membership fee.",
+                "wellness ritual without the gym membership, or the membership fee.",
             29_900, "Self-Care", 4.4, 3905, originalPriceCents = 39_900,
         ),
 
-        // Fitness — the home-setup gear trending right now.
+        // Fitness, the home-setup gear trending right now.
         product(
             "StrideDesk Walking Pad", "🚶",
             "Ten thousand steps under your desk.",
@@ -1521,7 +1521,7 @@ object FakeCatalog {
         product(
             "BodyScan Smart Scale", "⚖️",
             "Weight is just the first number.",
-            "A glass scale that reads body composition — fat, muscle, water, bone — " +
+            "A glass scale that reads body composition (fat, muscle, water, bone), " +
                 "and syncs the trend to your phone so you watch the line, not the " +
                 "day. Greets you each morning with data you didn't pay for.",
             5_900, "Fitness", 4.5, 15330,
@@ -1535,7 +1535,7 @@ object FakeCatalog {
             8_900, "Fitness", 4.6, 5471, originalPriceCents = 10_900,
         ),
 
-        // Snacks — the foods your feed won't stop showing you.
+        // Snacks, the foods your feed won't stop showing you.
         product(
             "Freeze-Dried Candy Crunch Mix", "🍬",
             "Your favorite candy, now a crunchy puff.",
@@ -1548,7 +1548,7 @@ object FakeCatalog {
             "Sichuan Chili Crisp Jar", "🌶️",
             "Put it on literally everything.",
             "Crunchy chili oil layered with garlic, shallot, and a numbing Sichuan " +
-                "tingle — equally at home on dumplings, eggs, ice cream, or a spoon. " +
+                "tingle, equally at home on dumplings, eggs, ice cream, or a spoon. " +
                 "The jar that disappears in a week. This one disappears faster.",
             1_200, "Snacks", 4.9, 26611,
         ),
@@ -1572,7 +1572,7 @@ object FakeCatalog {
             "Pistachio Kunafa Chocolate Bar", "🍫",
             "The viral bar, fully loaded.",
             "A thick chocolate bar stuffed with pistachio cream and crispy shredded " +
-                "kunafa pastry — the one that broke the internet and sold out " +
+                "kunafa pastry, the one that broke the internet and sold out " +
                 "everywhere. Snaps loud, eats rich. Sold out here too, technically.",
             2_200, "Snacks", 4.8, 33107,
         ),
@@ -1585,7 +1585,7 @@ object FakeCatalog {
             3_400, "Snacks", 4.7, 8642,
         ),
 
-        // Outdoors — the commute-and-trail gear of the moment.
+        // Outdoors, the commute-and-trail gear of the moment.
         product(
             "Glide E-Scooter", "🛴",
             "Skip the traffic, fold the commute.",
@@ -1628,7 +1628,7 @@ object FakeCatalog {
             12_900, "Outdoors", 4.8, 8807, originalPriceCents = 15_900,
         ),
 
-        // Pets — the smart-pet gear owners obsess over now.
+        // Pets, the smart-pet gear owners obsess over now.
         product(
             "PurrClean Self-Cleaning Litter Box", "🐈",
             "Scoop nothing, ever again.",
@@ -1670,7 +1670,7 @@ object FakeCatalog {
             9_900, "Pets", 4.6, 6077,
         ),
 
-        // Fashion — the silhouette everyone's wearing this season.
+        // Fashion, the silhouette everyone's wearing this season.
         product(
             "Parachute Cargo Pants", "👖",
             "Billowy, pocketed, everywhere.",
@@ -1681,7 +1681,7 @@ object FakeCatalog {
         ),
         product(
             "Everyday Sling Bag", "🎒",
-            "Phone, keys, charger — across the chest.",
+            "Phone, keys, charger. Across the chest.",
             "A compact crossbody sling in water-repellent nylon with a magnetic " +
                 "buckle and just-enough organization for a daily carry or a travel " +
                 "day. Swings to the front in a second. Carries nothing, stylishly.",
@@ -1712,7 +1712,7 @@ object FakeCatalog {
             8_900, "Fashion", 4.5, 10288, originalPriceCents = 11_900,
         ),
 
-        // Hobbies — the crafts and kits trending across feeds.
+        // Hobbies, the crafts and kits trending across feeds.
         product(
             "ChirpCam Smart Bird Feeder", "🐦",
             "Meet the birds in your own yard.",
@@ -1733,7 +1733,7 @@ object FakeCatalog {
             "Diamond Painting Kit, Galaxy", "💎",
             "Sparkle therapy, one tile at a time.",
             "A large canvas, trays of shimmering resin gems, and the tools to place " +
-                "them into a glittering galaxy scene — the craft that's equal parts " +
+                "them into a glittering galaxy scene, the craft that's equal parts " +
                 "ASMR and accomplishment. Hours of calm. The frame stays empty here.",
             2_400, "Hobbies", 4.7, 9803,
         ),
@@ -1749,7 +1749,7 @@ object FakeCatalog {
             "Botanical Brick Bouquet", "💐",
             "Flowers that never wilt.",
             "An 800-piece building set that assembles into a vase of detailed brick " +
-                "blooms — the grown-up build that doubles as decor. An evening of " +
+                "blooms, the grown-up build that doubles as decor. An evening of " +
                 "clicks and a forever bouquet. Petals not included, by definition.",
             5_900, "Hobbies", 4.8, 15077,
         ),
@@ -1757,12 +1757,12 @@ object FakeCatalog {
             "Gourmet Mushroom Grow Kit", "🍄",
             "Harvest dinner off your counter.",
             "A ready-to-fruit block that sprouts a flush of oyster mushrooms in ten " +
-                "days with nothing but a daily mist — the most rewarding thing you'll " +
+                "days with nothing but a daily mist, the most rewarding thing you'll " +
                 "grow indoors. Spores of satisfaction; zero actual mushrooms shipped.",
             2_200, "Hobbies", 4.6, 7219,
         ),
 
-        // Stationery — the journaling and annotation haul.
+        // Stationery, the journaling and annotation haul.
         product(
             "Fineliner Pen Set, 24 Colors", "🖊️",
             "Bullet-journal spreads, sorted.",
@@ -1783,7 +1783,7 @@ object FakeCatalog {
             "Book Annotation Kit", "📑",
             "Mark up your novels like a scholar.",
             "Pastel highlighters that won't ghost through pages, a wall of sticky " +
-                "tabs, and tiny page flags — the BookTok annotation starter every " +
+                "tabs, and tiny page flags, the BookTok annotation starter every " +
                 "reader suddenly needs. Turns reading into a craft. Pages sold " +
                 "separately, and imaginarily.",
             2_200, "Stationery", 4.8, 12715, originalPriceCents = 2_900,
@@ -1805,13 +1805,13 @@ object FakeCatalog {
             2_400, "Stationery", 4.7, 6510,
         ),
 
-        // Home — the connected-home upgrades on every wishlist.
+        // Home, the connected-home upgrades on every wishlist.
         product(
             "DoorWatch Video Doorbell", "🔔",
             "See who's there from anywhere.",
             "A 2K video doorbell with package detection, two-way talk, and on-device " +
                 "person alerts, wired or battery, with no monthly fee for local " +
-                "clips. Watches your porch faithfully — including the parcels that " +
+                "clips. Watches your porch faithfully, including the parcels that " +
                 "never come.",
             12_900, "Home", 4.6, 10588, originalPriceCents = 15_900,
         ),
@@ -1850,7 +1850,7 @@ object FakeCatalog {
             2_900, "Home", 4.7, 18033, originalPriceCents = 3_900,
         ),
 
-        // Chaos — the absurd-but-real novelties of the moment.
+        // Chaos, the absurd-but-real novelties of the moment.
         product(
             "Giant Plush Crocodile, 2m", "🐊",
             "Two meters of unconditional support.",
@@ -1878,8 +1878,8 @@ object FakeCatalog {
         product(
             "200 Rubber Ducks, Assorted", "🐤",
             "Why two hundred? Why not.",
-            "A bulk bag of two hundred tiny rubber ducks in costumes — pirates, " +
-                "knights, dinosaurs — for desk armies, jeep-ducking, or sheer " +
+            "A bulk bag of two hundred tiny rubber ducks in costumes, pirates, " +
+                "knights, dinosaurs, for desk armies, jeep-ducking, or sheer " +
                 "abundance. The quantity is the joke. The shipment is the punchline.",
             2_400, "Chaos", 4.8, 9911, originalPriceCents = 2_900,
         ),
@@ -1892,7 +1892,7 @@ object FakeCatalog {
             7_900, "Chaos", 4.7, 5288,
         ),
 
-        // Gaming — the current-gen console ecosystem and accessories.
+        // Gaming, the current-gen console ecosystem and accessories.
         product(
             "Meteor Swift Hybrid Console", "🎮",
             "Dock it for the TV, grab it for the couch.",
@@ -1925,7 +1925,7 @@ object FakeCatalog {
             "Meteor 2TB Storage Expansion Card", "💾",
             "Stop uninstalling to install.",
             "A plug-and-play expansion card that doubles your console's storage at " +
-                "full internal speed — no enclosure, no fuss, just slot it in. Forty " +
+                "full internal speed, no enclosure, no fuss, just slot it in. Forty " +
                 "more games you'll mean to finish. Zero of them arriving.",
             27_900, "Gaming", 4.7, 5530,
         ),
@@ -1991,7 +1991,7 @@ object FakeCatalog {
             14_900, "Gaming", 4.8, 7611, originalPriceCents = 17_900,
         ),
 
-        // Gaming — a believable current-gen library for the console.
+        // Gaming, a believable current-gen library for the console.
         product(
             "Ashen Banner", "🗡️",
             "Die, learn, conquer. Repeat.",
@@ -2034,14 +2034,14 @@ object FakeCatalog {
             5_900, "Gaming", 4.6, 21344,
         ),
 
-        // Gaming — console bundles (separate listings + "What's included",
+        // Gaming, console bundles (separate listings + "What's included",
         // Amazon-style). Each bundle price is honestly below the sum of its
         // parts, so the savings shown are real, not a fabricated strikethrough.
         product(
             "Meteor Swift + Turbo Kart Bundle", "🎮",
             "The console and the game everyone starts with.",
             "The hybrid Meteor Swift paired with a full download of Turbo Kart " +
-                "Carnival — the pack-in bundle that is most people's first box. One " +
+                "Carnival, the pack-in bundle that is most people's first box. One " +
                 "price, one unboxing, zero of it arriving.",
             42_900, "Gaming", 4.8, 18402, originalPriceCents = 45_800,
             includes = listOf(
@@ -2066,7 +2066,7 @@ object FakeCatalog {
         product(
             "Meteor Swift Starter Kit", "🎮",
             "Console plus the accessories you'd buy next.",
-            "The Meteor Swift bundled with the protection a new handheld needs — a " +
+            "The Meteor Swift bundled with the protection a new handheld needs, a " +
                 "hard travel case, a tempered-glass guard, and a spare cable. " +
                 "Everything to keep safe the device that never ships.",
             41_900, "Gaming", 4.8, 6755, originalPriceCents = 44_700,
@@ -2095,7 +2095,7 @@ object FakeCatalog {
             "Meteor MK-II + Redline GT Bundle", "🎮",
             "The 4K console, set up for the sim seat.",
             "The flagship Meteor MK-II with a full download of Redline GT 5 and an " +
-                "extra controller — the home-console bundle built for the living " +
+                "extra controller, the home-console bundle built for the living " +
                 "room. Add a force-feedback wheel and the podium is yours, " +
                 "hypothetically.",
             57_900, "Gaming", 4.8, 7611, originalPriceCents = 62_700,
@@ -2106,12 +2106,12 @@ object FakeCatalog {
             ),
         ),
 
-        // Gaming — Meteor Pro Controller colorways (variant siblings of the
+        // Gaming, Meteor Pro Controller colorways (variant siblings of the
         // base black controller above; the PDP shows a Color swatch row). Each
         // is its own listing, like Amazon's separate-ASIN colors; the limited
         // editions cost a touch more.
         product(
-            "Meteor Pro Controller — Volcanic Red", "🎮",
+            "Meteor Pro Controller, Volcanic Red", "🎮",
             "Built for the long session, dressed to be seen.",
             "The same drift-free Hall-effect sticks, back paddles, and 40-hour " +
                 "battery, in a molten red finish with matching thumbsticks. The " +
@@ -2120,7 +2120,7 @@ object FakeCatalog {
             variantGroup = "meteor-pro-controller", variantLabel = "Volcanic Red",
         ),
         product(
-            "Meteor Pro Controller — Starlight Blue", "🎮",
+            "Meteor Pro Controller, Starlight Blue", "🎮",
             "Built for the long session, finished in cosmos.",
             "Drift-free Hall-effect sticks, remappable paddles, and a 40-hour " +
                 "battery in a deep starlight-blue fade. Quietly the best-looking pad " +
@@ -2129,18 +2129,18 @@ object FakeCatalog {
             variantGroup = "meteor-pro-controller", variantLabel = "Starlight Blue",
         ),
         product(
-            "Meteor Pro Controller — Sterling Silver", "🎮",
+            "Meteor Pro Controller, Sterling Silver", "🎮",
             "Built for the long session, plated for the shelf.",
             "The pro controller in a brushed sterling finish with metallic face " +
-                "buttons — the limited edition that sells out on sight. Premium to " +
+                "buttons, the limited edition that sells out on sight. Premium to " +
                 "the touch, theoretical in the hand.",
             7_900, "Gaming", 4.8, 3677, originalPriceCents = 8_900,
             variantGroup = "meteor-pro-controller", variantLabel = "Sterling Silver",
         ),
-        // Console edition variant — the standard/digital split (Switch-2 style),
+        // Console edition variant, the standard/digital split (Switch-2 style),
         // a separate listing that shares the Swift's Edition swatch row.
         product(
-            "Meteor Swift — Digital Edition", "🎮",
+            "Meteor Swift, Digital Edition", "🎮",
             "The same console, download-only.",
             "The full Meteor Swift hardware without the game-card slot, for players " +
                 "who buy everything from the store. Lighter on the shelf and on the " +
@@ -2149,7 +2149,7 @@ object FakeCatalog {
             variantGroup = "meteor-swift", variantLabel = "Digital", variantAxis = "Edition",
         ),
 
-        // Gaming — Orbit, the rival console ecosystem (the other half of the
+        // Gaming, Orbit, the rival console ecosystem (the other half of the
         // console duopoly), with its own bundle and Disc/Digital editions.
         product(
             "Orbit One Console", "🎮",
@@ -2162,9 +2162,9 @@ object FakeCatalog {
             variantGroup = "orbit-one", variantLabel = "Disc Edition", variantAxis = "Edition",
         ),
         product(
-            "Orbit One — Digital Edition", "🎮",
+            "Orbit One, Digital Edition", "🎮",
             "Same power, no disc drive.",
-            "The slimmer Orbit One for the all-download crowd — identical internals, " +
+            "The slimmer Orbit One for the all-download crowd, identical internals, " +
                 "minus the disc slot, minus a chunk of the price. The digital future, " +
                 "delivered digitally, which is to say not at all.",
             44_900, "Gaming", 4.7, 12033,
@@ -2181,7 +2181,7 @@ object FakeCatalog {
         product(
             "Orbit One + Skybound Survivors Bundle", "🎮",
             "The rival console with a co-op epic to start.",
-            "The Orbit One paired with a full download of Skybound Survivors — the " +
+            "The Orbit One paired with a full download of Skybound Survivors, the " +
                 "console-and-game box for the other camp. One price, one unboxing, " +
                 "zero of it real.",
             52_900, "Gaming", 4.8, 8401, originalPriceCents = 55_800,
@@ -2200,11 +2200,11 @@ object FakeCatalog {
         // included"), priced honestly below their parts. As everywhere:
         // listings deadpan-sincere, satire stays in the frame.
 
-        // Pocket Critters TCG — series: Emberglow, Abyssal Tides.
+        // Pocket Critters TCG, series: Emberglow, Abyssal Tides.
         product(
             "Pocket Critters: Emberglow Booster Pack", "🎴",
             "Eleven cards. One spark of maybe.",
-            "An 11-card booster from the Emberglow expansion — 203 critters of " +
+            "An 11-card booster from the Emberglow expansion, 203 critters of " +
                 "the volcanic valley, a reverse-holo in every pack, and a rare or " +
                 "better guaranteed. The wrapper art alone is worth keeping.",
             449, "Trading Cards", 4.8, 21458,
@@ -2214,7 +2214,7 @@ object FakeCatalog {
         product(
             "Pocket Critters: Emberglow Booster Display", "📦",
             "Thirty-six packs, factory sealed.",
-            "A sealed display of 36 Emberglow boosters straight from the case — " +
+            "A sealed display of 36 Emberglow boosters straight from the case, " +
                 "the classic way to chase a full set. Pull rates feel kinder by " +
                 "the dozen, and the box stores the binder overflow afterward.",
             13_999, "Trading Cards", 4.9, 3211, originalPriceCents = 16_164,
@@ -2241,7 +2241,7 @@ object FakeCatalog {
             "Pocket Critters: Emberglow Elite Collector Box", "🧰",
             "The whole hobby in one lid-lift.",
             "Nine boosters, a full-art promo, and the accessories a serious " +
-                "collection runs on — sleeves, dividers, condition counters, and " +
+                "collection runs on, sleeves, dividers, condition counters, and " +
                 "a set guide. The box every Emberglow shelf is built around.",
             4_999, "Trading Cards", 4.9, 4102, originalPriceCents = 5_890,
             includes = listOf(
@@ -2257,7 +2257,7 @@ object FakeCatalog {
         product(
             "Pocket Critters: Abyssal Tides Booster Pack", "🎴",
             "The deep-sea set, eleven cards down.",
-            "An 11-card booster from Abyssal Tides — 198 critters of the trench, " +
+            "An 11-card booster from Abyssal Tides, 198 critters of the trench, " +
                 "glow-foil treatment on the deep dwellers, and a rare or better " +
                 "in every pack. Best opened with the lights off.",
             449, "Trading Cards", 4.8, 17204,
@@ -2268,7 +2268,7 @@ object FakeCatalog {
             "Pocket Critters: Abyssal Tides Booster Display", "📦",
             "A sealed case-fresh dive, 36 packs deep.",
             "The full sealed display of 36 Abyssal Tides boosters. Enough glow-" +
-                "foil to read by, statistically — and the sturdiest shelf piece " +
+                "foil to read by, statistically, and the sturdiest shelf piece " +
                 "the set ships in, for collections that stay sealed.",
             14_499, "Trading Cards", 4.8, 2380,
             variantGroup = "critters-abyssal", variantLabel = "Display (36 Packs)",
@@ -2291,11 +2291,11 @@ object FakeCatalog {
             variantAxis = "Format",
         ),
 
-        // Duelbound TCG — series: Forbidden Archive, Crimson Eclipse.
+        // Duelbound TCG, series: Forbidden Archive, Crimson Eclipse.
         product(
             "Duelbound: Forbidden Archive Booster Pack", "🃏",
             "Nine cards from the sealed stacks.",
-            "A 9-card booster from the Forbidden Archive set — banished spells, " +
+            "A 9-card booster from the Forbidden Archive set, banished spells, " +
                 "vault guardians, and a guaranteed foil in every pack. The " +
                 "archive is forbidden; the shipping, nonexistent.",
             429, "Trading Cards", 4.7, 19034,
@@ -2333,7 +2333,7 @@ object FakeCatalog {
             "The collector's cut of the archive.",
             "Eight boosters, two chest-exclusive ghost-foil promos, and a " +
                 "numbered art print, latched inside a keepsake chest. The set's " +
-                "ceiling, boxed — opened once, remembered indefinitely.",
+                "ceiling, boxed, opened once, remembered indefinitely.",
             4_499, "Trading Cards", 4.9, 3168, originalPriceCents = 5_220,
             includes = listOf(
                 "8 Forbidden Archive booster packs",
@@ -2347,7 +2347,7 @@ object FakeCatalog {
         product(
             "Duelbound: Crimson Eclipse Booster Pack", "🃏",
             "The midnight set, nine cards at a time.",
-            "A 9-card booster from Crimson Eclipse — eclipse dragons, blood-moon " +
+            "A 9-card booster from Crimson Eclipse, eclipse dragons, blood-moon " +
                 "rituals, and a foil in every pack, with red-foil chase cards " +
                 "that catch light the way regret catches Sundays.",
             429, "Trading Cards", 4.7, 14881,
@@ -2381,11 +2381,11 @@ object FakeCatalog {
             variantAxis = "Format",
         ),
 
-        // Manaforge — series: Ashveil, The Verdant Throne.
+        // Manaforge, series: Ashveil, The Verdant Throne.
         product(
             "Manaforge: Ashveil Play Booster", "🔮",
             "Fourteen cards from the burned plane.",
-            "A 14-card play booster from the Ashveil set — draftable, " +
+            "A 14-card play booster from the Ashveil set, draftable, " +
                 "collectible, and carrying a foil in every pack. The " +
                 "plane burned so the deck-building could begin.",
             549, "Trading Cards", 4.8, 16772,
@@ -2395,7 +2395,7 @@ object FakeCatalog {
         product(
             "Manaforge: Ashveil Booster Display", "📦",
             "Thirty play boosters, draft night settled.",
-            "The sealed 30-pack Ashveil display — three full draft pods or one " +
+            "The sealed 30-pack Ashveil display, three full draft pods or one " +
                 "very honest month of pack-a-day discipline. Case-fresh, foil " +
                 "odds as printed, delivery as imagined.",
             14_999, "Trading Cards", 4.9, 2807, originalPriceCents = 16_470,
@@ -2423,7 +2423,7 @@ object FakeCatalog {
             "Manaforge: Ashveil Collector Booster", "✨",
             "Fifteen cards, all of them shiny.",
             "The premium pack: fifteen Ashveil cards where every slot is foil, " +
-                "extended-art, or rarer — including a shot at the serialized " +
+                "extended-art, or rarer, including a shot at the serialized " +
                 "Archmage, 1 of 500. The pack you open slowly, hypothetically.",
             2_499, "Trading Cards", 4.7, 4915,
             variantGroup = "manaforge-ashveil", variantLabel = "Collector Booster",
@@ -2432,7 +2432,7 @@ object FakeCatalog {
         product(
             "Manaforge: The Verdant Throne Play Booster", "🔮",
             "Fourteen cards from the overgrown court.",
-            "A 14-card play booster from The Verdant Throne — a kingdom " +
+            "A 14-card play booster from The Verdant Throne, a kingdom " +
                 "reclaimed by forest, court intrigue at sorcery speed, and a " +
                 "foil in every pack. The throne grows back; the cards don't.",
             549, "Trading Cards", 4.8, 12490,
@@ -2479,7 +2479,7 @@ object FakeCatalog {
         product(
             "Dragonhide Matte Sleeves (100-Pack)", "🛡️",
             "Shuffle-feel of legend, glare of none.",
-            "One hundred matte sleeves at 90 microns — opaque backs, " +
+            "One hundred matte sleeves at 90 microns, opaque backs, " +
                 "tournament-legal, and a shuffle feel the table will ask about. " +
                 "Sized for every standard card you'll never receive.",
             999, "Trading Cards", 4.8, 24580,
@@ -2493,13 +2493,13 @@ object FakeCatalog {
             1_999, "Trading Cards", 4.8, 8347,
         ),
 
-        // ---- Craving coverage (researched): blind-box collectibles — the
+        // ---- Craving coverage (researched): blind-box collectibles, the
         // designer-toy mystery format. Invented IP, deadpan-sincere copy,
         // lineup counts stated as fact, never as odds bait.
         product(
             "Moppling Blind Box: Bog Friends Series", "🧸",
             "One of twelve. Sealed in the dark.",
-            "A palm-sized vinyl Moppling in a sealed inner bag — twelve to " +
+            "A palm-sized vinyl Moppling in a sealed inner bag, twelve to " +
                 "collect across the Bog Friends wave, lineup card included, " +
                 "sold strictly one mystery at a time. The box knows which " +
                 "one. The box has known for months.",
@@ -2516,7 +2516,7 @@ object FakeCatalog {
         product(
             "Moppling Plush Bag Charm (Sealed)", "🎀",
             "A soft stranger for your bag strap.",
-            "One Moppling plush charm, 11cm, sealed bag with clip — fuzzy, " +
+            "One Moppling plush charm, 11cm, sealed bag with clip, fuzzy, " +
                 "slightly smug, ready to dangle from a tote it will " +
                 "immediately upstage. Eight charms in the lineup; yours " +
                 "arrives already loyal.",
@@ -2526,7 +2526,7 @@ object FakeCatalog {
             "Curio Capsule: Desk Gremlins Vol. 3", "🥚",
             "Twist, pop, gremlin.",
             "A capsule-machine classic for the desk: one of ten micro " +
-                "gremlins, each molded mid-task — filing, sulking, holding " +
+                "gremlins, each molded mid-task, filing, sulking, holding " +
                 "a tiny cone. Caps double as display domes. Volume 3, the " +
                 "office wave.",
             799, "Hobbies", 4.7, 18764,
@@ -2537,7 +2537,7 @@ object FakeCatalog {
         product(
             "Cloudburst Eau de Parfum, 50ml", "⛈️",
             "Rain on hot pavement, bottled.",
-            "Petrichor opening, wet cedar heart, a clean mineral drydown — " +
+            "Petrichor opening, wet cedar heart, a clean mineral drydown, " +
                 "the storm without the laundry. 50ml at 12% concentration; " +
                 "lasts a workday and most of the evening.",
             12_900, "Beauty", 4.8, 14530,
@@ -2553,7 +2553,7 @@ object FakeCatalog {
         product(
             "Velvet Ember Solid Perfume Tin", "🌹",
             "Warm amber, pocket-sized.",
-            "A beeswax solid in amber, smoked vanilla and rose — swipe on " +
+            "A beeswax solid in amber, smoked vanilla and rose, swipe on " +
                 "wrists, throw in any bag, survive any flight. The tin " +
                 "clicks shut like it means it.",
             2_400, "Beauty", 4.6, 8412,
@@ -2571,7 +2571,7 @@ object FakeCatalog {
         product(
             "Drill-Brush Detail Kit, 5 Heads", "🌀",
             "Grout lines, by power tool.",
-            "Five nylon brush heads on a standard hex shank — tile, grout, " +
+            "Five nylon brush heads on a standard hex shank, tile, grout, " +
                 "stovetop, sneaker midsole. The before-and-after happens in " +
                 "one slow, extremely satisfying arc.",
             2_499, "Home", 4.7, 19984,
@@ -2580,19 +2580,19 @@ object FakeCatalog {
             "TileGlide Squeegee Broom", "🧹",
             "The shower-glass squeak, included.",
             "A silicone-blade broom that squeegees tile, glass and " +
-                "standing water in straight, gratifying stripes — wall to " +
+                "standing water in straight, gratifying stripes, wall to " +
                 "floor, no streaks, one clean line at a time.",
             1_999, "Home", 4.6, 12450,
         ),
 
         // Books: the second-biggest impulse aisle, and the store had a
-        // bookshelf, a book sleeve hobbyist's dream — and no books.
+        // bookshelf, a book sleeve hobbyist's dream, and no books.
         product(
-            "Crowns of Cinder & Salt — Sprayed-Edge Hardcover", "📕",
+            "Crowns of Cinder & Salt, Sprayed-Edge Hardcover", "📕",
             "Enemies, thrones, sprayed edges.",
             "Book one of the Saltfire Crowns: an exiled heir, a rival who " +
                 "keeps showing up, and a court that runs on secrets. " +
-                "Stenciled spray edges, foil case stamp, map endpapers — " +
+                "Stenciled spray edges, foil case stamp, map endpapers, " +
                 "the special-edition shelf copy.",
             3_299, "Hobbies", 4.9, 41230,
         ),
@@ -2608,7 +2608,7 @@ object FakeCatalog {
             "Padded Book Sleeve, Hardcover Size", "👝",
             "Armor for the current read.",
             "A quilted, zippered sleeve sized for hardcovers and chunky " +
-                "paperbacks alike — corner protection, a pen pocket, and no " +
+                "paperbacks alike, corner protection, a pen pocket, and no " +
                 "more bag-bruised dust jackets.",
             2_199, "Hobbies", 4.8, 9034,
         ),
@@ -2618,7 +2618,7 @@ object FakeCatalog {
             "Home Café Boba Kit, 24 Servings", "🧋",
             "Pearls in sixty seconds.",
             "Brown-sugar tapioca pearls in single-boil pouches, two teas, " +
-                "syrup and six wide straws — café-thick boba from your own " +
+                "syrup and six wide straws, café-thick boba from your own " +
                 "stove in about a minute per glass.",
             2_699, "Kitchen", 4.7, 22408,
         ),
@@ -2626,7 +2626,7 @@ object FakeCatalog {
             "Cloudtop Syrup Trio", "🍮",
             "Your counter, now a café.",
             "Vanilla bean, brown butter and salted caramel in pump-top " +
-                "bottles — the home-café upgrade for coffee, matcha and " +
+                "bottles, the home-café upgrade for coffee, matcha and " +
                 "anything in a glass with ice in it.",
             2_399, "Kitchen", 4.6, 11220,
         ),
@@ -2640,7 +2640,7 @@ object FakeCatalog {
     /**
      * Collapse variant siblings to one entry per group for grid/search display
      * (Amazon-style: one card with swatches). The representative is the group's
-     * base — its lowest id — or, when the base isn't present (e.g. a search that
+     * base, its lowest id, or, when the base isn't present (e.g. a search that
      * only matched one color), the lowest-id sibling that is. Order preserved;
      * non-variant products pass through untouched.
      */
@@ -2656,7 +2656,7 @@ object FakeCatalog {
     /**
      * Curated "frequently bought together" companions, by product name (names
      * are stable and unique; ids shift as the catalog grows). The PDP shows the
-     * product plus these with an honest combined total — convenience, not a
+     * product plus these with an honest combined total, convenience, not a
      * fabricated saving.
      */
     private val boughtTogetherByName: Map<String, List<String>> = mapOf(
@@ -2672,7 +2672,7 @@ object FakeCatalog {
             listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
         "Manaforge: Ashveil Play Booster" to
             listOf("Vaultline Magnetic Deck Box", "Dragonhide Matte Sleeves (100-Pack)"),
-        // A sealed display is binder fodder by definition — the accessories
+        // A sealed display is binder fodder by definition, the accessories
         // belong beside it just as much as beside the single pack.
         "Pocket Critters: Emberglow Booster Display" to
             listOf("Cardkeeper Zip Binder (480 Slots)", "Dragonhide Matte Sleeves (100-Pack)"),
@@ -2693,7 +2693,7 @@ object FakeCatalog {
             listOf("Moppling Plush Bag Charm (Sealed)", "Curio Capsule: Desk Gremlins Vol. 3"),
         "Moppling Blind Box: Cloud Court Series (6-Pack)" to
             listOf("Moppling Blind Box: Bog Friends Series", "Moppling Plush Bag Charm (Sealed)"),
-        "Crowns of Cinder & Salt — Sprayed-Edge Hardcover" to
+        "Crowns of Cinder & Salt, Sprayed-Edge Hardcover" to
             listOf("Padded Book Sleeve, Hardcover Size", "Book Annotation Kit"),
         "The Midnight Pantry (Book Club Edition)" to
             listOf("Padded Book Sleeve, Hardcover Size", "Emotional Support Cake (Whole)"),
@@ -2713,7 +2713,7 @@ object FakeCatalog {
     /**
      * What the Mystery Box hypothetically contained: an orderId-seeded catalog
      * pick, stable per order so revisits keep the same answer, never the box
-     * itself. Decorative randomness — it gates nothing and costs nothing.
+     * itself. Decorative randomness, it gates nothing and costs nothing.
      */
     fun mysteryRevealFor(orderId: Int): Product {
         val candidates = products.filterNot { it.id == mysteryBox.id }
@@ -2721,23 +2721,23 @@ object FakeCatalog {
     }
 
     /**
-     * The chase cards, keyed by series (variant group) — each series is a
+     * The chase cards, keyed by series (variant group), each series is a
      * themed set with its own content language, the way real expansions
      * have their own world. The wrapper already names the series; the cards
      * inside belong to it.
      *
      * The six content languages:
-     * - Emberglow (critters): hearth, dawn, kept warmth — critters with
+     * - Emberglow (critters): hearth, dawn, kept warmth, critters with
      *   cozy habits. Flavor: gentle, domestic, one wink per card.
      * - Abyssal Tides (critters): deep water, night currents, soft glow in
      *   the dark. Flavor: serene, drifting, unhurried.
      * - Forbidden Archive (duelbound): a haunted library. The dread is
-     *   bureaucratic — indexes, late fees, shushing.
+     *   bureaucratic, indexes, late fees, shushing.
      * - Crimson Eclipse (duelbound): a blood-moon vigil. Apocalyptic but
      *   unbothered; everything is on schedule.
      * - Ashveil (manaforge): the volcanic forge. Flavor reads as smithing
      *   proverbs, work and patience.
-     * - The Verdant Throne (manaforge): a fallen court overgrown — royal
+     * - The Verdant Throne (manaforge): a fallen court overgrown, royal
      *   language gone to seed; nature wins politely.
      */
     private val cardPullPools: Map<String, List<CardPull>> = mapOf(
@@ -2902,18 +2902,18 @@ object FakeCatalog {
     private fun seriesGroupsOf(game: String): List<String> = cardSeriesTitles.keys.filter { it.startsWith("$game-") }
 
     /**
-     * Every chase card a game can pull — the binder's checklist, in series
+     * Every chase card a game can pull, the binder's checklist, in series
      * order.
      */
     fun chaseCardsOf(game: String): List<CardPull> = seriesGroupsOf(game).flatMap { cardPullPools[it].orEmpty() }
 
-    /** The same checklist grouped by series title — the binder's set pages. */
+    /** The same checklist grouped by series title, the binder's set pages. */
     fun chaseChecklistOf(game: String): List<Pair<String, List<CardPull>>> =
         seriesGroupsOf(game).map { cardSeriesTitles.getValue(it) to cardPullPools[it].orEmpty() }
 
     /**
      * The tiny collector print in the card's bottom corner, in each genre's
-     * idiom — and now per series, the way real expansions number their own
+     * idiom, and now per series, the way real expansions number their own
      * sets: Pokémon's set fraction, Yu-Gi-Oh's per-set code, Magic's padded
      * number with set code and rarity letter. The number is the card's slot
      * in its series checklist (commons first, chases last), so it never
@@ -2930,7 +2930,7 @@ object FakeCatalog {
                 else -> "M"
             }
             // Set sizes match the listings' own claims (203 critters of the
-            // valley, 198 of the trench) — the copy and the card agree.
+            // valley, 198 of the trench), the copy and the card agree.
             return when (group) {
                 "critters-emberglow" -> "%03d/203".format(slot)
                 "critters-abyssal" -> "%03d/198".format(slot)
@@ -3208,7 +3208,7 @@ object FakeCatalog {
 
     /**
      * The whole pack for the rip ceremony: four seeded, distinct commons and
-     * the chase card dealt last — commons first, the payoff at the back, the
+     * the chase card dealt last, commons first, the payoff at the back, the
      * way the genre's best openers stage it. Stable per (order, product,
      * pack); [packIndex] varies the deal so a multi-pack order doesn't rip
      * the same five cards twice. Null for anything that isn't a trading-card
@@ -3224,8 +3224,8 @@ object FakeCatalog {
 
     /**
      * The Moppling blind-box waves. Lineup sizes match the listings' own
-     * claims — twelve Bog Friends, twelve Cloud Court, eight charms, ten
-     * gremlins — the copy and the capsule agree. Like the card chases,
+     * claims, twelve Bog Friends, twelve Cloud Court, eight charms, ten
+     * gremlins, the copy and the capsule agree. Like the card chases,
      * which figure an order holds is seeded and decorative: revealed only
      * after delivery, never a pre-purchase tease.
      */

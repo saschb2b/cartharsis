@@ -4,7 +4,7 @@
 
 ### Add to cart. Feel better. Buy nothing.
 
-**A dopamine shopping simulator for Android.** The complete thrill of online shopping, browsing, deal hunting, cart filling, checkout, live courier tracking, with one crucial difference: nothing is real, nothing is charged, and nothing arrives.
+**A dopamine shopping simulator for Android.** The complete thrill of online shopping, browsing, deal hunting, cart filling, checkout, live courier tracking, with one difference: nothing is real, nothing is charged, and nothing arrives.
 
 </div>
 
@@ -21,7 +21,7 @@
 
 ## A real shop, selling nothing
 
-Browse 200+ products across 15 categories, written like a real marketplace: invented brands, plausible specs, honest-looking prices. The shelves mirror what people actually doom-scroll into carts right now — a smart ring, an e-ink reader, a 40oz insulated tumbler, an LED face mask, an under-desk walking pad, a pizza oven, a self-cleaning litter box, freeze-dried candy, the viral pistachio-kunafa chocolate bar — alongside fried chicken, a decorative sword, and one premium brick. Flash deals rotate, wishlist prices mysteriously drop, and the recommendation rabbit hole goes as deep as you want.
+Browse 200+ products across 15 categories, written like a real marketplace: invented brands, plausible specs, honest-looking prices. The shelves mirror what people doom-scroll into carts right now: a smart ring, an e-ink reader, a 40oz insulated tumbler, an LED face mask, an under-desk walking pad, a pizza oven, a self-cleaning litter box, freeze-dried candy, the viral pistachio-kunafa chocolate bar, plus fried chicken, a decorative sword, and one premium brick. Flash deals rotate, wishlist prices mysteriously drop, and the recommendation rabbit hole goes as deep as you want.
 
 ## A checkout that feels like the real thing
 

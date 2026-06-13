@@ -90,7 +90,7 @@ object Notifier {
             id = 2_000 + productId,
             title = "🍃 A wishlist price drifted down",
             text = "$productName eased $discountPercent% to $newPrice. No timer, " +
-                "no rush — it costs \$0.00 whenever you wander back.",
+                "no rush, it costs \$0.00 whenever you wander back.",
             route = "product/$productId",
         )
     }

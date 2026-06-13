@@ -264,7 +264,7 @@ fun ProductDetailScreen(
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                 ) {
-                    Text("Buy now — straight to checkout", fontWeight = FontWeight.Bold)
+                    Text("Buy now, straight to checkout", fontWeight = FontWeight.Bold)
                 }
 
                 SectionHeader(title = "About this item", modifier = Modifier.padding(top = 8.dp))
@@ -416,7 +416,7 @@ private fun DeliveryCard() {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             DeliveryLine("🚚", DELIVERY_PROMISE)
-            DeliveryLine("💳", "$0.00 at checkout — Imagination Express accepted")
+            DeliveryLine("💳", "$0.00 at checkout, Imagination Express accepted")
             DeliveryLine("🧘", "Returns unnecessary; nothing will arrive")
         }
     }

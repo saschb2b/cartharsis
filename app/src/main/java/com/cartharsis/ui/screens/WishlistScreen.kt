@@ -55,7 +55,7 @@ fun WishlistScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onBr
                 modifier = Modifier.padding(top = 16.dp),
             )
             Text(
-                text = "Heart something in the shop. Wanting is free here — and it stays free.",
+                text = "Heart something in the shop. Wanting is free here, and it stays free.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -79,7 +79,7 @@ fun WishlistScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onBr
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    text = "Want things. Keep money. Prices on this list mysteriously drop — stay alert.",
+                    text = "Want things. Keep money. Prices on this list mysteriously drop. Stay alert.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

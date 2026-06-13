@@ -131,7 +131,7 @@ private fun CardBinder(binder: Set<String>) {
         }
         if (collected.isEmpty()) {
             Text(
-                text = "Chase cards from ripped boosters land here — mint forever.",
+                text = "Chase cards from ripped boosters land here. Mint forever.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp),
@@ -265,7 +265,7 @@ internal fun MopplingShelf(shelf: Set<String>, modifier: Modifier = Modifier) {
         }
         if (found.isEmpty()) {
             Text(
-                text = "Blind-box figures land here, wave by wave — found forever.",
+                text = "Blind-box figures land here, wave by wave. Found forever.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),

@@ -217,7 +217,7 @@ private fun FirstVisit(onBrowse: () -> Unit) {
         )
         Text(
             text = "Every order here is money you didn't spend. Place your first " +
-                "one — it costs \$0.00 — and watch this fill up.",
+                "one (it costs \$0.00) and watch this fill up.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -298,7 +298,7 @@ private fun KeptHero(centsKept: Long) {
             val line = when {
                 equiv != null -> "${equiv.emoji} ${equiv.text} · ${keptInCoffees(centsKept)} coffees"
                 centsKept > 0 -> "Every dollar you didn't spend, still yours."
-                else -> "Browse instead of buying — watch this grow."
+                else -> "Browse instead of buying. Watch this grow."
             }
             Text(
                 text = line,
