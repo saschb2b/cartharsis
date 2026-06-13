@@ -79,6 +79,11 @@ private val FlashDealGradient = Brush.linearGradient(listOf(HotPink, ElectricPur
 private val FlashDealGlow =
     Brush.radialGradient(listOf(Color.White.copy(alpha = 0.28f), Color.Transparent))
 
+// Spacing rhythm (internal < external): the grid's spacedBy(10) is the tight
+// base that binds items within a group; a section start adds this on top so a
+// new "island" (a shelf, the grid) stands ~24dp clear of the one before it.
+private val SectionGap = 14.dp
+
 @Composable
 fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
@@ -247,10 +252,11 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
 
         if (query.isBlank() && recentProducts.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Column {
+                Column(Modifier.padding(top = SectionGap)) {
+                    // Header binds down to its row (8dp), clear of what's above.
                     SectionHeader(
                         title = "Keep browsing",
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
                     Row(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -273,10 +279,10 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                 GridItemSpan(maxLineSpan)
             }, key = { _, s -> "shelf-${s.title}" }) { index, shelf ->
                 AppearOnce(homeSeed, delayMillis = 150 + index * 70, enabled = !entranceDone) {
-                    Column(Modifier.animateItem()) {
+                    Column(Modifier.animateItem().padding(top = SectionGap)) {
                         SectionHeader(
                             title = shelf.title,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                            modifier = Modifier.padding(bottom = 8.dp),
                         )
                         Row(
                             modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -295,9 +301,11 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
+            // The grid is its own island: a section gap above, then the rows
+            // follow at the tight base spacing so the header binds to them.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = SectionGap),
             ) {
                 Text(
                     text = when {
