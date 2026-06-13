@@ -174,12 +174,9 @@ fun ProductDetailScreen(
                 .verticalScroll(scrollState)
                 .onGloballyPositioned { contentTopY = it.positionInWindow().y },
         ) {
-            EmojiHero(
-                emoji = product.emoji,
-                modifier = Modifier.fillMaxWidth().height(250.dp),
-                fontSize = 120,
-                seed = product.id,
-            )
+            // The product art runs oversized and breaks past its tinted
+            // stage — "too big to contain", the concept's hero-image bleed.
+            ProductHero(emoji = product.emoji, seed = product.id)
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),

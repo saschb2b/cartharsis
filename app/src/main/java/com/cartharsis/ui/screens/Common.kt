@@ -269,17 +269,55 @@ private val heroGradients = listOf(
 private val softHeroGradients: List<List<Color>> =
     heroGradients.map { pair -> pair.map { it.copy(alpha = 0.14f) } }
 
+/** The softened per-product gradient colors for a [seed] — the product's
+ * stable "packaging" tint, shared by EmojiHero and the PDP hero stage. */
+internal fun heroGradientColors(seed: Int): List<Color> = softHeroGradients[abs(seed) % softHeroGradients.size]
+
 /** Big emoji on a soft per-product gradient — the entire "product photography" budget. */
 @Composable
 fun EmojiHero(emoji: String, modifier: Modifier = Modifier, fontSize: Int = 64, seed: Int = 0) {
-    val brush = remember(seed) {
-        Brush.linearGradient(softHeroGradients[abs(seed) % softHeroGradients.size])
-    }
+    val brush = remember(seed) { Brush.linearGradient(heroGradientColors(seed)) }
     Box(
         modifier = modifier.background(brush),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = emoji, fontSize = fontSize.sp)
+    }
+}
+
+/**
+ * The product-page hero: the art runs oversized and breaks past its tinted
+ * stage — "too big to contain" — rather than sitting tidily inside a band. A
+ * soft glow pools behind it so the overflow reads as depth, not a clipping
+ * bug. (The stage clips its own background; the emoji is a sibling on top, so
+ * it spills freely.)
+ */
+@Composable
+fun ProductHero(emoji: String, seed: Int, modifier: Modifier = Modifier) {
+    val colors = remember(seed) { heroGradientColors(seed) }
+    Box(
+        modifier = modifier.fillMaxWidth().height(300.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        // The tinted stage — the frame the art breaks out of.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .height(200.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(Brush.linearGradient(colors)),
+        )
+        // A soft glow grounding the oversized art.
+        Box(
+            Modifier
+                .size(260.dp)
+                .background(
+                    Brush.radialGradient(listOf(colors.first().copy(alpha = 0.38f), Color.Transparent)),
+                    CircleShape,
+                ),
+        )
+        Text(text = emoji, fontSize = 240.sp)
     }
 }
 
