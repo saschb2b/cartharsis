@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -714,32 +716,39 @@ fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             EmvChip()
             Spacer(Modifier.height(10.dp))
-            Text(
-                "5310  0000  0000  0000",
-                color = Color.White,
+            // Shrinks to one line instead of wrapping — a wrapped card number
+            // pushed the holder row past the card's clipped bottom edge on
+            // narrower cards.
+            BasicText(
+                text = "5310  0000  0000  0000",
+                maxLines = 1,
+                softWrap = false,
+                autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 22.sp, stepSize = 0.5.sp),
                 style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.White,
                     fontFamily = FontFamily.Monospace,
                     letterSpacing = 1.5.sp,
                     shadow = embossed,
                 ),
             )
             Spacer(Modifier.height(12.dp))
+            // Two fields, the way real cards lay the bottom out: the holder
+            // spans the whole left, the expiry pins right. The "scheme logo"
+            // is the IMAGINATION EXPRESS wordmark up top, so nothing crowds
+            // the name here.
             Row(verticalAlignment = Alignment.Bottom) {
                 CardField(
                     label = "CARD HOLDER",
                     value = cardHolder.trim().uppercase().ifBlank { "YOUR IMAGINATION" },
                     shadow = embossed,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.width(20.dp))
-                CardField(label = "VALID THRU", value = "∞∞/∞∞", shadow = embossed)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "∞",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.titleLarge.copy(shadow = embossed),
+                Spacer(Modifier.width(16.dp))
+                CardField(
+                    label = "VALID THRU",
+                    value = "∞∞ / ∞∞",
+                    shadow = embossed,
+                    alignment = Alignment.End,
                 )
             }
         }
@@ -747,8 +756,14 @@ fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun CardField(label: String, value: String, shadow: Shadow, modifier: Modifier = Modifier) {
-    Column(modifier) {
+private fun CardField(
+    label: String,
+    value: String,
+    shadow: Shadow,
+    modifier: Modifier = Modifier,
+    alignment: Alignment.Horizontal = Alignment.Start,
+) {
+    Column(modifier, horizontalAlignment = alignment) {
         Text(label, color = Color.White.copy(alpha = 0.65f), fontSize = 8.sp, letterSpacing = 1.sp)
         Text(
             text = value,
