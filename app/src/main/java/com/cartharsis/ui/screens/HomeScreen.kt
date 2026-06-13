@@ -364,7 +364,7 @@ internal fun FlashDealBanner(
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(FlashDealGradient)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick, onClickLabel = "View the flash deal")
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
