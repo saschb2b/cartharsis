@@ -618,5 +618,22 @@ Shipped the genuine gaps; surfaced the value-conflicts.
       floating circular buttons) — we standardized on NestedTopBar; a global
       restyle is a big, convention-breaking change, owner call
 
+## Phase 39 — Product card rework (looked average)
+Researched product-card spacing/hierarchy patterns and applied the PDP
+hero-bleed to the cards, one focused commit at a time:
+- [x] ProductCard image: art runs oversized and breaks past a rounded inset
+      stage with a grounding glow (the hero-bleed, card-scaled) — replaces the
+      flat full-width tinted band; discount badge moved to top-left
+- [x] ProductCard text: spacing rhythm over the flat 4dp stack — name+rating
+      grouped, a wider gap isolating the price as the focal answer, roomier
+      14dp padding aligned with the image stage
+- [x] MiniProductCard: same hero-bleed + breathing room, scaled to the strip
+- [x] Perf/de-dupe: rememberStageBrushes(seed) memoizes the gradient+glow so
+      a fling doesn't re-allocate them (the EmojiHero lesson)
+- [x] Dark-mode preview added + gated (the glow reads better on dark)
+- [x] Verified live: home grid (ProductCard) and shelves (MiniProductCard)
+- [ ] Proposal: a subtle press-scale on card tap for tactility — Card's
+      Material ripple is the current convention, so a taste call
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
