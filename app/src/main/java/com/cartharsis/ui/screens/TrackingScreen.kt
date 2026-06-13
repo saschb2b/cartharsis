@@ -69,8 +69,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,7 +78,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
@@ -136,6 +133,19 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
         }
     }
 
+    // Roughly one order in eight gets a courier upgrade. Purely decorative,
+    // stable per order so revisits keep the same ride.
+    val vehicle = remember(orderId) { if ((orderId * 31 + 7) % 8 == 0) "🚀" else "🛵" }
+
+    // In transit, the screen is the routed-map experience: a full-bleed map
+    // with a floating back button (no app bar), an overlapping order header,
+    // and the delivery timeline. The arrival/unbox ceremony below is the
+    // delivered branch, untouched.
+    if (order.status != OrderStatus.DELIVERED) {
+        TransitTracking(order = order, vehicle = vehicle, onBack = onBack)
+        return
+    }
+
     Scaffold(
         topBar = { NestedTopBar(onBack = onBack, title = "Order #${order.id}") },
     ) { padding ->
@@ -147,10 +157,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // Roughly one order in eight gets a courier upgrade. Purely
-                // decorative, stable per order so revisits keep the same ride.
-                val vehicle = remember(orderId) { if ((orderId * 31 + 7) % 8 == 0) "🚀" else "🛵" }
-                if (order.status == OrderStatus.DELIVERED) {
+                run {
                     // The haul: one emoji per ordered line. A Mystery Box shows
                     // what it hypothetically held — that's the content you came
                     // to see — rather than its own ❓.
@@ -310,13 +317,6 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                             UnboxPhase.Opened -> DeliveredCelebration(order, onShopMore)
                         }
                     }
-                } else {
-                    CourierMap(
-                        progress = if (order.status >= OrderStatus.ON_THE_WAY) order.progress else 0f,
-                        onTheWay = order.status == OrderStatus.ON_THE_WAY,
-                        vehicle = vehicle,
-                    )
-                    EtaCard(order)
                 }
                 StatusTracker(order)
                 ItemsCard(order)
@@ -328,118 +328,8 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     }
 }
 
-@Composable
-private fun CourierMap(progress: Float, onTheWay: Boolean, vehicle: String) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Box(Modifier.fillMaxWidth().height(180.dp)) {
-            // A "map": a dashed route from the fake store to your real heart.
-            // The traveled part fills in solid — progress you can watch. Trail
-            // and courier share the goal-gradient easing so they stay glued.
-            val eased = (progress * progress + progress) / 2f
-            val routeColor = MaterialTheme.colorScheme.secondary
-            Canvas(Modifier.fillMaxSize()) {
-                val path = Path().apply {
-                    moveTo(size.width * 0.08f, size.height * 0.75f)
-                    cubicTo(
-                        size.width * 0.35f, size.height * 0.15f,
-                        size.width * 0.6f, size.height * 1.0f,
-                        size.width * 0.92f, size.height * 0.3f,
-                    )
-                }
-                drawPath(
-                    path = path,
-                    color = routeColor.copy(alpha = 0.35f),
-                    style = Stroke(
-                        width = 6f,
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 14f)),
-                    ),
-                )
-                if (eased > 0f) {
-                    val measure = PathMeasure().apply { setPath(path, false) }
-                    val traveled = Path()
-                    measure.getSegment(0f, measure.length * eased.coerceIn(0f, 1f), traveled, true)
-                    drawPath(
-                        path = traveled,
-                        color = routeColor,
-                        style = Stroke(width = 9f, cap = StrokeCap.Round),
-                    )
-                }
-            }
-            Courier(progress = eased, onTheWay = onTheWay, vehicle = vehicle)
-            Text(
-                "🏪",
-                fontSize = 26.sp,
-                modifier = Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 24.dp),
-            )
-            HomePin(
-                nearArrival = onTheWay && progress > 0.85f,
-                modifier = Modifier.align(Alignment.TopEnd).padding(end = 6.dp, top = 36.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Courier(progress: Float, onTheWay: Boolean, vehicle: String) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val t = progress.coerceIn(0f, 1f)
-
-        // Same cubic Bézier as the canvas path, evaluated at t.
-        fun cubic(p0: Float, p1: Float, p2: Float, p3: Float): Float {
-            val u = 1 - t
-            return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
-        }
-        val bob = if (onTheWay) {
-            val transition = rememberInfiniteTransition(label = "bob")
-            transition.animateFloat(
-                initialValue = -2f,
-                targetValue = 2f,
-                animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
-                label = "bobValue",
-            ).value
-        } else {
-            0f
-        }
-        val x = cubic(0.08f, 0.35f, 0.6f, 0.92f) * maxWidth.value
-        val y = cubic(0.75f, 0.15f, 1.0f, 0.3f) * maxHeight.value
-        Text(
-            vehicle,
-            fontSize = 28.sp,
-            // Offset read in the layout phase, not composition: the courier
-            // bobs continuously while on the way, so a composition-phase
-            // offset would recompose this Text every animation frame.
-            modifier = Modifier.offset {
-                IntOffset((x - 14).dp.roundToPx(), (y - 14 + bob).dp.roundToPx())
-            },
-        )
-    }
-}
-
-/** The destination perks up when the courier gets close. */
-@Composable
-private fun HomePin(nearArrival: Boolean, modifier: Modifier = Modifier) {
-    val scale = if (nearArrival) {
-        val transition = rememberInfiniteTransition(label = "homePulse")
-        transition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.25f,
-            animationSpec = infiniteRepeatable(tween(450), RepeatMode.Reverse),
-            label = "homeScale",
-        ).value
-    } else {
-        1f
-    }
-    Text("🏠", fontSize = 26.sp, modifier = modifier.scale(scale))
-}
-
-/**
- * Tiny en-route vignettes — checking back occasionally pays off with a new
- * one. Bucketed on progress so each appears exactly once per trip.
- */
+// Tiny en-route vignettes — checking back occasionally pays off with a new
+// one. Bucketed on progress so each appears exactly once per trip.
 private val courierMoments = listOf(
     "🐕 Briefly stopped to pet a dog",
     "🚦 Caught every green light so far",
@@ -448,49 +338,65 @@ private val courierMoments = listOf(
     "🎶 Courier is humming. Good sign.",
 )
 
-/** The one thing people open a tracking screen for goes first, biggest. */
+// Whimsical waypoints the nothing passes through while on the way — the
+// header card's "current location", bucketed on trip progress.
+private val transitWaypoints = listOf(
+    "Imaginary Highway, Exit 0",
+    "Midtown — paused at a red light",
+    "Crossing the Anticipation Bridge",
+    "Anticipation Street, Dopamine City",
+)
+
+private fun currentLocation(order: Order): String = when {
+    order.status < OrderStatus.ON_THE_WAY -> "Cartharsis fulfillment void"
+    order.status == OrderStatus.ON_THE_WAY -> {
+        val i = (order.progress * transitWaypoints.size).toInt().coerceIn(0, transitWaypoints.lastIndex)
+        transitWaypoints[i]
+    }
+    else -> "Your doorstep, Dopamine City"
+}
+
+/**
+ * The in-transit tracking experience — the redesigned concept: a full-bleed
+ * routed map, an overlapping order header card, the delivery timeline, and
+ * the order summary. Its own full-bleed layout with a floating back button,
+ * no app bar; the delivered branch keeps the ceremony's Scaffold.
+ */
 @Composable
-private fun EtaCard(order: Order) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+private fun TransitTracking(order: Order, vehicle: String, onBack: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState()),
     ) {
-        Column(Modifier.fillMaxWidth().padding(14.dp)) {
-            val headline = if (order.status == OrderStatus.ON_THE_WAY) {
-                val secondsLeft = ((1f - order.progress) * ShopViewModel.COURIER_TRIP_SECONDS).toInt() + 1
-                "Arriving in ~${secondsLeft}s"
-            } else {
-                "${order.status.emoji} ${order.status.label}"
-            }
-            Text(
-                text = headline,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(
-                text = order.status.detail,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+        RouteMap(
+            progress = if (order.status >= OrderStatus.ON_THE_WAY) order.progress else 0f,
+            onTheWay = order.status == OrderStatus.ON_THE_WAY,
+            vehicle = vehicle,
+            onBack = onBack,
+        )
+        // The header card overlaps the map's bottom edge, as in the concept.
+        Column(Modifier.offset(y = (-24).dp).padding(horizontal = 16.dp)) {
+            TrackingHeaderCard(order = order, location = currentLocation(order))
             if (order.status == OrderStatus.ON_THE_WAY) {
-                val noun = if (order.itemCount == 1) "item" else "items"
-                Text(
-                    text = "Carrying 0 of your ${order.itemCount} $noun, exactly as ordered",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-                val momentIndex = (order.progress * courierMoments.size)
-                    .toInt().coerceAtMost(courierMoments.size - 1)
-                AnimatedContent(targetState = momentIndex, label = "moment") { index ->
+                val index = (order.progress * courierMoments.size)
+                    .toInt().coerceAtMost(courierMoments.lastIndex)
+                AnimatedContent(targetState = index, label = "moment") { i ->
                     Text(
-                        text = courierMoments[index],
+                        text = courierMoments[i],
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
-                        modifier = Modifier.padding(top = 6.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 10.dp, start = 4.dp),
                     )
                 }
             }
+            Column(Modifier.padding(top = 18.dp, start = 4.dp)) {
+                DeliveryTimeline(order = order)
+            }
+            Spacer(Modifier.height(16.dp))
+            ItemsCard(order)
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
