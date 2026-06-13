@@ -635,5 +635,20 @@ hero-bleed to the cards, one focused commit at a time:
 - [ ] Proposal: a subtle press-scale on card tap for tactility — Card's
       Material ripple is the current convention, so a taste call
 
+## Phase 40 — Flash-deal banner rework (same visual language)
+Applied the card rework's hero-bleed + spacing thinking to the home
+FlashDealBanner, one commit at a time:
+- [x] Art bleed: the product emoji runs oversized (60sp) and breaks past a
+      soft white spotlight glow — replaces the small flat 44sp emoji
+- [x] Spacing: a 12dp gap before the GRAB IT CTA (the name used to butt
+      against it), graceful ellipsis on the name, vertical rhythm between
+      eyebrow/name/price
+- [x] Perf: hoisted the constant gradient + glow brushes to top-level vals
+      so the 1Hz countdown tick stops re-allocating them
+- [x] A11y: onClickLabel 'View the flash deal' on the tappable banner
+- [x] Verified via the FlashDealBanner preview + live on the home screen
+- [ ] Proposal: the emoji could bleed off the banner's left edge for more
+      drama (vs the contained spotlight) — judgment call, current reads well
+
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
