@@ -61,7 +61,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
@@ -746,7 +749,13 @@ internal fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () 
                     }
                 }
                 Column(Modifier.padding(start = 8.dp).weight(1f)) {
-                    Text(text = "You", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = "You",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    // "Your review" keeps the primary accent: this is the one
+                    // card the shopper wrote, so the label earns the color.
                     Text(
                         text = "Your review",
                         style = MaterialTheme.typography.labelSmall,
@@ -758,8 +767,8 @@ internal fun OwnReviewCard(review: UserReview, onEdit: () -> Unit, onDelete: () 
             if (review.text.isNotBlank()) {
                 Text(
                     text = review.text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 10.dp),
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
@@ -834,28 +843,39 @@ internal fun ReviewCard(author: String, rating: Int, text: String, ageLabel: Str
                     }
                 }
                 Column(Modifier.padding(start = 8.dp).weight(1f)) {
+                    // Identity tier: the name anchors the card at medium weight,
+                    // a step below the review body it introduces.
                     Text(
                         text = author,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
                     )
+                    // Metadata tier: the badge recedes to grey; only the trust
+                    // tick keeps the savings green, a one-glyph accent.
                     Text(
-                        text = "✓ Verified non-buyer",
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = LocalSavingsColor.current)) { append("✓") }
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                                append(" Verified non-buyer")
+                            }
+                        },
                         style = MaterialTheme.typography.labelSmall,
-                        color = LocalSavingsColor.current,
                     )
                 }
                 ReviewStars(rating)
             }
+            // Content tier: the review itself is the largest, most readable
+            // text in the card, so the eye lands here first.
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 10.dp),
             )
             Text(
                 text = "$ageLabel · $helpfulCount found this helpful",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
