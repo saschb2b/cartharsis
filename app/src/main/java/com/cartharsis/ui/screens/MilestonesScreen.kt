@@ -72,7 +72,10 @@ fun MilestonesScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            // Every item here is a major section (stats, badges, binder,
+            // shelf), so they break at a consistent ~22dp section gap rather
+            // than the tight 12dp used within a section.
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CareerStats(
                 ordersPlaced = stats.ordersPlaced,
@@ -246,7 +249,9 @@ internal fun MopplingShelf(shelf: Set<String>, modifier: Modifier = Modifier) {
     val found = remember(shelf) { shelf.mapNotNull(::decodeBinderCard).toSet() }
     val total = FakeCatalog.mopplingWaves.sumOf { it.figures.size }
     Column(modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 18.dp)) {
+        // top=6 matches the other section headers; the Column's 16dp gap is
+        // what sets this shelf clear of the binder above.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
             Text(
                 text = "Moppling shelf",
                 style = MaterialTheme.typography.titleLarge,
