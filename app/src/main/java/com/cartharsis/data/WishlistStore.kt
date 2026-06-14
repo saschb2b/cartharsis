@@ -23,6 +23,7 @@ private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
 private val MOPPLING_KEY = stringSetPreferencesKey("moppling_shelf")
+private val CURRENCY_KEY = stringPreferencesKey("currency_code")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
 private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
 private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
@@ -114,6 +115,16 @@ object ProfileStore {
             prefs[PROFILE_CITY_KEY] = profile.city
             prefs[PROFILE_ONBOARDED_KEY] = profile.onboarded
         }
+    }
+}
+
+/** App settings not tied to identity. For now just the display currency. */
+object SettingsStore {
+    suspend fun loadCurrency(context: Context): Currency =
+        Currency.fromCode(context.dataStore.data.first()[CURRENCY_KEY])
+
+    suspend fun saveCurrency(context: Context, currency: Currency) {
+        context.dataStore.edit { it[CURRENCY_KEY] = currency.code }
     }
 }
 

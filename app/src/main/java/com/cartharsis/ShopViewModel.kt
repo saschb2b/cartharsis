@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.cartharsis.data.BinderStore
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Currency
+import com.cartharsis.data.CurrencyState
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.MopplingFigure
 import com.cartharsis.data.MopplingShelfStore
@@ -18,6 +20,7 @@ import com.cartharsis.data.OrderStatus
 import com.cartharsis.data.Product
 import com.cartharsis.data.ProfileStore
 import com.cartharsis.data.ReviewStore
+import com.cartharsis.data.SettingsStore
 import com.cartharsis.data.StatsStore
 import com.cartharsis.data.StreakStore
 import com.cartharsis.data.UserReview
@@ -84,6 +87,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     /** The fake "account"; null while DataStore loads, then gates onboarding. */
     private val _profile = MutableStateFlow<ProfileStore.Profile?>(null)
     val profile: StateFlow<ProfileStore.Profile?> = _profile.asStateFlow()
+
+    // The display currency, chosen in onboarding. Mirrored into CurrencyState so
+    // every formatPrice in the app renders in it; this flow drives the picker UI.
+    private val _currency = MutableStateFlow(Currency.USD)
+    val currency: StateFlow<Currency> = _currency.asStateFlow()
 
     /** Lifetime fake-shopping totals; survive process death unlike the order list. */
     private val _lifetimeStats = MutableStateFlow(StatsStore.Stats(0, 0, 0L))
@@ -182,6 +190,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             _profile.value = ProfileStore.load(getApplication())
+        }
+        viewModelScope.launch {
+            val saved = SettingsStore.loadCurrency(getApplication())
+            _currency.value = saved
+            CurrencyState.active = saved
         }
         viewModelScope.launch {
             val saved = BinderStore.load(getApplication())
@@ -288,6 +301,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ---- Profile / onboarding ----
+
+    /** Switches the display currency: applied app-wide at once, then persisted. */
+    fun setCurrency(currency: Currency) {
+        _currency.value = currency
+        CurrencyState.active = currency
+        viewModelScope.launch { SettingsStore.saveCurrency(getApplication(), currency) }
+    }
 
     /** Finishes onboarding: the "account" is created, locally and forever. */
     fun completeOnboarding(name: String, street: String, city: String) {

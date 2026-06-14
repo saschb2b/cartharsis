@@ -1,6 +1,7 @@
 package com.cartharsis
 
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Currency
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.HomeShelf
 import com.cartharsis.data.NotificationPolicy
@@ -576,6 +577,29 @@ class FakeShopTest {
             val rep = members.minByOrNull { it.id }!!
             assertEquals("$group leads with the wrong format", members.minOf { it.priceCents }, rep.priceCents)
         }
+    }
+
+    @Test
+    fun `currencies convert and format a USD-cent base correctly`() {
+        // $1,299.00 base across the three currencies.
+        assertEquals("$1,299.00", Currency.USD.format(129_900))
+        assertEquals("€1,195.08", Currency.EUR.format(129_900)) // 1299 * 0.92
+        assertEquals("₩1,753,650", Currency.KRW.format(129_900)) // 1299 * 1350
+
+        // KRW carries no decimals and rounds to a tidy figure (47,115 -> 47,120).
+        assertEquals("₩47,120", Currency.KRW.format(3_490))
+        assertFalse("KRW must not show decimals", Currency.KRW.format(3_490).contains("."))
+
+        // Zero is still a clean price, not a stray "-" or blank.
+        assertEquals("$0.00", Currency.USD.format(0))
+        assertEquals("₩0", Currency.KRW.format(0))
+    }
+
+    @Test
+    fun `currency code lookup round-trips and defaults to USD`() {
+        Currency.entries.forEach { assertEquals(it, Currency.fromCode(it.code)) }
+        assertEquals(Currency.USD, Currency.fromCode(null))
+        assertEquals(Currency.USD, Currency.fromCode("not a currency"))
     }
 
     @Test

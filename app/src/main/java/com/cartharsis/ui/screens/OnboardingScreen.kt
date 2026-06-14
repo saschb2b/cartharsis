@@ -7,11 +7,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,14 +24,18 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,13 +46,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.Currency
 import com.cartharsis.data.ProfileStore
 
 private const val STEP_WELCOME = 0
@@ -71,6 +81,8 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
     var name by rememberSaveable { mutableStateOf("") }
     var street by rememberSaveable { mutableStateOf(ProfileStore.DEFAULT_STREET) }
     var city by rememberSaveable { mutableStateOf(ProfileStore.DEFAULT_CITY) }
+    // Picked on the payment step; setCurrency applies it app-wide and persists.
+    val currency by viewModel.currency.collectAsState()
 
     BackHandler(enabled = step > STEP_WELCOME) { step-- }
 
@@ -114,6 +126,8 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
                 )
                 else -> PaymentStep(
                     name = name,
+                    currency = currency,
+                    onCurrencyChange = viewModel::setCurrency,
                     onAddCard = {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.completeOnboarding(name, street, city)
@@ -260,7 +274,12 @@ internal fun AddressStep(
 }
 
 @Composable
-internal fun PaymentStep(name: String, onAddCard: () -> Unit) {
+internal fun PaymentStep(
+    name: String,
+    currency: Currency,
+    onCurrencyChange: (Currency) -> Unit,
+    onAddCard: () -> Unit,
+) {
     StepScaffold(
         primaryLabel = "Add card and start shopping",
         onPrimary = onAddCard,
@@ -274,6 +293,53 @@ internal fun PaymentStep(name: String, onAddCard: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp),
         )
+        Text(
+            text = "Currency",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
+        )
+        CurrencySelector(selected = currency, onSelect = onCurrencyChange)
+    }
+}
+
+/**
+ * A segmented selector over every [Currency]. The whole catalog reprices in the
+ * chosen one. FlowRow so a fourth or fifth currency wraps instead of crowding.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CurrencySelector(selected: Currency, onSelect: (Currency) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Currency.entries.forEach { option ->
+            val isSelected = option == selected
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
+                border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.selectable(
+                    selected = isSelected,
+                    role = Role.RadioButton,
+                    onClick = { onSelect(option) },
+                ),
+            ) {
+                Text(
+                    text = "${option.symbol} ${option.code}",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                )
+            }
+        }
     }
 }
 

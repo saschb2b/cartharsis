@@ -58,5 +58,12 @@ internal fun OnboardingAddressPreview() {
 @Preview(name = "Onboarding 4 payment", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 internal fun OnboardingPaymentPreview() {
-    StepFrame { PaymentStep(name = "Sascha", onAddCard = {}) }
+    StepFrame {
+        PaymentStep(
+            name = "Sascha",
+            currency = com.cartharsis.data.Currency.KRW,
+            onCurrencyChange = {},
+            onAddCard = {},
+        )
+    }
 }

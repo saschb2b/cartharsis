@@ -161,13 +161,13 @@ fun Product.withPriceOverride(overrideCents: Long?): Product =
         )
     }
 
-fun formatPrice(cents: Long): String {
-    val dollars = cents / 100
-    val rest = cents % 100
-    // Prices are USD-styled fiction; pin the locale so "$1,299.00" never
-    // turns into "$1.299,00" on devices with other grouping rules.
-    return "$%,d.%02d".format(java.util.Locale.US, dollars, rest)
-}
+/**
+ * Formats a base price (authored in USD cents) in the currency the shopper
+ * picked during onboarding. Reads [CurrencyState], a snapshot value, so every
+ * price in the app reformats the instant the currency changes. Each currency
+ * pins the grouping locale, so a number never turns "1,299.00" into "1.299,00".
+ */
+fun formatPrice(cents: Long): String = CurrencyState.active.format(cents)
 
 /**
  * Adds a product snapshot to cart lines: merges into an existing line for the
