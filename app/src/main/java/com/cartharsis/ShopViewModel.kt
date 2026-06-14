@@ -309,6 +309,18 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { SettingsStore.saveCurrency(getApplication(), currency) }
     }
 
+    /** Edits the saved profile after onboarding (from the Account screen). */
+    fun updateProfile(name: String, street: String, city: String) {
+        val profile = ProfileStore.Profile(
+            name = name.trim(),
+            street = street.trim().ifBlank { ProfileStore.DEFAULT_STREET },
+            city = city.trim().ifBlank { ProfileStore.DEFAULT_CITY },
+            onboarded = true,
+        )
+        _profile.value = profile
+        viewModelScope.launch { ProfileStore.save(getApplication(), profile) }
+    }
+
     /** Finishes onboarding: the "account" is created, locally and forever. */
     fun completeOnboarding(name: String, street: String, city: String) {
         val profile = ProfileStore.Profile(

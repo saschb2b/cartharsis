@@ -47,6 +47,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.cartharsis.ui.screens.AccountScreen
 import com.cartharsis.ui.screens.CartScreen
 import com.cartharsis.ui.screens.CheckoutScreen
 import com.cartharsis.ui.screens.HomeScreen
@@ -174,6 +175,7 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                 HomeScreen(
                     viewModel = viewModel,
                     onProductClick = { navController.navigate("product/$it") },
+                    onAccount = { navController.navigate("account") },
                 )
             }
             composable(
@@ -252,6 +254,16 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                 popExitTransition = { pushPopExit() },
             ) {
                 MilestonesScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                "account",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) {
+                AccountScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
                 )

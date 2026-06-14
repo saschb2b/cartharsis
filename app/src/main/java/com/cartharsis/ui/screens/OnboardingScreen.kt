@@ -305,11 +305,12 @@ internal fun PaymentStep(
 
 /**
  * A segmented selector over every [Currency]. The whole catalog reprices in the
- * chosen one. FlowRow so a fourth or fifth currency wraps instead of crowding.
+ * chosen one. FlowRow so more currencies wrap instead of crowding. Shared with
+ * the Account screen so the choice can be changed after onboarding too.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CurrencySelector(selected: Currency, onSelect: (Currency) -> Unit) {
+internal fun CurrencySelector(selected: Currency, onSelect: (Currency) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Currency.entries.forEach { option ->
             val isSelected = option == selected

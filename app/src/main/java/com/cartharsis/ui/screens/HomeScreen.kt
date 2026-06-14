@@ -85,13 +85,14 @@ private val FlashDealGlow =
 private val SectionGap = 14.dp
 
 @Composable
-fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
+fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onAccount: () -> Unit = {}) {
     val lifetimeStats by viewModel.lifetimeStats.collectAsState()
     val flashDeal by viewModel.flashDeal.collectAsState()
     val wishlist by viewModel.wishlist.collectAsState()
     val priceDrops by viewModel.priceDrops.collectAsState()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
     val homeSeed by viewModel.homeSeed.collectAsState()
+    val profile by viewModel.profile.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
     var query by remember { mutableStateOf("") }
 
@@ -187,6 +188,10 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                             )
                         }
                     }
+                    ProfileAvatar(
+                        initial = profile?.name?.trim()?.firstOrNull()?.uppercase() ?: "🙂",
+                        onClick = onAccount,
+                    )
                 }
             }
         }
@@ -359,6 +364,35 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit) {
                 onToggleWishlist = { viewModel.toggleWishlist(product.id) },
                 modifier = Modifier.animateItem(),
             )
+        }
+    }
+}
+
+/**
+ * The account doorway: a tappable avatar carrying the shopper's initial, top
+ * right of the Home header. A 48dp touch target around a 40dp disc.
+ */
+@Composable
+private fun ProfileAvatar(initial: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clickable(onClickLabel = "Account and settings", onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(40.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = initial,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 }
