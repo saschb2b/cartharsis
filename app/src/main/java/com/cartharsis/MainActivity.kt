@@ -15,7 +15,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -60,6 +59,7 @@ import com.cartharsis.ui.screens.ProductDetailScreen
 import com.cartharsis.ui.screens.TrackingScreen
 import com.cartharsis.ui.screens.WishlistScreen
 import com.cartharsis.ui.theme.CartharsisTheme
+import com.cartharsis.ui.theme.Motion
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
@@ -129,11 +129,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun pushEnter() =
-    slideInHorizontally(animationSpec = tween(280), initialOffsetX = { it / 3 }) + fadeIn(tween(280))
+// Pushed-screen motion, M3 Expressive style: the slide rides a spatial spring
+// (a touch of overshoot as it lands), the fade a critically-damped effects
+// spring — movement and opacity on their own physics, not one fixed duration.
+private fun pushEnter() = slideInHorizontally(animationSpec = Motion.spatial(), initialOffsetX = { it / 3 }) +
+    fadeIn(Motion.effects())
 
-private fun pushPopExit() =
-    slideOutHorizontally(animationSpec = tween(240), targetOffsetX = { it / 3 }) + fadeOut(tween(240))
+private fun pushPopExit() = slideOutHorizontally(animationSpec = Motion.spatial(), targetOffsetX = { it / 3 }) +
+    fadeOut(Motion.effects())
 
 private data class Tab(val route: String, val emoji: String, val label: String)
 
@@ -174,14 +177,15 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding),
+            // Tab switches: scale on a spatial spring, fade on an effects spring.
             enterTransition = {
-                fadeIn(tween(220)) + scaleIn(initialScale = 0.97f, animationSpec = tween(220))
+                fadeIn(Motion.effects()) + scaleIn(initialScale = 0.97f, animationSpec = Motion.spatial())
             },
-            exitTransition = { fadeOut(tween(120)) },
+            exitTransition = { fadeOut(Motion.effects()) },
             popEnterTransition = {
-                fadeIn(tween(220)) + scaleIn(initialScale = 0.97f, animationSpec = tween(220))
+                fadeIn(Motion.effects()) + scaleIn(initialScale = 0.97f, animationSpec = Motion.spatial())
             },
-            popExitTransition = { fadeOut(tween(120)) },
+            popExitTransition = { fadeOut(Motion.effects()) },
         ) {
             composable("home") {
                 HomeScreen(
