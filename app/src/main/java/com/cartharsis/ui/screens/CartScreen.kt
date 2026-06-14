@@ -145,6 +145,18 @@ private fun CartLine(item: CartItem, viewModel: ShopViewModel) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // Which variant this line is, so two siblings of one product
+                    // (Midnight vs Forest, Booster pack vs Tin) aren't identical
+                    // rows. Standard cart-line anatomy: name then variant detail.
+                    item.product.variantLabel?.let { label ->
+                        Text(
+                            text = "${item.product.variantAxis}: $label",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     PriceRow(item.product)
                     if (item.quantity > 1) {
                         Text(
