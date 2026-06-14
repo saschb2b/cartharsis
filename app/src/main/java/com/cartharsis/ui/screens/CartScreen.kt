@@ -187,23 +187,47 @@ private fun SummaryCard(cart: List<CartItem>, viewModel: ShopViewModel, onChecko
     val dealSavings = cart.sumOf { item ->
         item.product.originalPriceCents?.let { (it - item.product.priceCents) * item.quantity } ?: 0L
     }
+    // Subtotal is the list price (pre-deal), so the deal-savings line actually
+    // subtracts down to the total, the way every marketplace ledger reconciles:
+    // subtotal − savings = total. Cart lines snapshot the discounted price, so
+    // the list total is the discounted total plus what the deals took off.
+    OrderSummary(
+        subtotalCents = total + dealSavings,
+        dealSavingsCents = dealSavings,
+        totalCents = total,
+        onCheckout = onCheckout,
+    )
+}
+
+/**
+ * The order summary ledger. Pure inputs so it previews without a ViewModel.
+ * Subtotal carries the list price; FREE shipping and any deal savings are the
+ * deductions; Total is what they add up to. The "$0.00 you actually pay" is the
+ * cart's honest aside, set apart from the straight-faced ledger above it.
+ */
+@Composable
+internal fun OrderSummary(subtotalCents: Long, dealSavingsCents: Long, totalCents: Long, onCheckout: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SummaryRow("Subtotal", formatPrice(total))
+            SummaryRow("Subtotal", formatPrice(subtotalCents))
             SummaryRow("Shipping (to nowhere)", "FREE", valueColor = LocalSavingsColor.current)
-            if (dealSavings > 0) {
-                SummaryRow("Deal savings", "−${formatPrice(dealSavings)}", valueColor = LocalSavingsColor.current)
+            if (dealSavingsCents > 0) {
+                SummaryRow(
+                    "Deal savings",
+                    "−${formatPrice(dealSavingsCents)}",
+                    valueColor = LocalSavingsColor.current,
+                )
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = formatPrice(total),
+                    text = formatPrice(totalCents),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                 )
@@ -225,7 +249,7 @@ private fun SummaryCard(cart: List<CartItem>, viewModel: ShopViewModel, onChecko
                 onClick = onCheckout,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp),
             ) {
-                Text("Checkout · ${formatPrice(total)}", fontWeight = FontWeight.Bold)
+                Text("Checkout · ${formatPrice(totalCents)}", fontWeight = FontWeight.Bold)
             }
         }
     }

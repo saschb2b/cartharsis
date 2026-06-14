@@ -53,3 +53,31 @@ internal fun ProductHeroHeadphonesPreview() {
         }
     }
 }
+
+/**
+ * The cart order summary, the ledger that must reconcile: subtotal at list
+ * price, then FREE shipping and deal savings deduct down to the total. Top card
+ * has a deal ($105.98 − $10.00 = $95.98); bottom has none (subtotal == total,
+ * no savings line).
+ */
+@PreviewTest
+@Preview(name = "Order summary, deal + none", showBackground = true, widthDp = 380)
+@Composable
+internal fun OrderSummaryPreview() {
+    CartharsisTheme {
+        Column {
+            OrderSummary(
+                subtotalCents = 10_598,
+                dealSavingsCents = 1_000,
+                totalCents = 9_598,
+                onCheckout = {},
+            )
+            OrderSummary(
+                subtotalCents = 4_299,
+                dealSavingsCents = 0,
+                totalCents = 4_299,
+                onCheckout = {},
+            )
+        }
+    }
+}
