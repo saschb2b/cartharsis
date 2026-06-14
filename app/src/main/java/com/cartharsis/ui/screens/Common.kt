@@ -7,6 +7,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -221,6 +224,26 @@ fun DiscountBadge(percent: Int, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onTertiary,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
         )
+    }
+}
+
+/**
+ * M3 Expressive press response: the element squishes a touch while held and
+ * springs back on release, so a tap feels physical. Pass the same
+ * [interactionSource] the clickable uses, so the scale tracks real presses.
+ * Reusable across cards, buttons, and other tappable surfaces.
+ */
+@Composable
+fun Modifier.pressScale(interactionSource: InteractionSource, pressedScale: Float = 0.96f): Modifier {
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) pressedScale else 1f,
+        animationSpec = Motion.spatial(),
+        label = "pressScale",
+    )
+    return graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
 }
 
@@ -499,9 +522,11 @@ fun ProductCard(
     onToggleWishlist: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interaction = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = modifier,
+        interactionSource = interaction,
+        modifier = modifier.pressScale(interaction),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -573,9 +598,11 @@ fun ProductCard(
 /** Small tappable product card for horizontal suggestion strips. */
 @Composable
 fun MiniProductCard(product: Product, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = Modifier.width(132.dp),
+        interactionSource = interaction,
+        modifier = Modifier.width(132.dp).pressScale(interaction),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
