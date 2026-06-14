@@ -51,10 +51,11 @@ import com.cartharsis.data.Currency
 import com.cartharsis.data.ProfileStore
 import com.cartharsis.ui.theme.Motion
 
-private const val STEP_WELCOME = 0
-private const val STEP_ACCOUNT = 1
-private const val STEP_ADDRESS = 2
-private const val STEP_PAYMENT = 3
+private const val STEP_INTRO_WHAT = 0
+private const val STEP_INTRO_WHY = 1
+private const val STEP_ACCOUNT = 2
+private const val STEP_ADDRESS = 3
+private const val STEP_PAYMENT = 4
 
 /**
  * The signup every shop makes you do, played completely straight: account,
@@ -70,14 +71,14 @@ private const val STEP_PAYMENT = 3
 @Composable
 fun OnboardingScreen(viewModel: ShopViewModel) {
     val haptics = LocalHapticFeedback.current
-    var step by rememberSaveable { mutableIntStateOf(STEP_WELCOME) }
+    var step by rememberSaveable { mutableIntStateOf(STEP_INTRO_WHAT) }
     var name by rememberSaveable { mutableStateOf("") }
     var street by rememberSaveable { mutableStateOf(ProfileStore.DEFAULT_STREET) }
     var city by rememberSaveable { mutableStateOf(ProfileStore.DEFAULT_CITY) }
     // Picked on the payment step; setCurrency applies it app-wide and persists.
     val currency by viewModel.currency.collectAsState()
 
-    BackHandler(enabled = step > STEP_WELCOME) { step-- }
+    BackHandler(enabled = step > STEP_INTRO_WHAT) { step-- }
 
     Column(
         modifier = Modifier
@@ -91,7 +92,7 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
             modifier = Modifier.fillMaxWidth().height(28.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
-            if (step > STEP_WELCOME) StepDots(current = step)
+            if (step >= STEP_ACCOUNT) StepDots(current = step)
         }
         AnimatedContent(
             targetState = step,
@@ -109,7 +110,8 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) { current ->
             when (current) {
-                STEP_WELCOME -> WelcomeStep(onStart = { step = STEP_ACCOUNT })
+                STEP_INTRO_WHAT -> IntroWhatStep(onNext = { step = STEP_INTRO_WHY })
+                STEP_INTRO_WHY -> IntroWhyStep(onCreateAccount = { step = STEP_ACCOUNT })
                 STEP_ACCOUNT -> AccountStep(
                     name = name,
                     onNameChange = { name = it },
@@ -196,13 +198,13 @@ private fun StepHeader(title: String, subtitle: String) {
     )
 }
 
+/** First slide, value-first: what Cartharsis actually is, before any setup. */
 @Composable
-internal fun WelcomeStep(onStart: () -> Unit) {
+internal fun IntroWhatStep(onNext: () -> Unit) {
     StepScaffold(
-        primaryLabel = "Create your account",
-        onPrimary = onStart,
+        primaryLabel = "Why would I want that?",
+        onPrimary = onNext,
         centerContent = true,
-        footnote = "Takes 30 seconds. No email, no password,\nand nothing real will ever happen.",
     ) {
         Text("🛒", fontSize = 72.sp)
         Text(
@@ -216,6 +218,43 @@ internal fun WelcomeStep(onStart: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp),
+        )
+        Text(
+            text = "A real-feeling store to wander: fill a cart, check out, and watch " +
+                "a courier head to your door. The twist is it's all imaginary. " +
+                "Nothing is charged, nothing ships, nothing ever arrives.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 20.dp),
+        )
+    }
+}
+
+/** Second slide: why that helps, then straight into creating the account. */
+@Composable
+internal fun IntroWhyStep(onCreateAccount: () -> Unit) {
+    StepScaffold(
+        primaryLabel = "Create your account",
+        onPrimary = onCreateAccount,
+        centerContent = true,
+        footnote = "Takes 30 seconds. No email, no password,\nand nothing real will ever happen.",
+    ) {
+        Text("🧘", fontSize = 72.sp)
+        Text(
+            text = "All the dopamine.\nNone of the bill.",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            text = "Most of the buzz of shopping is the wanting, not the owning. " +
+                "Cartharsis keeps the anticipation and bins the credit-card bill. " +
+                "A calm place to want things freely and watch your money stay yours.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp),
         )
     }
 }
@@ -304,7 +343,9 @@ internal fun PaymentStep(
 @Composable
 private fun StepDots(current: Int, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.clearAndSetSemantics { contentDescription = "Step $current of 3" },
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = "Step ${current - STEP_ACCOUNT + 1} of 3"
+        },
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         (STEP_ACCOUNT..STEP_PAYMENT).forEach { stepIndex ->

@@ -27,10 +27,17 @@ private fun StepFrame(content: @Composable () -> Unit) {
 }
 
 @PreviewTest
-@Preview(name = "Onboarding 1 welcome", showBackground = true, widthDp = 360, heightDp = 720)
+@Preview(name = "Onboarding 1 intro what", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
-internal fun OnboardingWelcomePreview() {
-    StepFrame { WelcomeStep(onStart = {}) }
+internal fun OnboardingIntroWhatPreview() {
+    StepFrame { IntroWhatStep(onNext = {}) }
+}
+
+@PreviewTest
+@Preview(name = "Onboarding 2 intro why", showBackground = true, widthDp = 360, heightDp = 720)
+@Composable
+internal fun OnboardingIntroWhyPreview() {
+    StepFrame { IntroWhyStep(onCreateAccount = {}) }
 }
 
 @PreviewTest
