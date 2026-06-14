@@ -57,6 +57,17 @@ enum class Currency(
         return if (symbolBefore) "$symbol$body" else "$body $symbol"
     }
 
+    /** The price in whole major units (dollars, euros, won) — for count-up
+     *  animations that drop the cents. */
+    fun majorUnits(usdCents: Long): Long = (usdCents / 100.0 * rate).toLong()
+
+    /** Formats a whole major-unit count (no decimals) with this currency's
+     *  symbol and grouping. Pairs with [majorUnits] to format a count-up frame. */
+    fun formatMajorUnits(units: Long): String {
+        val body = group(units)
+        return if (symbolBefore) "$symbol$body" else "$body $symbol"
+    }
+
     /** Groups the (non-negative) integer part with this currency's separator. */
     private fun group(value: Long): String {
         val digits = value.toString()

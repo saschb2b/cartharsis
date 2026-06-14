@@ -606,6 +606,20 @@ class FakeShopTest {
     }
 
     @Test
+    fun `whole-unit formatting drops the cents for count-up animations`() {
+        // $279.00 base, the count-up the success and tracking screens tick to.
+        assertEquals(279L, Currency.USD.majorUnits(27_900))
+        assertEquals(256L, Currency.EUR.majorUnits(27_900)) // 256.68 truncates
+        assertEquals(376_650L, Currency.KRW.majorUnits(27_900)) // whole won
+
+        assertEquals("$279", Currency.USD.formatMajorUnits(279))
+        assertEquals("€256", Currency.EUR.formatMajorUnits(256))
+        assertEquals("₩376,650", Currency.KRW.formatMajorUnits(376_650))
+        assertEquals("$0", Currency.USD.formatMajorUnits(0))
+        assertEquals("₩0", Currency.KRW.formatMajorUnits(0))
+    }
+
+    @Test
     fun `currency code lookup round-trips and defaults to USD`() {
         Currency.entries.forEach { assertEquals(it, Currency.fromCode(it.code)) }
         assertEquals(Currency.USD, Currency.fromCode(null))

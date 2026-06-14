@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
+import com.cartharsis.data.CurrencyState
 import com.cartharsis.data.badges
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
@@ -217,7 +218,7 @@ private fun FirstVisit(onBrowse: () -> Unit) {
         )
         Text(
             text = "Every order here is money you didn't spend. Place your first " +
-                "one (it costs \$0.00) and watch this fill up.",
+                "one (it costs ${formatPrice(0)}) and watch this fill up.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -244,7 +245,7 @@ private fun FirstVisit(onBrowse: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = "$0",
+                    text = CurrencyState.active.formatMajorUnits(0),
                     fontSize = 52.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
@@ -287,7 +288,7 @@ private fun KeptHero(centsKept: Long) {
             // clips on a narrow phone; the hero owns its own row instead of
             // fighting for a cramped grid cell.
             BasicText(
-                text = animatedDollars(centsKept, delayMillis = 150),
+                text = animatedMoney(centsKept, delayMillis = 150),
                 style = TextStyle(color = Color.White, fontWeight = FontWeight.ExtraBold),
                 maxLines = 1,
                 softWrap = false,

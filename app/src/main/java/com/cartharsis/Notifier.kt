@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.cartharsis.data.formatPrice
 
 /**
  * Posts the app's two kinds of fake-commerce pings: "your nothing was delivered"
@@ -90,7 +91,7 @@ object Notifier {
             id = 2_000 + productId,
             title = "🍃 A wishlist price drifted down",
             text = "$productName eased $discountPercent% to $newPrice. No timer, " +
-                "no rush, it costs \$0.00 whenever you wander back.",
+                "no rush, it costs ${formatPrice(0)} whenever you wander back.",
             route = "product/$productId",
         )
     }

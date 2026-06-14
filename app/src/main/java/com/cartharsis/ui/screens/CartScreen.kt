@@ -251,7 +251,7 @@ internal fun OrderSummary(subtotalCents: Long, dealSavingsCents: Long, totalCent
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = "$0.00",
+                    text = formatPrice(0),
                     style = MaterialTheme.typography.bodyMedium,
                     color = LocalSavingsColor.current,
                     fontWeight = FontWeight.ExtraBold,

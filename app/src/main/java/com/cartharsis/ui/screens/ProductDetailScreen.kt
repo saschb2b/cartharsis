@@ -291,7 +291,7 @@ fun ProductDetailScreen(
                         viewModel.addAllToCart(set)
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
-                                message = "Added all ${set.size} to cart. Still \$0.00. 🛒",
+                                message = "Added all ${set.size} to cart. Still ${formatPrice(0)}. 🛒",
                                 actionLabel = "View cart",
                             )
                             if (result == SnackbarResult.ActionPerformed) onViewCart()
@@ -423,7 +423,7 @@ private fun DeliveryCard() {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             DeliveryLine("🚚", DELIVERY_PROMISE)
-            DeliveryLine("💳", "$0.00 at checkout, Imagination Express accepted")
+            DeliveryLine("💳", "${formatPrice(0)} at checkout, Imagination Express accepted")
             DeliveryLine("🧘", "Returns unnecessary; nothing will arrive")
         }
     }

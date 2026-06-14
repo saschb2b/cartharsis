@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cartharsis.data.CurrencyState
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Product
 import com.cartharsis.data.formatPrice
@@ -634,19 +635,22 @@ const val DELIVERY_PROMISE = "Free delivery · arrives ~1 minute after checkout"
 
 /**
  * A money string that ticks up to its value — cumulative numbers feel earned
- * when you watch them arrive. Whole dollars only; the cents never mattered.
+ * when you watch them arrive. Whole units only; the cents never mattered. Runs
+ * in the selected currency: converts to its whole units, ticks to that, and
+ * formats with its symbol and grouping.
  */
 @Composable
-fun animatedDollars(cents: Long, delayMillis: Int = 0): String {
+fun animatedMoney(cents: Long, delayMillis: Int = 0): String {
+    val currency = CurrencyState.active
     val animated by androidx.compose.animation.core.animateIntAsState(
-        targetValue = (cents / 100).toInt(),
+        targetValue = currency.majorUnits(cents).toInt(),
         animationSpec = androidx.compose.animation.core.tween(
             durationMillis = 900,
             delayMillis = delayMillis,
         ),
-        label = "dollars",
+        label = "money",
     )
-    return "$%,d".format(animated)
+    return currency.formatMajorUnits(animated.toLong())
 }
 
 /** A plain count that ticks up to its value. */

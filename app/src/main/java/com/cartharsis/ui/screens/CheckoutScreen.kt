@@ -106,9 +106,10 @@ private fun processingLines(totalCents: Long) = listOf(
     "Charging ${formatPrice(totalCents)}…",
 )
 
-/** The last line read is the one remembered — rotate the punchline. */
-private val successLines = listOf(
-    "Your card was charged \$0.00. It didn't notice.",
+/** The last line read is the one remembered — rotate the punchline. The zero is
+ *  the selected currency's, so the punchline lands in the shopper's money. */
+private fun successLines(zero: String) = listOf(
+    "Your card was charged $zero. It didn't notice.",
     "Everything you wanted, nothing you'll owe.",
     "The bank has confirmed: nothing happened.",
     "Receipt available wherever you imagine it.",
@@ -471,7 +472,8 @@ private fun SuccessScreen(
     val orders by viewModel.orders.collectAsState()
     val stats by viewModel.lifetimeStats.collectAsState()
     val order = orders.firstOrNull { it.id == orderId }
-    val punchline = remember { successLines.random() }
+    val zero = formatPrice(0)
+    val punchline = remember(zero) { successLines(zero).random() }
     // First order ever and every tenth get the bigger sky.
     val milestone = stats.ordersPlaced == 1 || (stats.ordersPlaced > 0 && stats.ordersPlaced % 10 == 0)
 
@@ -503,7 +505,7 @@ private fun SuccessScreen(
             )
             order?.let {
                 Text(
-                    text = "${animatedDollars(it.totalCents, delayMillis = 400)} stays yours",
+                    text = "${animatedMoney(it.totalCents, delayMillis = 400)} stays yours",
                     style = MaterialTheme.typography.headlineSmall,
                     color = LocalSavingsColor.current,
                     modifier = Modifier.padding(top = 10.dp),

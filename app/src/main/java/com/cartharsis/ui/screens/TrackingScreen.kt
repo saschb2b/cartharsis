@@ -609,7 +609,7 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
                 modifier = Modifier.padding(top = 6.dp),
             )
             Text(
-                text = "${animatedDollars(order.totalCents, delayMillis = 300)} still yours",
+                text = "${animatedMoney(order.totalCents, delayMillis = 300)} still yours",
                 style = MaterialTheme.typography.headlineSmall,
                 color = LocalSavingsColor.current,
                 modifier = Modifier.padding(top = 8.dp),
