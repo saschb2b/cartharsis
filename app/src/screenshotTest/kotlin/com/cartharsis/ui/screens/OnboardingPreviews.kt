@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -58,6 +59,39 @@ internal fun OnboardingAddressPreview() {
 @Preview(name = "Onboarding 4 payment", showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 internal fun OnboardingPaymentPreview() {
+    StepFrame {
+        PaymentStep(
+            name = "Sascha",
+            currency = com.cartharsis.data.Currency.KRW,
+            onCurrencyChange = {},
+            onAddCard = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(
+    name = "Onboarding account, dark",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 720,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+internal fun OnboardingAccountDarkPreview() {
+    StepFrame { AccountStep(name = "Sascha", onNameChange = {}, onContinue = {}) }
+}
+
+@PreviewTest
+@Preview(
+    name = "Onboarding payment, dark",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 720,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+internal fun OnboardingPaymentDarkPreview() {
     StepFrame {
         PaymentStep(
             name = "Sascha",

@@ -25,9 +25,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -100,12 +102,22 @@ class MainActivity : ComponentActivity() {
         pendingRoute.value = intent.getStringExtra(Notifier.EXTRA_ROUTE)
         setContent {
             CartharsisTheme {
-                // First run walks the fake signup; after that, straight to the shop.
-                val profile by shopViewModel.profile.collectAsState()
-                when {
-                    profile == null -> Unit // DataStore loads in a blink; render nothing.
-                    profile?.onboarded == false -> OnboardingScreen(shopViewModel)
-                    else -> CartharsisApp(shopViewModel, pendingRoute)
+                // A root Surface paints the themed background AND sets the
+                // default content color (onBackground). Without it, screens
+                // that aren't inside a Scaffold — onboarding — fall back to
+                // Compose's Color.Black default, so their untinted text went
+                // black and vanished on the dark background.
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    // First run walks the fake signup; after that, straight to the shop.
+                    val profile by shopViewModel.profile.collectAsState()
+                    when {
+                        profile == null -> Unit // DataStore loads in a blink; render nothing.
+                        profile?.onboarded == false -> OnboardingScreen(shopViewModel)
+                        else -> CartharsisApp(shopViewModel, pendingRoute)
+                    }
                 }
             }
         }
