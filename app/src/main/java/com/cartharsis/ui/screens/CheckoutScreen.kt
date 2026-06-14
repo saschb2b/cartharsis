@@ -177,7 +177,10 @@ fun CheckoutScreen(
                             .fillMaxSize()
                             .padding(padding)
                             .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp),
+                            // A 16dp top gap below the bar, matching the other
+                            // pushed screens, so the first section isn't pinned
+                            // to the header.
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         CheckoutSection("Deliver to") {

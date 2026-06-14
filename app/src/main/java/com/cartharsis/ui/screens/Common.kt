@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -384,11 +385,15 @@ fun BackArrowIcon(modifier: Modifier = Modifier, tint: Color = MaterialTheme.col
 }
 
 /**
- * One top app bar for every nested (pushed) screen — a standard-height
- * Material small top app bar with a clearly identifiable back button in a
- * full 48dp touch target, an optional title, and an optional actions slot.
- * Decision surfaces stay calm: title in [MaterialTheme.typography.titleLarge],
- * the bar tinted to [containerColor] (surface by default).
+ * One top app bar for every nested (pushed) screen — the Material small top app
+ * bar (64dp, [MaterialTheme.typography.titleLarge] title) with a clearly
+ * identifiable back button in a full 48dp touch target, an optional title, and
+ * an optional actions slot. The bar tints to [containerColor] (surface default).
+ *
+ * windowInsets is zeroed on purpose: every pushed screen lives inside the app's
+ * bottom-nav Scaffold, which already pads its content below the status bar. The
+ * default TopAppBar inset would add that a second time, leaving an empty band
+ * above the title so the bar read as too tall. Zero keeps it the spec 64dp.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -415,6 +420,7 @@ fun NestedTopBar(
             IconButton(onClick = onBack) { BackArrowIcon() }
         },
         actions = actions,
+        windowInsets = WindowInsets(0, 0, 0, 0),
     )
 }
 
