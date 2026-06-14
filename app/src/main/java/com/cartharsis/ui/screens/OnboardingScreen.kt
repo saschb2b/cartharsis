@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.Currency
 import com.cartharsis.data.ProfileStore
+import com.cartharsis.ui.theme.Motion
 
 private const val STEP_WELCOME = 0
 private const val STEP_ACCOUNT = 1
@@ -97,8 +98,13 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
             label = "onboarding",
             transitionSpec = {
                 val forward = targetState > initialState
-                (slideInHorizontally { if (forward) it / 3 else -it / 3 } + fadeIn())
-                    .togetherWith(slideOutHorizontally { if (forward) -it / 3 else it / 3 } + fadeOut())
+                (
+                    slideInHorizontally(Motion.spatial()) { if (forward) it / 3 else -it / 3 } +
+                        fadeIn(Motion.effects())
+                    ).togetherWith(
+                    slideOutHorizontally(Motion.spatial()) { if (forward) -it / 3 else it / 3 } +
+                        fadeOut(Motion.effects()),
+                )
             },
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) { current ->

@@ -87,6 +87,7 @@ import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.LocalSavingsColor
+import com.cartharsis.ui.theme.Motion
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -144,15 +145,14 @@ fun CheckoutScreen(
         targetState = phase,
         contentKey = { it::class },
         transitionSpec = {
+            // The reward pop rides the bouncy spatial spring; the fades the
+            // critically-damped effects spring.
             (
-                fadeIn(tween(320)) + scaleIn(
+                fadeIn(Motion.effects()) + scaleIn(
                     initialScale = 0.9f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
-                    ),
+                    animationSpec = Motion.spatialExpressive(),
                 )
-                ) togetherWith fadeOut(tween(200))
+                ) togetherWith fadeOut(Motion.effects())
         },
         label = "checkoutPhase",
     ) { p ->
@@ -278,8 +278,8 @@ fun CheckoutScreen(
                         AnimatedContent(
                             targetState = lineIndex,
                             transitionSpec = {
-                                (slideInVertically(tween(300)) { it / 3 } + fadeIn(tween(300))) togetherWith
-                                    (slideOutVertically(tween(300)) { -it / 3 } + fadeOut(tween(180)))
+                                (slideInVertically(Motion.spatial()) { it / 3 } + fadeIn(Motion.effects())) togetherWith
+                                    (slideOutVertically(Motion.spatial()) { -it / 3 } + fadeOut(Motion.effects()))
                             },
                             label = "processing",
                         ) { index ->
@@ -359,7 +359,7 @@ private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modif
 
     val labelColor by androidx.compose.animation.animateColorAsState(
         targetValue = if (progress.value > 0.4f) Color.White else MaterialTheme.colorScheme.primary,
-        animationSpec = tween(150),
+        animationSpec = Motion.effects(),
         label = "labelColor",
     )
 

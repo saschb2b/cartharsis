@@ -94,6 +94,7 @@ import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.LocalSavingsColor
+import com.cartharsis.ui.theme.Motion
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
 import kotlinx.coroutines.delay
@@ -244,8 +245,10 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     targetState = packIdx,
                                     label = "packQueue",
                                     transitionSpec = {
-                                        (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f))
-                                            .togetherWith(fadeOut(tween(120)))
+                                        (
+                                            fadeIn(Motion.effects()) +
+                                                scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
+                                            ).togetherWith(fadeOut(Motion.effects()))
                                     },
                                 ) { idx ->
                                     PackRipReveal(
@@ -284,8 +287,10 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                     targetState = boxIdx,
                                     label = "boxQueue",
                                     transitionSpec = {
-                                        (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f))
-                                            .togetherWith(fadeOut(tween(120)))
+                                        (
+                                            fadeIn(Motion.effects()) +
+                                                scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
+                                            ).togetherWith(fadeOut(Motion.effects()))
                                     },
                                 ) { idx ->
                                     val (wave, figures) = blindBoxes[idx]
@@ -723,7 +728,10 @@ private fun PackRipReveal(
             targetState = torn,
             label = "rip",
             transitionSpec = {
-                (fadeIn(tween(260)) + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut(tween(120)))
+                (
+                    fadeIn(Motion.effects()) +
+                        scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
+                    ).togetherWith(fadeOut(Motion.effects()))
             },
         ) { isTorn ->
             if (!isTorn) {
@@ -1004,7 +1012,9 @@ private fun CardStackReveal(
                             exit.snapTo(0f)
                         }
                         !chaseFlipped -> scope.launch {
-                            flip.animateTo(180f, tween(durationMillis = 540, easing = FastOutSlowInEasing))
+                            // The chase reveal lands on a spatial spring — a
+                            // small overshoot as the card settles face-up.
+                            flip.animateTo(180f, Motion.spatial())
                             chaseFlipped = true
                             onChaseRevealed()
                         }
@@ -1196,9 +1206,9 @@ private fun BlindBoxReveal(
                 (
                     scaleIn(
                         initialScale = 0.7f,
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                    ) + fadeIn()
-                    ).togetherWith(fadeOut(tween(120)))
+                        animationSpec = Motion.spatialExpressive(),
+                    ) + fadeIn(Motion.effects())
+                    ).togetherWith(fadeOut(Motion.effects()))
             },
         ) { isOpen ->
             if (!isOpen) {

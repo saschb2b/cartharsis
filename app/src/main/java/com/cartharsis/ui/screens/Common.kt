@@ -77,6 +77,7 @@ import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.LemonYellow
 import com.cartharsis.ui.theme.MintGreen
+import com.cartharsis.ui.theme.Motion
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
 import kotlinx.coroutines.delay
@@ -245,7 +246,9 @@ fun AppearOnce(key: Any, delayMillis: Int, enabled: Boolean = true, content: @Co
     }
     val progress by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
-        animationSpec = tween(durationMillis = 320),
+        // The entrance lift rides a spatial spring, so each card settles in with
+        // a touch of physics rather than a flat 320ms ramp.
+        animationSpec = Motion.spatial(),
         label = "appear",
     )
     Box(
