@@ -27,6 +27,8 @@ enum class Currency(
     USD("USD", "$", "US Dollar", 1.0, 2),
     EUR("EUR", "€", "Euro", 0.92, 2),
     KRW("KRW", "₩", "South Korean Won", 1_350.0, 0, roundTo = 10),
+    GBP("GBP", "£", "British Pound", 0.79, 2),
+    JPY("JPY", "¥", "Japanese Yen", 150.0, 0),
     ;
 
     /** Formats a base amount (USD cents) as a price string in this currency. */

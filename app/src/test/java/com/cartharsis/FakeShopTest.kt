@@ -585,6 +585,8 @@ class FakeShopTest {
         assertEquals("$1,299.00", Currency.USD.format(129_900))
         assertEquals("€1,195.08", Currency.EUR.format(129_900)) // 1299 * 0.92
         assertEquals("₩1,753,650", Currency.KRW.format(129_900)) // 1299 * 1350
+        assertEquals("£1,026.21", Currency.GBP.format(129_900)) // 1299 * 0.79
+        assertEquals("¥194,850", Currency.JPY.format(129_900)) // 1299 * 150, no decimals
 
         // KRW carries no decimals and rounds to a tidy figure (47,115 -> 47,120).
         assertEquals("₩47,120", Currency.KRW.format(3_490))
