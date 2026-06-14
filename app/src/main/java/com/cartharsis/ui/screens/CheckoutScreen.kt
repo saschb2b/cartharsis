@@ -12,6 +12,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -122,157 +127,197 @@ fun CheckoutScreen(
     var phase by remember { mutableStateOf<CheckoutPhase>(CheckoutPhase.Form) }
     val haptics = LocalHapticFeedback.current
 
-    when (val p = phase) {
-        is CheckoutPhase.Form -> {
-            if (cart.isEmpty()) {
-                LaunchedEffect(Unit) { onBack() }
-                return
-            }
-            Scaffold(
-                topBar = { NestedTopBar(onBack = onBack, title = "Checkout") },
-                bottomBar = {
-                    val total = viewModel.cartTotalCents(cart)
-                    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
-                        HoldToPlaceOrderButton(
-                            totalCents = total,
-                            onPlaced = { phase = CheckoutPhase.Processing(total) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        )
-                    }
-                },
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    CheckoutSection("Deliver to") {
-                        Text(
-                            text = profile?.name?.ifBlank { null } ?: "Your Imagination",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            text = (profile?.street ?: ProfileStore.DEFAULT_STREET) + ", " +
-                                (profile?.city ?: ProfileStore.DEFAULT_CITY),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            "🚚 $DELIVERY_PROMISE",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
+    // An emptied cart on the form has nothing to check out: bail before the
+    // ceremony renders. Hoisted out of the AnimatedContent so the phase switch
+    // never has to early-return mid-transition.
+    if (phase is CheckoutPhase.Form && cart.isEmpty()) {
+        LaunchedEffect(Unit) { onBack() }
+        return
+    }
 
-                    Text(
-                        text = "Pay with",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp),
-                    )
-                    ImaginationCard(cardHolder = profile?.name.orEmpty())
-
-                    Text(
-                        text = "Order summary",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp),
-                    )
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    // The post-commit flow auto-plays form → processing → success. Animate each
+    // hand-off so it lands as a beat: the next screen springs in (scale + fade)
+    // while the last fades out, instead of a hard cut into confetti.
+    AnimatedContent(
+        targetState = phase,
+        contentKey = { it::class },
+        transitionSpec = {
+            (
+                fadeIn(tween(320)) + scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    ),
+                )
+                ) togetherWith fadeOut(tween(200))
+        },
+        label = "checkoutPhase",
+    ) { p ->
+        when (p) {
+            is CheckoutPhase.Form -> {
+                Scaffold(
+                    topBar = { NestedTopBar(onBack = onBack, title = "Checkout") },
+                    bottomBar = {
+                        val total = viewModel.cartTotalCents(cart)
+                        Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
+                            HoldToPlaceOrderButton(
+                                totalCents = total,
+                                onPlaced = { phase = CheckoutPhase.Processing(total) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                            )
+                        }
+                    },
+                ) { padding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            cart.forEach { item -> SummaryLine(item) }
-                            HorizontalDivider(Modifier.padding(vertical = 2.dp))
-                            // No "$0.00" reveal here: the checkout plays it
-                            // straight so the ceremony has stakes. The truth
-                            // is the success screen's punchline.
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    "Total",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    text = formatPrice(viewModel.cartTotalCents(cart)),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.ExtraBold,
-                                )
+                        CheckoutSection("Deliver to") {
+                            Text(
+                                text = profile?.name?.ifBlank { null } ?: "Your Imagination",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = (profile?.street ?: ProfileStore.DEFAULT_STREET) + ", " +
+                                    (profile?.city ?: ProfileStore.DEFAULT_CITY),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "🚚 $DELIVERY_PROMISE",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+
+                        Text(
+                            text = "Pay with",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                        ImaginationCard(cardHolder = profile?.name.orEmpty())
+
+                        Text(
+                            text = "Order summary",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        ) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                cart.forEach { item -> SummaryLine(item) }
+                                HorizontalDivider(Modifier.padding(vertical = 2.dp))
+                                // No "$0.00" reveal here: the checkout plays it
+                                // straight so the ceremony has stakes. The truth
+                                // is the success screen's punchline.
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "Total",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    Text(
+                                        text = formatPrice(viewModel.cartTotalCents(cart)),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.ExtraBold,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        is CheckoutPhase.Processing -> {
-            val lines = remember(p.totalCents) { processingLines(p.totalCents) }
-            var lineIndex by remember { mutableIntStateOf(0) }
-            var showCheck by remember { mutableStateOf(false) }
-            val scope = rememberCoroutineScope()
-            // You can't back out mid-payment, even of a payment of nothing.
-            BackHandler { }
-            LaunchedEffect(Unit) {
-                lines.indices.drop(1).forEach {
-                    delay(600)
-                    lineIndex = it
+            is CheckoutPhase.Processing -> {
+                val lines = remember(p.totalCents) { processingLines(p.totalCents) }
+                var lineIndex by remember { mutableIntStateOf(0) }
+                var showCheck by remember { mutableStateOf(false) }
+                val scope = rememberCoroutineScope()
+                // You can't back out mid-payment, even of a payment of nothing.
+                BackHandler { }
+                LaunchedEffect(Unit) {
+                    // ~900ms per labor line: long enough to read each as its own
+                    // beat (a short phrase needs roughly that to register), so the
+                    // sequence builds suspense instead of flickering past.
+                    lines.indices.drop(1).forEach {
+                        delay(900)
+                        lineIndex = it
+                    }
+                    delay(900)
+                    showCheck = true
                 }
-                delay(600)
-                showCheck = true
-            }
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                if (!showCheck) {
-                    CircularProgressIndicator()
-                    AnimatedContent(targetState = lineIndex, label = "processing") { index ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    if (!showCheck) {
+                        CircularProgressIndicator()
+                        // Each line rises into place as the last lifts away — a
+                        // ticker advancing, so the labor reads as forward progress
+                        // rather than text dissolving in place.
+                        AnimatedContent(
+                            targetState = lineIndex,
+                            transitionSpec = {
+                                (slideInVertically(tween(300)) { it / 3 } + fadeIn(tween(300))) togetherWith
+                                    (slideOutVertically(tween(300)) { -it / 3 } + fadeOut(tween(180)))
+                            },
+                            label = "processing",
+                        ) { index ->
+                            Text(
+                                text = lines[index],
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(top = 16.dp),
+                            )
+                        }
+                    } else {
+                        AnimatedCheckmark(
+                            onDrawn = {
+                                // Haptic and chime fire at the exact moment the stroke
+                                // completes, then one breath before the celebration.
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                Chime.playSuccess()
+                                scope.launch {
+                                    // Let the checkmark and "Payment complete" land
+                                    // before the reward springs in — a held breath,
+                                    // not a snap cut.
+                                    delay(700)
+                                    phase = CheckoutPhase.Success(viewModel.placeOrder())
+                                }
+                            },
+                        )
                         Text(
-                            text = lines[index],
+                            text = "Payment complete",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 16.dp),
                         )
                     }
-                } else {
-                    AnimatedCheckmark(
-                        onDrawn = {
-                            // Haptic and chime fire at the exact moment the stroke
-                            // completes, then one breath before the celebration.
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            Chime.playSuccess()
-                            scope.launch {
-                                delay(250)
-                                phase = CheckoutPhase.Success(viewModel.placeOrder())
-                            }
-                        },
-                    )
-                    Text(
-                        text = "Payment complete",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
                 }
             }
-        }
 
-        is CheckoutPhase.Success -> {
-            // Back from the confirmation goes shopping, not to a dead cart.
-            BackHandler { onKeepShopping() }
-            SuccessScreen(
-                viewModel = viewModel,
-                orderId = p.orderId,
-                onTrackOrder = onTrackOrder,
-                onKeepShopping = onKeepShopping,
-            )
+            is CheckoutPhase.Success -> {
+                // Back from the confirmation goes shopping, not to a dead cart.
+                BackHandler { onKeepShopping() }
+                SuccessScreen(
+                    viewModel = viewModel,
+                    orderId = p.orderId,
+                    onTrackOrder = onTrackOrder,
+                    onKeepShopping = onKeepShopping,
+                )
+            }
         }
     }
 }
