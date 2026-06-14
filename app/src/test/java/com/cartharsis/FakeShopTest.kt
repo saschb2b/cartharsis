@@ -587,6 +587,14 @@ class FakeShopTest {
         assertEquals("₩1,753,650", Currency.KRW.format(129_900)) // 1299 * 1350
         assertEquals("£1,026.21", Currency.GBP.format(129_900)) // 1299 * 0.79
         assertEquals("¥194,850", Currency.JPY.format(129_900)) // 1299 * 150, no decimals
+        assertEquals("CN¥9,352.80", Currency.CNY.format(129_900)) // 1299 * 7.2
+        assertEquals("CA$1,766.64", Currency.CAD.format(129_900)) // 1299 * 1.36
+        assertEquals("A$1,974.48", Currency.AUD.format(129_900)) // 1299 * 1.52
+
+        // INR groups the Indian way (lakh): 1299 * 83 = 107,817 -> ₹1,07,817.00.
+        assertEquals("₹1,07,817.00", Currency.INR.format(129_900))
+        // BRL flips the separators: 1299 * 5 = 6,495 -> R$6.495,00.
+        assertEquals("R$6.495,00", Currency.BRL.format(129_900))
 
         // KRW carries no decimals and rounds to a tidy figure (47,115 -> 47,120).
         assertEquals("₩47,120", Currency.KRW.format(3_490))
