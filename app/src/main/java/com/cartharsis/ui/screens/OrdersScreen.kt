@@ -386,10 +386,11 @@ internal fun SavingsVault(centsKept: Long) {
                 drawPath(body, color = outline, style = Stroke(width = 3f))
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                // The dollar amount is this card's payoff, so the title sits
+                // back at the default medium weight and lets the green lead.
                 Text(
                     text = "Your savings vault",
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
                 )
                 if (next != null) {
                     Text(
