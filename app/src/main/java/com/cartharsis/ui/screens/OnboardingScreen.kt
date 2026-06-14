@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -86,13 +89,22 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
             .imePadding()
             .padding(24.dp),
     ) {
-        // A fixed-height header zone so the dots (and the content below them)
-        // sit at the same place every step, present from the first form screen.
-        Box(
-            modifier = Modifier.fillMaxWidth().height(28.dp),
-            contentAlignment = Alignment.CenterStart,
+        // A fixed-height header: a progress indicator (2 dots for the intro
+        // pitch, 3 for the setup steps) and a Skip on the intro slides, so the
+        // pitch is never a trap. Stays 48dp tall so content below never jumps.
+        val onIntro = step <= STEP_INTRO_WHY
+        Row(
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (step >= STEP_ACCOUNT) StepDots(current = step)
+            ProgressDots(
+                current = step,
+                steps = if (onIntro) STEP_INTRO_WHAT..STEP_INTRO_WHY else STEP_ACCOUNT..STEP_PAYMENT,
+            )
+            Spacer(Modifier.weight(1f))
+            if (onIntro) {
+                TextButton(onClick = { step = STEP_ACCOUNT }) { Text("Skip") }
+            }
         }
         AnimatedContent(
             targetState = step,
@@ -107,7 +119,31 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
                         fadeOut(Motion.effects()),
                 )
             },
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                // Swipe between the intro slides (the carousel users expect on
+                // Android); the form steps stay button-only so a swipe never
+                // skips past a field that still needs filling.
+                .then(
+                    if (onIntro) {
+                        Modifier.pointerInput(step) {
+                            var dragged = 0f
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    if (dragged < -40f && step < STEP_INTRO_WHY) {
+                                        step++
+                                    } else if (dragged > 40f && step > STEP_INTRO_WHAT) {
+                                        step--
+                                    }
+                                    dragged = 0f
+                                },
+                            ) { _, dragAmount -> dragged += dragAmount }
+                        }
+                    } else {
+                        Modifier
+                    },
+                ),
         ) { current ->
             when (current) {
                 STEP_INTRO_WHAT -> IntroWhatStep(onNext = { step = STEP_INTRO_WHY })
@@ -340,15 +376,17 @@ internal fun PaymentStep(
     }
 }
 
+/** Filled-to-current dots over an arbitrary step range (the intro pitch or the
+ *  setup steps), announced as "Step X of Y". */
 @Composable
-private fun StepDots(current: Int, modifier: Modifier = Modifier) {
+private fun ProgressDots(current: Int, steps: IntRange, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.clearAndSetSemantics {
-            contentDescription = "Step ${current - STEP_ACCOUNT + 1} of 3"
+            contentDescription = "Step ${current - steps.first + 1} of ${steps.count()}"
         },
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        (STEP_ACCOUNT..STEP_PAYMENT).forEach { stepIndex ->
+        steps.forEach { stepIndex ->
             Box(
                 modifier = Modifier
                     .size(8.dp)
