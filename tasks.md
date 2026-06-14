@@ -674,3 +674,14 @@ single spacedBy(10) between everything, so nothing read as grouped.
 
 ## Backlog (future)
 - [ ] Persist the order list with DataStore (wishlist + stats done; orders need serialization)
+- [ ] Adopt the official M3 Expressive APIs when material3 1.5 goes stable.
+      We're on material3 1.4.0 (current stable via compose-bom 2026.02.01), where
+      MotionScheme / MaterialExpressiveTheme / LoadingIndicator / ButtonGroup and
+      emphasized typography are compiled but `internal` — public only in the
+      1.5.0-alpha line, not worth pulling an alpha for polish. Our hand-rolled
+      `ui/theme/Motion.kt` tokens already cover the *motion* (spring physics,
+      spatial vs effects split) on stable. When 1.5 is stable: bump material3,
+      switch CartharsisTheme to `MaterialExpressiveTheme` + `MotionScheme.expressive()`
+      (drop most manual tokens), swap the checkout `CircularProgressIndicator` for
+      the morphing `LoadingIndicator`, and use emphasized type (`titleLargeEmphasized`)
+      on the hero moments.
