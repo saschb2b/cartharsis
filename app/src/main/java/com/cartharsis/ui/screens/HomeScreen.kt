@@ -423,7 +423,8 @@ internal fun FlashDealBanner(
                     .size(72.dp)
                     .background(FlashDealGlow, CircleShape),
             )
-            Text(text = emoji, fontSize = 60.sp)
+            // Decorative; the deal's name and price carry the announcement.
+            Text(text = emoji, fontSize = 60.sp, modifier = Modifier.clearAndSetSemantics {})
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {

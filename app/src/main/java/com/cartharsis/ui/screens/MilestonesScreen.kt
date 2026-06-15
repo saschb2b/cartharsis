@@ -476,7 +476,8 @@ private fun BadgePill(badge: Badge, modifier: Modifier = Modifier) {
             Text(
                 text = if (badge.earned) badge.emoji else "🔒",
                 fontSize = 26.sp,
-                modifier = if (badge.earned) Modifier else Modifier.alpha(0.6f),
+                modifier = (if (badge.earned) Modifier else Modifier.alpha(0.6f))
+                    .clearAndSetSemantics {},
             )
             Text(
                 text = badge.label,
@@ -505,7 +506,7 @@ private fun StatChip(emoji: String, value: String, label: String, modifier: Modi
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
         ) {
-            Text(emoji, fontSize = 22.sp)
+            Text(emoji, fontSize = 22.sp, modifier = Modifier.clearAndSetSemantics {})
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,

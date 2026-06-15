@@ -566,7 +566,7 @@ private fun swatchColor(label: String?): androidx.compose.ui.graphics.Color = wh
 @Composable
 private fun DeliveryLine(emoji: String, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(emoji, fontSize = 16.sp)
+        Text(emoji, fontSize = 16.sp, modifier = Modifier.clearAndSetSemantics {})
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,

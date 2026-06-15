@@ -850,7 +850,7 @@ internal fun BoosterPackTear(theme: PackTheme, series: String, onTorn: () -> Uni
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier.matchParentSize().padding(top = 46.dp),
                 ) {
-                    Text(theme.emoji, fontSize = 76.sp)
+                    Text(theme.emoji, fontSize = 76.sp, modifier = Modifier.clearAndSetSemantics {})
                     Text(
                         text = theme.title,
                         style = MaterialTheme.typography.titleLarge,
