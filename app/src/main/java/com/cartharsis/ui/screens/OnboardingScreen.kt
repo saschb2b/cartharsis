@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -212,10 +214,12 @@ private fun StepScaffold(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 12.dp),
             )
         }
+        val interaction = remember { MutableInteractionSource() }
         Button(
             onClick = onPrimary,
             enabled = primaryEnabled,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            interactionSource = interaction,
+            modifier = Modifier.fillMaxWidth().height(52.dp).pressScale(interaction),
         ) {
             Text(primaryLabel)
         }

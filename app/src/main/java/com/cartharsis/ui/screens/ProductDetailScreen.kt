@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -399,9 +400,11 @@ private fun BuyBar(quantity: Int, onQuantityChange: (Int) -> Unit, justAdded: Bo
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             QuantityStepper(quantity = quantity, onQuantityChange = onQuantityChange)
+            val addInteraction = remember { MutableInteractionSource() }
             Button(
                 onClick = onAddToCart,
-                modifier = Modifier.weight(1f).height(48.dp),
+                interactionSource = addInteraction,
+                modifier = Modifier.weight(1f).height(48.dp).pressScale(addInteraction),
             ) {
                 Crossfade(targetState = justAdded, label = "addToCart") { added ->
                     Text(

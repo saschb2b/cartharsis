@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -257,9 +258,13 @@ internal fun OrderSummary(subtotalCents: Long, dealSavingsCents: Long, totalCent
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
+            val checkoutInteraction = remember { MutableInteractionSource() }
             Button(
                 onClick = onCheckout,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp),
+                interactionSource = checkoutInteraction,
+                modifier = Modifier
+                    .fillMaxWidth().padding(top = 8.dp).height(50.dp)
+                    .pressScale(checkoutInteraction),
             ) {
                 Text("Checkout · ${formatPrice(totalCents)}", fontWeight = FontWeight.Bold)
             }
