@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.screenshot)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 android {
@@ -59,6 +60,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.activity.compose)
+    // Installs the baseline profile (below) at first run so hot paths are AOT-
+    // compiled; it ships transitively with Compose, declared here for clarity.
+    implementation(libs.androidx.profileinstaller)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -74,4 +78,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // The :baselineprofile module produces the profile bundled into release.
+    baselineProfile(project(":baselineprofile"))
 }

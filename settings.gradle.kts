@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Cartharsis"
 include(":app")
+include(":baselineprofile")

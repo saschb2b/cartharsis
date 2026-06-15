@@ -556,9 +556,18 @@ Declined by owner: review sort/filter controls.
       at the top of composition (per-frame recompose for 2.8s), but it's
       a one-shot nobody flagged and full deferral means restructuring a
       delicate working animation — not worth the risk
-- [ ] Proposal: add a Baseline Profile (baseline-profile gradle plugin +
-      generator) to warm first-launch/first-scroll JIT — build-infra add,
-      modest benefit on an app this size, owner call
+- [x] Baseline Profile infrastructure: `:baselineprofile` com.android.test
+      module (androidx.baselineprofile plugin + benchmark-macro + uiautomator)
+      with a `BaselineProfileGenerator` that walks cold start, onboarding, the
+      home-grid fling, and a product-open. ProfileInstaller is wired into the
+      app so the profile installs at first run for AOT compilation. The Gradle
+      config resolves, the app builds, and the generator compiles; the profile
+      itself is generated on an API 28+ device/emulator with
+      `JAVA_HOME=/app/extra/jbr ./gradlew :app:generateBaselineProfile`
+      (lands in app/src/release/generated/baselineProfiles/, not yet captured —
+      no emulator in this environment). The walk is driven by visible copy, so
+      update the selectors in BaselineProfileGenerator if onboarding strings
+      change. This directly targets the debug-build product-detail "pause."
 - [ ] Proposal: swap collectAsState -> collectAsStateWithLifecycle (needs
       lifecycle-runtime-compose dep) so flows stop delivering recompositions
       while backgrounded — minor (the ViewModel tickers run regardless),
