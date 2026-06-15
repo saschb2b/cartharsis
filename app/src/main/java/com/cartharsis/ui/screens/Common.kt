@@ -325,7 +325,10 @@ fun EmojiHero(emoji: String, modifier: Modifier = Modifier, fontSize: Int = 64, 
         modifier = modifier.background(brush),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = emoji, fontSize = fontSize.sp)
+        // Decorative "product photography": the product name always rides
+        // alongside, so hide the emoji's Unicode name from TalkBack instead of
+        // announcing "mobile phone" before the real label.
+        Text(text = emoji, fontSize = fontSize.sp, modifier = Modifier.clearAndSetSemantics {})
     }
 }
 
@@ -361,7 +364,7 @@ fun ProductHero(emoji: String, seed: Int, modifier: Modifier = Modifier) {
                     CircleShape,
                 ),
         )
-        Text(text = emoji, fontSize = 240.sp)
+        Text(text = emoji, fontSize = 240.sp, modifier = Modifier.clearAndSetSemantics {})
     }
 }
 
@@ -556,7 +559,8 @@ fun ProductCard(
                         .background(stageBrush),
                 )
                 Box(Modifier.size(108.dp).background(glowBrush, CircleShape))
-                Text(product.emoji, fontSize = 78.sp)
+                // Decorative art; the card already announces product.name below.
+                Text(product.emoji, fontSize = 78.sp, modifier = Modifier.clearAndSetSemantics {})
                 product.discountPercent?.let {
                     DiscountBadge(percent = it, modifier = Modifier.align(Alignment.TopStart).padding(10.dp))
                 }
@@ -628,7 +632,7 @@ fun MiniProductCard(product: Product, onClick: () -> Unit) {
                     .background(stageBrush),
             )
             Box(Modifier.size(78.dp).background(glowBrush, CircleShape))
-            Text(product.emoji, fontSize = 52.sp)
+            Text(product.emoji, fontSize = 52.sp, modifier = Modifier.clearAndSetSemantics {})
         }
         Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 12.dp)) {
             Text(
