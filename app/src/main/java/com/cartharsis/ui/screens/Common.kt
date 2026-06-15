@@ -867,45 +867,31 @@ fun ImaginationCard(
             // spans the whole left, the expiry pins right. The "scheme logo"
             // is the IMAGINATION EXPRESS wordmark up top, so nothing crowds
             // the name here.
+            // Apple Card-minimal: the name and expiry alone, no "CARD HOLDER" /
+            // "VALID THRU" micro-labels above them.
             Row(verticalAlignment = Alignment.Bottom) {
-                CardField(
-                    label = "CARD HOLDER",
-                    value = cardHolder.trim().uppercase().ifBlank { "YOUR IMAGINATION" },
-                    shadow = embossed,
+                Text(
+                    text = cardHolder.trim().uppercase().ifBlank { "YOUR IMAGINATION" },
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        letterSpacing = 1.sp,
+                        shadow = embossed,
+                    ),
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(16.dp))
-                CardField(
-                    label = "VALID THRU",
-                    value = "∞∞ / ∞∞",
-                    shadow = embossed,
-                    alignment = Alignment.End,
+                Text(
+                    text = "∞∞ / ∞∞",
+                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        shadow = embossed,
+                    ),
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun CardField(
-    label: String,
-    value: String,
-    shadow: Shadow,
-    modifier: Modifier = Modifier,
-    alignment: Alignment.Horizontal = Alignment.Start,
-) {
-    Column(modifier, horizontalAlignment = alignment) {
-        Text(label, color = Color.White.copy(alpha = 0.65f), fontSize = 8.sp, letterSpacing = 1.sp)
-        Text(
-            text = value,
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontFamily = FontFamily.Monospace,
-                shadow = shadow,
-            ),
-        )
     }
 }
 
