@@ -831,17 +831,17 @@ fun ImaginationCard(
         )
         Column(Modifier.fillMaxSize().padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // The card's brand is the shuffled network name, styled like a
+                // scheme wordmark. Re-rolling it re-brands the whole card.
                 Text(
-                    "IMAGINATION EXPRESS",
+                    design.network,
                     color = Color.White,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.5.sp,
+                    fontStyle = FontStyle.Italic,
+                    letterSpacing = 0.5.sp,
                 )
                 Spacer(Modifier.weight(1f))
-                if (onShuffle != null) {
-                    Text("🎲", fontSize = 15.sp, modifier = Modifier.padding(end = 8.dp))
-                }
                 ContactlessMark()
             }
             Spacer(Modifier.weight(1f))
@@ -874,23 +874,12 @@ fun ImaginationCard(
                     shadow = embossed,
                     modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(16.dp))
                 CardField(
                     label = "VALID THRU",
                     value = "∞∞ / ∞∞",
                     shadow = embossed,
                     alignment = Alignment.End,
-                )
-                Spacer(Modifier.width(14.dp))
-                // The payment network "logo": an invented scheme, bottom-right
-                // where a real card's network mark sits.
-                Text(
-                    text = design.network,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleSmall.copy(shadow = embossed),
-                    fontWeight = FontWeight.ExtraBold,
-                    fontStyle = FontStyle.Italic,
-                    maxLines = 1,
                 )
             }
         }
