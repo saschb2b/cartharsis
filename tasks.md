@@ -572,6 +572,15 @@ Declined by owner: review sort/filter controls.
       lifecycle-runtime-compose dep) so flows stop delivering recompositions
       while backgrounded — minor (the ViewModel tickers run regardless),
       owner call on the dependency
+- [ ] Proposal (touches the core invariant — owner call): the manifest ships
+      the template defaults `allowBackup="true"` with empty backup_rules.xml /
+      data_extraction_rules.xml, so Android auto-backup currently uploads the
+      whole "cartharsis" DataStore (binder, streak, stats, profile) to Google's
+      cloud. That conflicts with "no network, nothing leaves the device," but
+      `allowBackup="false"` wipes a user's collection on reinstall/new phone.
+      Decide: keep backup and write explicit include rules for the trophy data,
+      or turn it off for strict local-only. Either way, fill in the TODO
+      template files so the choice is deliberate, not a leftover default.
 
 ## Phase 37 — Tracking map redesign (courier-app concept)
 - [x] Reworked the in-transit tracking screen to a routed-map concept
