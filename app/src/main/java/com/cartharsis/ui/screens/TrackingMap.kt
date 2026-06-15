@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -487,7 +488,9 @@ private fun FloatingBackButton(onBack: () -> Unit, modifier: Modifier = Modifier
         shadowElevation = 2.dp,
         modifier = modifier
             .size(40.dp)
-            .clickable(onClick = onBack),
+            // BackArrowIcon already carries the "Back" label; the bare clickable
+            // just lacked a role, so TalkBack never announced it as a button.
+            .clickable(onClick = onBack, role = Role.Button),
     ) {
         Box(contentAlignment = Alignment.Center) {
             BackArrowIcon(tint = MaterialTheme.colorScheme.onSurface)
