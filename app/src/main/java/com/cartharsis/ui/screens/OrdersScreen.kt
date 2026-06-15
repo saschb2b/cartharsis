@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -431,8 +432,11 @@ internal fun SavingsVault(centsKept: Long) {
 private fun MilestonesEntryRow(ordersPlaced: Int, centsKept: Long, streakDays: Int, onClick: () -> Unit) {
     val all = remember(ordersPlaced, centsKept, streakDays) { badges(ordersPlaced, centsKept, streakDays) }
     val earned = all.count { it.earned }
+    val interaction = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
+        interactionSource = interaction,
+        modifier = Modifier.pressScale(interaction),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -465,8 +469,11 @@ private fun MilestonesEntryRow(ordersPlaced: Int, centsKept: Long, streakDays: I
 
 @Composable
 private fun OrderCard(order: com.cartharsis.data.Order, onOrderClick: (Int) -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
     Card(
         onClick = { onOrderClick(order.id) },
+        interactionSource = interaction,
+        modifier = Modifier.pressScale(interaction),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),

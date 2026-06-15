@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,8 +91,11 @@ fun WishlistScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onBr
         items(wished, key = { it.id }) { base ->
             val product = viewModel.displayProduct(base)
             val hasDrop = base.id in priceDrops
+            val interaction = remember { MutableInteractionSource() }
             Card(
                 onClick = { onProductClick(base.id) },
+                interactionSource = interaction,
+                modifier = Modifier.pressScale(interaction),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Row(
