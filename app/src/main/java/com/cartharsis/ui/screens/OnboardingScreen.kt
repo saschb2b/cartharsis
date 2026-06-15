@@ -367,7 +367,7 @@ internal fun PaymentStep(
         onPrimary = onAddCard,
         footnote = "It's the only payment method. There was never a choice.",
     ) {
-        StepHeader("Add a payment method", "You've been pre-approved for the Imagination Express.")
+        StepHeader("Add a payment method", "You've been pre-approved. The limit is your imagination.")
         ImaginationCard(cardHolder = name, seed = cardSeed, onShuffle = onShuffleCard)
         Text(
             text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary · tap to shuffle 🎲",

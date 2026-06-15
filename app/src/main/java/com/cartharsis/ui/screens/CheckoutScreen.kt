@@ -103,7 +103,7 @@ private sealed interface CheckoutPhase {
  * $0.00 truth is the success screen's punchline, never an opening spoiler.
  */
 private fun processingLines(totalCents: Long) = listOf(
-    "Contacting Imagination Express…",
+    "Contacting your imaginary bank…",
     "Verifying available balance…",
     "Charging ${formatPrice(totalCents)}…",
 )

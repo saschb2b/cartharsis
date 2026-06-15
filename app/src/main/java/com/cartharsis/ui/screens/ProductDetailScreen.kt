@@ -428,7 +428,7 @@ private fun DeliveryCard() {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             DeliveryLine("🚚", DELIVERY_PROMISE)
-            DeliveryLine("💳", "${formatPrice(0)} at checkout, Imagination Express accepted")
+            DeliveryLine("💳", "${formatPrice(0)} at checkout, your card always clears")
             DeliveryLine("🧘", "Returns unnecessary; nothing will arrive")
         }
     }
