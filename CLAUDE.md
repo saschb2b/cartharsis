@@ -21,6 +21,7 @@ JAVA_HOME=/app/extra/jbr ./gradlew lint           # warningsAsErrors; baseline i
 JAVA_HOME=/app/extra/jbr ./gradlew spotlessCheck  # ktlint formatting gate; spotlessApply fixes
 JAVA_HOME=/app/extra/jbr ./gradlew validateDebugScreenshotTest  # @Preview gallery vs reference PNGs
 JAVA_HOME=/app/extra/jbr ./gradlew updateDebugScreenshotTest    # re-render the references
+JAVA_HOME=/app/extra/jbr ./gradlew :app:generateBaselineProfile # needs an API 28+ device/emulator
 ```
 
 Component galleries live in `app/src/screenshotTest/` (`@PreviewTest` +
@@ -36,6 +37,14 @@ on every push/PR; the emulator smoke test runs weekly/on-demand
 (`instrumented.yml`). Run `spotlessApply` before committing — formatting is a
 hard gate. ktlint settings live in the root `build.gradle.kts`
 (editorConfigOverride) with a mirrored `.editorconfig` for IDEs; change both.
+
+The `:baselineprofile` module (`com.android.test`) holds a `BaselineProfileRule`
+generator that walks cold start, onboarding, the home-grid fling, and a
+product-open; `generateBaselineProfile` captures the profile into
+`app/src/release/generated/baselineProfiles/` for ProfileInstaller to AOT-compile
+at first run (release only — debug never AOTs, so the dev-build first-frame pause
+is expected). The walk is driven by visible onboarding copy, so update the
+selectors in `BaselineProfileGenerator.kt` if those strings change.
 
 ## Architecture
 
