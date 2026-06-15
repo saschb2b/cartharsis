@@ -129,13 +129,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Pushed-screen motion, M3 Expressive style: the slide rides a spatial spring
-// (a touch of overshoot as it lands), the fade a critically-damped effects
-// spring — movement and opacity on their own physics, not one fixed duration.
-private fun pushEnter() = slideInHorizontally(animationSpec = Motion.spatial(), initialOffsetX = { it / 3 }) +
+// Pushed-screen motion (M3 Expressive shared-axis X): the detail slides the full
+// width in from the right on a snappy spatial spring while the screen it covers
+// slides a quarter-width left (see the NavHost exit/popEnter) — so a tap reads
+// as a stack push, not a crossfade. spatialFast keeps it responsive, not slow.
+private fun pushEnter() = slideInHorizontally(animationSpec = Motion.spatialFast(), initialOffsetX = { it }) +
     fadeIn(Motion.effects())
 
-private fun pushPopExit() = slideOutHorizontally(animationSpec = Motion.spatial(), targetOffsetX = { it / 3 }) +
+private fun pushPopExit() = slideOutHorizontally(animationSpec = Motion.spatialFast(), targetOffsetX = { it }) +
     fadeOut(Motion.effects())
 
 private data class Tab(val route: String, val emoji: String, val label: String)
@@ -146,6 +147,10 @@ private val tabs = listOf(
     Tab("cart", "🛒", "Cart"),
     Tab("orders", "📦", "Orders"),
 )
+
+// The bottom-bar destinations. Anything else is a pushed detail screen, which
+// the source slides aside for (vs a flat crossfade between tabs).
+private val tabRoutes = tabs.map { it.route }.toSet()
 
 @Composable
 fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<String?>? = null) {
@@ -177,13 +182,26 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(innerPadding),
-            // Tab switches: scale on a spatial spring, fade on an effects spring.
+            // Tab switches scale+fade in place. Forward nav to a detail screen
+            // is a shared-axis push: the screen being left slides a quarter-width
+            // aside while the detail slides fully in from the right (pushEnter),
+            // so it reads as a stack instead of a crossfade.
             enterTransition = {
                 fadeIn(Motion.effects()) + scaleIn(initialScale = 0.97f, animationSpec = Motion.spatial())
             },
-            exitTransition = { fadeOut(Motion.effects()) },
+            exitTransition = {
+                if (targetState.destination.route !in tabRoutes) {
+                    slideOutHorizontally(Motion.spatialFast()) { -it / 4 } + fadeOut(Motion.effects())
+                } else {
+                    fadeOut(Motion.effects())
+                }
+            },
             popEnterTransition = {
-                fadeIn(Motion.effects()) + scaleIn(initialScale = 0.97f, animationSpec = Motion.spatial())
+                if (initialState.destination.route !in tabRoutes) {
+                    slideInHorizontally(Motion.spatialFast()) { -it / 4 } + fadeIn(Motion.effects())
+                } else {
+                    fadeIn(Motion.effects()) + scaleIn(initialScale = 0.97f, animationSpec = Motion.spatial())
+                }
             },
             popExitTransition = { fadeOut(Motion.effects()) },
         ) {
