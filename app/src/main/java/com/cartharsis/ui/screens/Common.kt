@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -44,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,6 +86,7 @@ import com.cartharsis.ui.theme.Motion
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** "colors" / "editions" / "options" for the grid variant hint, pluralized. */
 fun variantNoun(axis: String, count: Int): String {
@@ -646,11 +649,21 @@ fun MiniProductCard(product: Product, onClick: () -> Unit) {
 /** Heart toggle — wanting things is free, and we keep it that way. */
 @Composable
 fun WishHeart(isWishlisted: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+    val scale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
     Box(
         modifier = modifier
             .minimumInteractiveComponentSize()
             .clickable(
-                onClick = onToggle,
+                onClick = {
+                    onToggle()
+                    // A spring pop on every tap: the heart leaps and settles, the
+                    // M3 Expressive way of making a toggle feel physical.
+                    scope.launch {
+                        scale.animateTo(1.35f, Motion.spatialFast())
+                        scale.animateTo(1f, Motion.spatialExpressive())
+                    }
+                },
                 role = Role.Checkbox,
                 onClickLabel = if (isWishlisted) "Remove from wishlist" else "Add to wishlist",
             ),
@@ -659,9 +672,14 @@ fun WishHeart(isWishlisted: Boolean, onToggle: () -> Unit, modifier: Modifier = 
         Text(
             text = if (isWishlisted) "❤️" else "🤍",
             fontSize = 20.sp,
-            modifier = Modifier.clearAndSetSemantics {
-                contentDescription = if (isWishlisted) "Wishlisted" else "Not wishlisted"
-            },
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = scale.value
+                    scaleY = scale.value
+                }
+                .clearAndSetSemantics {
+                    contentDescription = if (isWishlisted) "Wishlisted" else "Not wishlisted"
+                },
         )
     }
 }
