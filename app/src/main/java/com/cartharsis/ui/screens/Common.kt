@@ -61,10 +61,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -771,14 +775,45 @@ private fun QuantityStepperPreview() {
  * Balance: infinite, by definition. Shared by onboarding and checkout.
  */
 @Composable
-fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
+fun ImaginationCard(
+    cardHolder: String,
+    modifier: Modifier = Modifier,
+    seed: Long = 0L,
+    onShuffle: (() -> Unit)? = null,
+) {
+    val design = remember(seed) { cardDesignFromSeed(seed) }
     val embossed = Shadow(color = Color.Black.copy(alpha = 0.35f), offset = Offset(0f, 3f), blurRadius = 4f)
+    // Tapping the card (when shuffle-able) spins it a full turn and re-rolls the
+    // look — the juicy bit. The spin is driven by the tap, not the seed, so the
+    // card never spins on its own when the saved seed loads at launch.
+    val rotation = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    val haptics = LocalHapticFeedback.current
+    val density = LocalDensity.current.density
     Box(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1.586f)
+            .graphicsLayer {
+                rotationY = rotation.value
+                cameraDistance = 12f * density
+            }
             .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(ElectricPurple, HotPink))),
+            .background(Brush.linearGradient(design.gradient))
+            .then(
+                if (onShuffle != null) {
+                    Modifier.clickable(onClickLabel = "Shuffle the card") {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onShuffle()
+                        scope.launch {
+                            rotation.snapTo(0f)
+                            rotation.animateTo(360f, Motion.spatialExpressive())
+                        }
+                    }
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         // A diagonal sheen so the surface reads as plastic, not as a fill.
         Box(
@@ -804,6 +839,9 @@ fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
                     letterSpacing = 1.5.sp,
                 )
                 Spacer(Modifier.weight(1f))
+                if (onShuffle != null) {
+                    Text("🎲", fontSize = 15.sp, modifier = Modifier.padding(end = 8.dp))
+                }
                 ContactlessMark()
             }
             Spacer(Modifier.weight(1f))
@@ -813,7 +851,7 @@ fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
             // pushed the holder row past the card's clipped bottom edge on
             // narrower cards.
             BasicText(
-                text = "5310  0000  0000  0000",
+                text = design.number,
                 maxLines = 1,
                 softWrap = false,
                 autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 22.sp, stepSize = 0.5.sp),
@@ -836,12 +874,23 @@ fun ImaginationCard(cardHolder: String, modifier: Modifier = Modifier) {
                     shadow = embossed,
                     modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(12.dp))
                 CardField(
                     label = "VALID THRU",
                     value = "∞∞ / ∞∞",
                     shadow = embossed,
                     alignment = Alignment.End,
+                )
+                Spacer(Modifier.width(14.dp))
+                // The payment network "logo": an invented scheme, bottom-right
+                // where a real card's network mark sits.
+                Text(
+                    text = design.network,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleSmall.copy(shadow = embossed),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontStyle = FontStyle.Italic,
+                    maxLines = 1,
                 )
             }
         }

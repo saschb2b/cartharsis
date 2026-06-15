@@ -25,6 +25,8 @@ internal fun AccountContentPreview() {
                 onboarded = true,
             ),
             currency = Currency.EUR,
+            cardSeed = 42L,
+            onShuffleCard = {},
             onSave = { _, _, _ -> },
             onSelectCurrency = {},
             onBack = {},

@@ -127,6 +127,7 @@ fun CheckoutScreen(
 ) {
     val cart by viewModel.cart.collectAsState()
     val profile by viewModel.profile.collectAsState()
+    val cardSeed by viewModel.cardSeed.collectAsState()
     var phase by remember { mutableStateOf<CheckoutPhase>(CheckoutPhase.Form) }
     val haptics = LocalHapticFeedback.current
 
@@ -210,7 +211,7 @@ fun CheckoutScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp),
                         )
-                        ImaginationCard(cardHolder = profile?.name.orEmpty())
+                        ImaginationCard(cardHolder = profile?.name.orEmpty(), seed = cardSeed)
 
                         Text(
                             text = "Order summary",

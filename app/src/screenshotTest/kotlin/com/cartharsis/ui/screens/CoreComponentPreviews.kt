@@ -101,14 +101,17 @@ internal fun QuantityStepperPreview() {
     }
 }
 
-/** The fake "Imagination Express" payment card. */
+/** The fake "Imagination Express" card across a few shuffled looks — different
+ *  invented networks, numbers, and color themes from different seeds. */
 @PreviewTest
-@Preview(name = "Imagination card", showBackground = true, widthDp = 340)
+@Preview(name = "Imagination card, shuffled", showBackground = true, widthDp = 340)
 @Composable
 internal fun ImaginationCardPreview() {
     CartharsisTheme {
-        Column(Modifier.padding(16.dp)) {
-            ImaginationCard(cardHolder = "SASCHA BECKER")
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            listOf(3L, 11L, 42L).forEach { seed ->
+                ImaginationCard(cardHolder = "SASCHA BECKER", seed = seed, onShuffle = {})
+            }
         }
     }
 }

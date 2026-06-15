@@ -82,6 +82,7 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
     var city by rememberSaveable { mutableStateOf(ProfileStore.DEFAULT_CITY) }
     // Picked on the payment step; setCurrency applies it app-wide and persists.
     val currency by viewModel.currency.collectAsState()
+    val cardSeed by viewModel.cardSeed.collectAsState()
 
     BackHandler(enabled = step > STEP_INTRO_WHAT) { step-- }
 
@@ -166,6 +167,8 @@ fun OnboardingScreen(viewModel: ShopViewModel) {
                     name = name,
                     currency = currency,
                     onCurrencyChange = viewModel::setCurrency,
+                    cardSeed = cardSeed,
+                    onShuffleCard = viewModel::shuffleCard,
                     onAddCard = {
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                         viewModel.completeOnboarding(name, street, city)
@@ -355,6 +358,8 @@ internal fun PaymentStep(
     name: String,
     currency: Currency,
     onCurrencyChange: (Currency) -> Unit,
+    cardSeed: Long,
+    onShuffleCard: () -> Unit,
     onAddCard: () -> Unit,
 ) {
     StepScaffold(
@@ -363,9 +368,9 @@ internal fun PaymentStep(
         footnote = "It's the only payment method. There was never a choice.",
     ) {
         StepHeader("Add a payment method", "You've been pre-approved for the Imagination Express.")
-        ImaginationCard(cardHolder = name)
+        ImaginationCard(cardHolder = name, seed = cardSeed, onShuffle = onShuffleCard)
         Text(
-            text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary",
+            text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary · tap to shuffle 🎲",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 10.dp),

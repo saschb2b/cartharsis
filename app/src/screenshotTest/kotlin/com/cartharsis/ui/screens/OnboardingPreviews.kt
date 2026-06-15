@@ -71,6 +71,8 @@ internal fun OnboardingPaymentPreview() {
             name = "Sascha",
             currency = com.cartharsis.data.Currency.KRW,
             onCurrencyChange = {},
+            cardSeed = 11L,
+            onShuffleCard = {},
             onAddCard = {},
         )
     }
@@ -104,6 +106,8 @@ internal fun OnboardingPaymentDarkPreview() {
             name = "Sascha",
             currency = com.cartharsis.data.Currency.KRW,
             onCurrencyChange = {},
+            cardSeed = 11L,
+            onShuffleCard = {},
             onAddCard = {},
         )
     }

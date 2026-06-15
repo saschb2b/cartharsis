@@ -47,9 +47,12 @@ import kotlinx.coroutines.delay
 fun AccountScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
     val profile by viewModel.profile.collectAsState()
     val currency by viewModel.currency.collectAsState()
+    val cardSeed by viewModel.cardSeed.collectAsState()
     AccountContent(
         profile = profile,
         currency = currency,
+        cardSeed = cardSeed,
+        onShuffleCard = viewModel::shuffleCard,
         onSave = viewModel::updateProfile,
         onSelectCurrency = viewModel::setCurrency,
         onBack = onBack,
@@ -60,6 +63,8 @@ fun AccountScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
 internal fun AccountContent(
     profile: ProfileStore.Profile?,
     currency: Currency,
+    cardSeed: Long,
+    onShuffleCard: () -> Unit,
     onSave: (String, String, String) -> Unit,
     onSelectCurrency: (Currency) -> Unit,
     onBack: () -> Unit,
@@ -89,9 +94,13 @@ internal fun AccountContent(
             Column {
                 SectionHeader("Payment")
                 Spacer(Modifier.height(12.dp))
-                ImaginationCard(cardHolder = profile?.name.orEmpty())
+                ImaginationCard(
+                    cardHolder = profile?.name.orEmpty(),
+                    seed = cardSeed,
+                    onShuffle = onShuffleCard,
+                )
                 Text(
-                    text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary",
+                    text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary · tap to shuffle 🎲",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp),

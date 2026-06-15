@@ -93,6 +93,10 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     private val _currency = MutableStateFlow(Currency.USD)
     val currency: StateFlow<Currency> = _currency.asStateFlow()
 
+    // The Imagination Express card's look, as a seed; shuffleCard() re-rolls it.
+    private val _cardSeed = MutableStateFlow(0L)
+    val cardSeed: StateFlow<Long> = _cardSeed.asStateFlow()
+
     /** Lifetime fake-shopping totals; survive process death unlike the order list. */
     private val _lifetimeStats = MutableStateFlow(StatsStore.Stats(0, 0, 0L))
     val lifetimeStats: StateFlow<StatsStore.Stats> = _lifetimeStats.asStateFlow()
@@ -195,6 +199,9 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             val saved = SettingsStore.loadCurrency(getApplication())
             _currency.value = saved
             CurrencyState.active = saved
+        }
+        viewModelScope.launch {
+            _cardSeed.value = SettingsStore.loadCardSeed(getApplication())
         }
         viewModelScope.launch {
             val saved = BinderStore.load(getApplication())
@@ -301,6 +308,13 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ---- Profile / onboarding ----
+
+    /** Re-rolls the Imagination Express card to a fresh random look, persisted. */
+    fun shuffleCard() {
+        val seed = kotlin.random.Random.nextLong()
+        _cardSeed.value = seed
+        viewModelScope.launch { SettingsStore.saveCardSeed(getApplication(), seed) }
+    }
 
     /** Switches the display currency: applied app-wide at once, then persisted. */
     fun setCurrency(currency: Currency) {

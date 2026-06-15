@@ -24,6 +24,7 @@ private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
 private val MOPPLING_KEY = stringSetPreferencesKey("moppling_shelf")
 private val CURRENCY_KEY = stringPreferencesKey("currency_code")
+private val CARD_SEED_KEY = longPreferencesKey("card_seed")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
 private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
 private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
@@ -125,6 +126,14 @@ object SettingsStore {
 
     suspend fun saveCurrency(context: Context, currency: Currency) {
         context.dataStore.edit { it[CURRENCY_KEY] = currency.code }
+    }
+
+    /** The seed for the Imagination Express card's look (network, number, color);
+     *  0 is the default design, any other seed is a shuffle the shopper rolled. */
+    suspend fun loadCardSeed(context: Context): Long = context.dataStore.data.first()[CARD_SEED_KEY] ?: 0L
+
+    suspend fun saveCardSeed(context: Context, seed: Long) {
+        context.dataStore.edit { it[CARD_SEED_KEY] = seed }
     }
 }
 
