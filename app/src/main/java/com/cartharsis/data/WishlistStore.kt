@@ -19,6 +19,7 @@ private val PROFILE_NAME_KEY = stringPreferencesKey("profile_name")
 private val PROFILE_STREET_KEY = stringPreferencesKey("profile_street")
 private val PROFILE_CITY_KEY = stringPreferencesKey("profile_city")
 private val PROFILE_ONBOARDED_KEY = booleanPreferencesKey("profile_onboarded")
+private val PROFILE_MEMBER_SINCE_KEY = longPreferencesKey("profile_member_since_epoch_day")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
@@ -91,6 +92,8 @@ object ProfileStore {
         val street: String = DEFAULT_STREET,
         val city: String = DEFAULT_CITY,
         val onboarded: Boolean = false,
+        /** Epoch day the account was created; 0 for installs that predate it. */
+        val memberSinceEpochDay: Long = 0L,
     )
 
     const val DEFAULT_STREET = "Apt ∞, Anticipation Street"
@@ -106,6 +109,7 @@ object ProfileStore {
             // don't make a regular ask them to "create an account".
             onboarded = prefs[PROFILE_ONBOARDED_KEY]
                 ?: (prefs[WISHLIST_KEY] != null || prefs[STATS_ORDERS_KEY] != null),
+            memberSinceEpochDay = prefs[PROFILE_MEMBER_SINCE_KEY] ?: 0L,
         )
     }
 
@@ -115,6 +119,7 @@ object ProfileStore {
             prefs[PROFILE_STREET_KEY] = profile.street
             prefs[PROFILE_CITY_KEY] = profile.city
             prefs[PROFILE_ONBOARDED_KEY] = profile.onboarded
+            prefs[PROFILE_MEMBER_SINCE_KEY] = profile.memberSinceEpochDay
         }
     }
 }

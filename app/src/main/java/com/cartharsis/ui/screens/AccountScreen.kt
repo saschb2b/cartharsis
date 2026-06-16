@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +45,7 @@ import kotlinx.coroutines.delay
  * form should.
  */
 @Composable
-fun AccountScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
+fun AccountScreen(viewModel: ShopViewModel, onOpenWallet: () -> Unit, onBack: () -> Unit) {
     val profile by viewModel.profile.collectAsState()
     val currency by viewModel.currency.collectAsState()
     val cardSeed by viewModel.cardSeed.collectAsState()
@@ -52,7 +53,7 @@ fun AccountScreen(viewModel: ShopViewModel, onBack: () -> Unit) {
         profile = profile,
         currency = currency,
         cardSeed = cardSeed,
-        onShuffleCard = viewModel::shuffleCard,
+        onOpenWallet = onOpenWallet,
         onSave = viewModel::updateProfile,
         onSelectCurrency = viewModel::setCurrency,
         onBack = onBack,
@@ -64,7 +65,7 @@ internal fun AccountContent(
     profile: ProfileStore.Profile?,
     currency: Currency,
     cardSeed: Long,
-    onShuffleCard: () -> Unit,
+    onOpenWallet: () -> Unit,
     onSave: (String, String, String) -> Unit,
     onSelectCurrency: (Currency) -> Unit,
     onBack: () -> Unit,
@@ -92,15 +93,15 @@ internal fun AccountContent(
             }
 
             Column {
-                SectionHeader("Payment")
+                SectionHeader("Wallet")
                 Spacer(Modifier.height(12.dp))
                 ImaginationCard(
                     cardHolder = profile?.name.orEmpty(),
                     seed = cardSeed,
-                    onShuffle = onShuffleCard,
+                    modifier = Modifier.clickable(onClickLabel = "Open your wallet", onClick = onOpenWallet),
                 )
                 Text(
-                    text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary · tap to shuffle 🎲",
+                    text = "Credit limit: ∞ · APR: 0.00% · Annual fee: imaginary · open your wallet ›",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp),

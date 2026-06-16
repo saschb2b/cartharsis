@@ -330,6 +330,8 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             street = street.trim().ifBlank { ProfileStore.DEFAULT_STREET },
             city = city.trim().ifBlank { ProfileStore.DEFAULT_CITY },
             onboarded = true,
+            // Edits never reset the join date the wallet prints.
+            memberSinceEpochDay = _profile.value?.memberSinceEpochDay ?: todayEpochDay(),
         )
         _profile.value = profile
         viewModelScope.launch { ProfileStore.save(getApplication(), profile) }
@@ -342,6 +344,7 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             street = street.trim().ifBlank { ProfileStore.DEFAULT_STREET },
             city = city.trim().ifBlank { ProfileStore.DEFAULT_CITY },
             onboarded = true,
+            memberSinceEpochDay = todayEpochDay(),
         )
         _profile.value = profile
         viewModelScope.launch { ProfileStore.save(getApplication(), profile) }

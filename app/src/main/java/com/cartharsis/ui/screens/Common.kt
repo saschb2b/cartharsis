@@ -8,6 +8,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -42,6 +44,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,12 +65,16 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -788,16 +795,39 @@ fun ImaginationCard(
     modifier: Modifier = Modifier,
     seed: Long = 0L,
     onShuffle: (() -> Unit)? = null,
+    flippable: Boolean = false,
+    memberSince: String? = null,
+    initiallyFlipped: Boolean = false,
 ) {
     val design = remember(seed) { cardDesignFromSeed(seed) }
-    val embossed = Shadow(color = Color.Black.copy(alpha = 0.35f), offset = Offset(0f, 3f), blurRadius = 4f)
-    // Tapping the card (when shuffle-able) spins it a full turn and re-rolls the
-    // look — the juicy bit. The spin is driven by the tap, not the seed, so the
-    // card never spins on its own when the saved seed loads at launch.
-    val rotation = remember { Animatable(0f) }
+    val rotation = remember { Animatable(if (initiallyFlipped) 180f else 0f) }
+    val showingBack by remember {
+        derivedStateOf { (((rotation.value % 360f) + 360f) % 360f) in 90f..270f }
+    }
     val scope = rememberCoroutineScope()
     val haptics = LocalHapticFeedback.current
     val density = LocalDensity.current.density
+    // A re-roll spins the card a full turn — driven by the seed changing, not the
+    // tap, so it spins whether the shuffle came from the card or a button, and
+    // never on its own when the saved seed first loads.
+    var seedSettled by remember { mutableStateOf(false) }
+    LaunchedEffect(seed) {
+        if (seedSettled) {
+            rotation.animateTo(rotation.value + 360f, Motion.spatialExpressive())
+        } else {
+            seedSettled = true
+        }
+    }
+    // A tap (and a horizontal drag) turn a flippable card over to its back; on a
+    // non-flippable card a tap re-rolls the look instead.
+    val flip: () -> Unit = {
+        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        scope.launch { rotation.animateTo(rotation.value + 180f, Motion.spatialExpressive()) }
+    }
+    val shuffle: () -> Unit = {
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        onShuffle?.invoke()
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -808,21 +838,80 @@ fun ImaginationCard(
             }
             .clip(RoundedCornerShape(18.dp))
             .background(Brush.linearGradient(design.gradient))
+            // A flippable card turns over on a horizontal drag (a bonus for real
+            // fingers); the synchronous angle accumulator drives the settle since
+            // the per-frame snapTo coroutines lag rotation.value behind.
             .then(
-                if (onShuffle != null) {
-                    Modifier.clickable(onClickLabel = "Shuffle the card") {
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onShuffle()
-                        scope.launch {
-                            rotation.snapTo(0f)
-                            rotation.animateTo(360f, Motion.spatialExpressive())
+                if (flippable) {
+                    Modifier.pointerInput(Unit) {
+                        var angle = 0f
+                        detectHorizontalDragGestures(
+                            onDragStart = { angle = rotation.value },
+                            onDragEnd = {
+                                val target = Math.round(angle / 180f) * 180f
+                                haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                scope.launch { rotation.animateTo(target, Motion.spatialExpressive()) }
+                            },
+                        ) { change, dragAmount ->
+                            change.consume()
+                            angle += dragAmount * 0.5f
+                            scope.launch { rotation.snapTo(angle) }
                         }
                     }
                 } else {
                     Modifier
                 },
-            ),
+            )
+            // A tap flips a flippable card, or re-rolls a shuffle-able one.
+            .then(
+                if (flippable || onShuffle != null) {
+                    Modifier.pointerInput(flippable) {
+                        detectTapGestures { if (flippable) flip() else shuffle() }
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Imagination Express card"
+                // The tap action: flip on a flippable card, shuffle otherwise.
+                if (flippable) {
+                    onClick(label = "Flip the card over") {
+                        flip()
+                        true
+                    }
+                } else if (onShuffle != null) {
+                    onClick(label = "Shuffle the card") {
+                        shuffle()
+                        true
+                    }
+                }
+                if (flippable && onShuffle != null) {
+                    customActions = listOf(
+                        CustomAccessibilityAction("Shuffle the card") {
+                            shuffle()
+                            true
+                        },
+                    )
+                }
+            },
     ) {
+        if (showingBack) {
+            // Counter-rotate so the back's print isn't mirrored as the card turns.
+            Box(Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }) {
+                CardBack(design, cardHolder, memberSince)
+            }
+        } else {
+            CardFront(design, cardHolder)
+        }
+    }
+}
+
+/** The face everyone sees: network, chip, number, holder, and the tilt foil. */
+@Composable
+private fun CardFront(design: CardDesign, cardHolder: String) {
+    val embossed = Shadow(color = Color.Black.copy(alpha = 0.35f), offset = Offset(0f, 3f), blurRadius = 4f)
+    Box(Modifier.fillMaxSize()) {
         // Holographic plastic: the diagonal plastic sheen, a faint standing
         // iridescence so it reads as foil even at rest, and a specular band that
         // appears only as you tilt the phone (rememberTilt) and sweeps across.
@@ -931,6 +1020,135 @@ fun ImaginationCard(
                 )
             }
         }
+    }
+}
+
+/**
+ * The back, where the satire lives in the frame: a magnetic stripe, a signed
+ * strip, an infinity CVV, the member-since line, a tilt-shimmer hologram, and a
+ * paragraph of deadpan fine print. A dark scrim keeps the small type legible
+ * over the gradient.
+ */
+@Composable
+private fun CardBack(design: CardDesign, cardHolder: String, memberSince: String?) {
+    val panel = Color(0xFFEDE9E0)
+    val ink = Color(0xFF2A2A33)
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.30f)))
+        Column(Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(16.dp))
+            // Magnetic stripe, full-bleed, holding nothing.
+            Box(Modifier.fillMaxWidth().height(38.dp).background(Color.Black.copy(alpha = 0.62f)))
+            Column(Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, top = 12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Signature strip, signed in the holder's name.
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(panel),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        Text(
+                            text = cardHolder.trim().ifBlank { "Your Imagination" },
+                            color = ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Cursive),
+                            modifier = Modifier.padding(horizontal = 10.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    // CVV, three of the only digit this card knows.
+                    Box(
+                        modifier = Modifier
+                            .height(32.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(panel),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "∞∞∞",
+                            color = ink,
+                            style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace),
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    HologramMark()
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = "IMAGINATION EXPRESS",
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                        Text(
+                            text = "MEMBER SINCE ${memberSince ?: "DAY ONE"}",
+                            color = Color.White.copy(alpha = 0.85f),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Not legal tender, not legal anything. Certifies the holder wanted it " +
+                        "and kept their money. Issued by the Bank of Restraint. Lost cards cannot " +
+                        "be lost. Questions? There are none.",
+                    color = Color.White.copy(alpha = 0.78f),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, lineHeight = 11.sp),
+                )
+            }
+        }
+    }
+}
+
+/** A little hologram sticker; its rainbow specular slides as you tilt the phone. */
+@Composable
+private fun HologramMark() {
+    val tilt = rememberTilt()
+    Box(
+        modifier = Modifier
+            .size(width = 46.dp, height = 30.dp)
+            .clip(RoundedCornerShape(5.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.matchParentSize()) {
+            drawRect(
+                Brush.linearGradient(
+                    listOf(
+                        SkyBlue.copy(alpha = 0.85f),
+                        MintGreen.copy(alpha = 0.85f),
+                        LemonYellow.copy(alpha = 0.85f),
+                        HotPink.copy(alpha = 0.85f),
+                        ElectricPurple.copy(alpha = 0.85f),
+                    ),
+                ),
+            )
+            val cx = size.width * (0.5f + tilt.value.x * 0.7f)
+            drawRect(
+                Brush.linearGradient(
+                    0f to Color.Transparent,
+                    0.5f to Color.White.copy(alpha = 0.5f),
+                    1f to Color.Transparent,
+                    start = Offset(cx - size.width * 0.45f, 0f),
+                    end = Offset(cx + size.width * 0.45f, size.height),
+                ),
+            )
+        }
+        Text(
+            text = "∞",
+            color = Color.White.copy(alpha = 0.9f),
+            fontWeight = FontWeight.Black,
+            style = MaterialTheme.typography.titleSmall,
+        )
     }
 }
 
