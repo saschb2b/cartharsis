@@ -2676,6 +2676,201 @@ object FakeCatalog {
                 "anything in a glass with ice in it.",
             2_399, "Kitchen", 4.6, 11220,
         ),
+
+        // ---- Miniature painting (researched): the hobby's real spend, an
+        // expensive aisle people fall hard into. Mirrors what's trending now,
+        // single-coat speed paints, high-pigment acrylics, wet palettes,
+        // Kolinsky sable, airbrush kits, all under invented houses (Chromavale
+        // paints, Sablecrest brushes), never a real brand. Copy plays it
+        // straight; the satire stays in the frame.
+        product(
+            "Chromavale Warpaints Starter Set, 20 Colors", "🎨",
+            "Twenty colors and the road to the rest.",
+            "Twenty acrylic miniature paints in flip-top dropper bottles, a " +
+                "curated spread of base tones, flesh, metal and a strong " +
+                "white, with a printed color map. The way in to a range you " +
+                "will absolutely keep expanding.",
+            4_499, "Hobbies", 4.8, 12044,
+            variantGroup = "chromavale-warpaints", variantLabel = "Starter · 20", variantAxis = "Set",
+        ),
+        product(
+            "Chromavale Warpaints Hero Set, 40 Colors", "🎨",
+            "Forty colors, the whole working palette.",
+            "Forty dropper-bottle acrylics covering the full wheel plus the " +
+                "shades and highlights you actually reach for, in a tray that " +
+                "stands them label-out. The set most painters settle on.",
+            7_999, "Hobbies", 4.8, 7330,
+            variantGroup = "chromavale-warpaints", variantLabel = "Hero · 40", variantAxis = "Set",
+        ),
+        product(
+            "Chromavale Warpaints Master Set, 80 Colors", "🎨",
+            "Every color, before you need it.",
+            "The complete eighty-bottle range in a fold-out case, every base, " +
+                "wash, metallic and fluorescent the line makes. The shelf " +
+                "centerpiece that ends the question of which color to buy next.",
+            14_999, "Hobbies", 4.9, 4187,
+            variantGroup = "chromavale-warpaints", variantLabel = "Master · 80", variantAxis = "Set",
+        ),
+        product(
+            "Chromavale One-Coat Speed Paints, 24 Tones", "🪄",
+            "Base and shade in a single pass.",
+            "Twenty-four high-flow speed paints that pool into the recesses and " +
+                "leave the raised areas bright, color and shadow in one coat " +
+                "over a light primer. An army tabletop-ready in an evening, " +
+                "metallics included.",
+            8_999, "Hobbies", 4.7, 15622, originalPriceCents = 10_499,
+        ),
+        product(
+            "Chromavale Pro High-Pigment Acrylics, 12 Bottles", "🧪",
+            "Coverage in one thin layer.",
+            "Twelve 22ml bottles of densely pigmented acrylic that thins beautifully " +
+                "and still covers, the larger format serious painters reach for. " +
+                "Matte finish, brush or airbrush, no chalky build-up.",
+            5_499, "Hobbies", 4.9, 6918,
+        ),
+        product(
+            "Chromavale Shade Wash Set, 8 Tones", "💧",
+            "Instant depth in the recesses.",
+            "Eight pre-thinned shading washes that flow into cracks and crevices " +
+                "to define detail in a single brushful, from soft sepia to a " +
+                "deep blacked-out armor wash. The fastest depth a brush can give.",
+            2_799, "Hobbies", 4.8, 9344,
+        ),
+        product(
+            "Chromavale Metallic Paints, 12 Tones", "🪙",
+            "True metal shine, not grey approximation.",
+            "Twelve finely-milled metallic acrylics from polished steel to " +
+                "old gold and oxidized bronze, smooth enough to glaze and bright " +
+                "enough to edge-highlight. Where the gun, the blade and the " +
+                "trim come alive.",
+            3_299, "Hobbies", 4.7, 5102,
+        ),
+        product(
+            "Sablecrest Kolinsky Sable Detail Brush, Size 1", "🖌️",
+            "The brush that holds its point.",
+            "A pure Kolinsky sable round in a seamless nickel ferrule and " +
+                "lacquered handle, a fine point with a full belly that carries " +
+                "paint and snaps back true. Cared for, it outlasts the project.",
+            2_199, "Hobbies", 4.9, 8471,
+        ),
+        product(
+            "Sablecrest Kolinsky Brush Trio, Sizes 0 to 2", "🪶",
+            "Base coat to eyelashes, sorted.",
+            "Three pure Kolinsky sable rounds, a size 2 for coverage, a 1 for " +
+                "detail and a 0 for the fine lines, in a magnetic travel case " +
+                "with tip guards. The kit that handles nearly everything.",
+            4_999, "Hobbies", 4.8, 4233, originalPriceCents = 5_999,
+        ),
+        product(
+            "Kestrel Synthetic Starter Brush Set, 10 Pieces", "🖌️",
+            "Practice brushes you won't baby.",
+            "Ten synthetic brushes from drybrush to fine detail, springy enough " +
+                "for daily painting and cheap enough to use for primer, washes " +
+                "and varnish without a second thought. Where everyone begins.",
+            1_299, "Hobbies", 4.6, 13560,
+        ),
+        product(
+            "StayWet Hydration Wet Palette", "💦",
+            "Paint that stays workable for days.",
+            "A sealing tray with a hydration sponge and pad of membrane paper " +
+                "that wicks water up to keep acrylics wet and blendable for " +
+                "hours, sealed shut, for days. Mixing without the race against " +
+                "drying.",
+            2_499, "Hobbies", 4.8, 10288,
+        ),
+        product(
+            "Undershade Primer Spray, Matte Grey", "🥫",
+            "The coat every paint job stands on.",
+            "An aerosol acrylic primer that lays down a fine matte tooth for " +
+                "paint to grip, in a neutral grey that reads colors honestly. " +
+                "Even, fast-drying, no detail lost under the spray.",
+            1_599, "Hobbies", 4.7, 7841,
+        ),
+        product(
+            "GripMax Rotating Miniature Holder", "🗜️",
+            "Hold the model, not your breath.",
+            "A spring-loaded cork-jaw handle that grips a base or slotta-tab " +
+                "and rotates a full turn, so you paint from every angle without " +
+                "fingerprinting wet work. Weighted to sit still between passes.",
+            1_799, "Hobbies", 4.7, 6190,
+        ),
+        product(
+            "Precision Sprue Cutters, Flush Cut", "✂️",
+            "Clean off the frame, no white stress marks.",
+            "Single-bevel flush cutters ground for soft plastic and resin, " +
+                "shearing parts off the sprue with a clean face that barely " +
+                "needs tidying. Spring return, cushioned grips, a satisfying " +
+                "snip.",
+            1_999, "Hobbies", 4.8, 8804,
+        ),
+        product(
+            "Hobby Knife Set with 13 Blades", "🔪",
+            "Mold lines, meet your match.",
+            "A knurled aluminum handle with a collet chuck and thirteen " +
+                "assorted blades for scraping mold lines, trimming gates and " +
+                "cutting card, in a roll-proof case. The tool you reach for " +
+                "before every paint job.",
+            999, "Hobbies", 4.7, 11277,
+        ),
+        product(
+            "DaylightPro Magnifier Lamp with Clamp", "🔍",
+            "See the detail you're painting.",
+            "A 5-inch glass lens at 3x under a ring of daylight-balanced LEDs on " +
+                "a clamp arm that holds any angle, bringing eyelashes, gems and " +
+                "freehand into focus. Your neck and your squint both thank you.",
+            3_499, "Hobbies", 4.6, 4516, originalPriceCents = 4_299,
+        ),
+        product(
+            "Whisperjet Airbrush & Compressor Kit", "💨",
+            "Glass-smooth basecoats and zenithal in minutes.",
+            "A dual-action gravity-feed airbrush with a 0.3mm needle, paired " +
+                "with a quiet tankless compressor, hose, and a cleaning kit. " +
+                "Lays down seamless gradients and primes a squad in the time a " +
+                "brush primes one. The hobby's deep end, fully kitted.",
+            12_900, "Hobbies", 4.7, 5230, originalPriceCents = 15_900,
+        ),
+        product(
+            "Terraform Basing & Texture Kit", "🪨",
+            "The 10% of the model nobody skips twice.",
+            "Texture pastes, static grass tufts, fine gravel, slate chips and " +
+                "tying glue in one box, everything to turn a bare disc into " +
+                "battlefield, ruin or forest floor. The finish that makes the " +
+                "paint job land.",
+            2_399, "Hobbies", 4.8, 6648,
+        ),
+        product(
+            "Grimhollow Heroes: Unpainted Miniatures, 10-Pack", "🛡️",
+            "Ten heroes, primed for your palette.",
+            "Ten finely-detailed 32mm plastic adventurers on slotted bases, " +
+                "crisp enough for fine highlights and cheap enough to practice " +
+                "on, from a knight to a hedge-witch. An unpainted party waiting " +
+                "for a paint scheme.",
+            3_999, "Hobbies", 4.8, 9027,
+        ),
+        product(
+            "Field Muster Miniature Display Case, 72 Slots", "🗄️",
+            "The finished army, on parade.",
+            "A foam-lined hardshell case with magnetized 72-slot trays that " +
+                "hold painted models snug and chip-free, with a clear lid for " +
+                "the shelf and a strap for game night. Where the collection " +
+                "finally gets shown off.",
+            4_900, "Hobbies", 4.7, 3815,
+        ),
+        product(
+            "Chromavale Miniature Painting Starter Bundle", "🧰",
+            "Everything to paint your first model tonight.",
+            "The complete on-ramp in one box: the 20-color Warpaints starter " +
+                "set, a synthetic brush set, a can of matte primer and a wet " +
+                "palette to keep the paint alive between sessions. Open it and " +
+                "begin.",
+            7_999, "Hobbies", 4.8, 6402, originalPriceCents = 9_896,
+            includes = listOf(
+                "Chromavale Warpaints Starter Set (20 colors)",
+                "Kestrel Synthetic Starter Brush Set (10 pieces)",
+                "Undershade Primer Spray (matte grey)",
+                "StayWet Hydration Wet Palette",
+            ),
+        ),
     )
 
     fun byId(id: Int): Product? = products.firstOrNull { it.id == id }
@@ -2747,6 +2942,15 @@ object FakeCatalog {
             listOf("Cloudtop Syrup Trio", "Quench 40oz Tumbler"),
         "Cloudburst Eau de Parfum, 50ml" to
             listOf("Atelier Eight Discovery Set, 10 Vials", "Velvet Ember Solid Perfume Tin"),
+        // Miniature painting carts assemble themselves: paint begets a brush
+        // and a primer, an airbrush begets paint to spray, bare minis beget a
+        // holder to paint them on.
+        "Chromavale Warpaints Starter Set, 20 Colors" to
+            listOf("Sablecrest Kolinsky Sable Detail Brush, Size 1", "Undershade Primer Spray, Matte Grey"),
+        "Whisperjet Airbrush & Compressor Kit" to
+            listOf("Chromavale Pro High-Pigment Acrylics, 12 Bottles", "Undershade Primer Spray, Matte Grey"),
+        "Grimhollow Heroes: Unpainted Miniatures, 10-Pack" to
+            listOf("GripMax Rotating Miniature Holder", "Chromavale Warpaints Starter Set, 20 Colors"),
     )
 
     /** The companion products bought alongside [product], in listed order. */
