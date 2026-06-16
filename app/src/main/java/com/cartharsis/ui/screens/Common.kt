@@ -823,20 +823,51 @@ fun ImaginationCard(
                 },
             ),
     ) {
-        // A diagonal sheen so the surface reads as plastic, not as a fill.
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(
-                    Brush.linearGradient(
-                        colorStops = arrayOf(
-                            0f to Color.White.copy(alpha = 0.18f),
-                            0.45f to Color.Transparent,
-                            1f to Color.Black.copy(alpha = 0.12f),
-                        ),
-                    ),
+        // Holographic plastic: the diagonal plastic sheen, a faint standing
+        // iridescence so it reads as foil even at rest, and a specular band that
+        // appears only as you tilt the phone (rememberTilt) and sweeps across.
+        // Drawn behind the embossed text, the way foil sits under a card's print.
+        val tilt = rememberTilt()
+        Canvas(Modifier.matchParentSize()) {
+            val tx = tilt.value.x
+            val ty = tilt.value.y
+            // Plastic base, so the surface reads as plastic, not a flat fill.
+            drawRect(
+                Brush.linearGradient(
+                    0f to Color.White.copy(alpha = 0.18f),
+                    0.45f to Color.Transparent,
+                    1f to Color.Black.copy(alpha = 0.12f),
                 ),
-        )
+            )
+            // Faint standing iridescence, present even held still.
+            drawRect(
+                Brush.linearGradient(
+                    0.0f to SkyBlue.copy(alpha = 0.05f),
+                    0.4f to HotPink.copy(alpha = 0.05f),
+                    0.7f to LemonYellow.copy(alpha = 0.06f),
+                    1.0f to ElectricPurple.copy(alpha = 0.05f),
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, size.height),
+                ),
+            )
+            // Specular highlight that only shows as you tilt: invisible when flat,
+            // it sweeps across with roll and tips its angle with pitch.
+            val mag = (abs(tx) + abs(ty)).coerceAtMost(1f)
+            if (mag > 0.001f) {
+                val cx = size.width * (0.5f + tx * 0.6f)
+                drawRect(
+                    Brush.linearGradient(
+                        0.0f to Color.Transparent,
+                        0.42f to Color.Transparent,
+                        0.5f to Color.White.copy(alpha = 0.32f * mag),
+                        0.58f to Color.Transparent,
+                        1.0f to Color.Transparent,
+                        start = Offset(cx - size.width * 0.5f, size.height * (0.5f - ty * 0.4f)),
+                        end = Offset(cx + size.width * 0.5f, size.height * (0.5f + ty * 0.4f)),
+                    ),
+                )
+            }
+        }
         Column(Modifier.fillMaxSize().padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // The card's brand is the shuffled network name, styled like a
