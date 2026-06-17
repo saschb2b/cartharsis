@@ -32,6 +32,8 @@ import com.cartharsis.data.plusProduct
 import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.data.trackingCode
 import com.cartharsis.data.withPriceOverride
+import com.cartharsis.ui.screens.generateCity
+import com.cartharsis.ui.screens.routeFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -817,5 +819,46 @@ class FakeShopTest {
         assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 0))
         assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 1))
         assertEquals("Your 4th delivery with Aria", deliveriesTogetherLine("Aria", 4))
+    }
+
+    @Test
+    fun `generated city is deterministic, well-formed, and homes upper-center`() {
+        // Same address seed always draws the same neighborhood; different ones differ.
+        assertEquals(generateCity(42L), generateCity(42L))
+        assertTrue(generateCity(1L) != generateCity(2L))
+        listOf(1L, 7L, 42L, 99L, 1_234L, -55L).forEach { seed ->
+            val c = generateCity(seed)
+            assertTrue("$seed avenue count", c.avenues.size in 3..4)
+            assertTrue("$seed street count", c.streets.size in 4..5)
+            c.avenues.forEach { assertTrue("$seed avenue pos/width", it.pos in 0f..1f && it.width > 0f) }
+            c.streets.forEach { assertTrue("$seed street pos", it.pos in 0f..1f) }
+            // Home sits upper-center so it clears the bottom sheet in the full view.
+            assertTrue("$seed home.x ${c.home.x}", c.home.x in 0.2f..0.82f)
+            assertTrue("$seed home.y ${c.home.y}", c.home.y in 0.14f..0.5f)
+        }
+    }
+
+    @Test
+    fun `courier route is deterministic, ends at home, and varies the approach`() {
+        val city = generateCity(42L)
+        // A revisit to the same order retraces the same route.
+        assertEquals(routeFor(city, 3), routeFor(city, 3))
+        val r = routeFor(city, 3)
+        assertTrue("route too short", r.size >= 2)
+        assertEquals("route doesn't arrive home", city.home, r.last())
+        // The origin is off one of the four map edges (the courier comes from off-map).
+        val o = r.first()
+        assertTrue("origin not off-edge", o.x < 0f || o.x > 1f || o.y < 0f || o.y > 1f)
+        // Across many orders the approach comes from more than one direction.
+        val edges = (1..40).map {
+            val s = routeFor(city, it).first()
+            when {
+                s.x < 0f -> "L"
+                s.x > 1f -> "R"
+                s.y < 0f -> "T"
+                else -> "B"
+            }
+        }.toSet()
+        assertTrue("approach never varies", edges.size >= 2)
     }
 }

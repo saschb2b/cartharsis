@@ -36,7 +36,22 @@ private fun sampleOrder(status: OrderStatus, progress: Float): Order {
 internal fun RouteMapMidPreview() {
     CartharsisTheme {
         Column {
-            RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {})
+            RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {}, citySeed = 7L, orderId = 3)
+        }
+    }
+}
+
+/** Four addresses, four generated neighborhoods and approaches — the variety. */
+@PreviewTest
+@Preview(name = "Generated neighborhoods", showBackground = true, widthDp = 360, heightDp = 1340)
+@Composable
+internal fun GeneratedCitiesPreview() {
+    CartharsisTheme {
+        Column {
+            listOf(1L to 2, 4L to 5, 9L to 1, 13L to 8).forEach { (city, order) ->
+                RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {
+                }, citySeed = city, orderId = order)
+            }
         }
     }
 }

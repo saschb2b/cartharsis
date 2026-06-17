@@ -155,6 +155,12 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
     val courier = remember(orderId, regularId) {
         Couriers.forOrder(orderId, regularId.ifBlank { Couriers.minjun.id })
     }
+    // The map's neighborhood is seeded from the saved address, so it's the same
+    // streets every time you track, and different from someone at another address.
+    val profile by viewModel.profile.collectAsState()
+    val citySeed = remember(profile?.street, profile?.city) {
+        (profile?.street.orEmpty() + "|" + profile?.city.orEmpty()).hashCode().toLong()
+    }
     val completedWithCourier = courierDeliveries[courier.id] ?: 0
     val nthDelivery = if (order.status == OrderStatus.DELIVERED) {
         maxOf(1, completedWithCourier)
@@ -175,7 +181,13 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
         label = "trackingPhase",
     ) { delivered ->
         if (!delivered) {
-            TransitTracking(order = order, courier = courier, nthDelivery = nthDelivery, onBack = onBack)
+            TransitTracking(
+                order = order,
+                courier = courier,
+                nthDelivery = nthDelivery,
+                citySeed = citySeed,
+                onBack = onBack,
+            )
             return@AnimatedContent
         }
 
@@ -410,7 +422,7 @@ private fun currentLocation(order: Order): String = when {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TransitTracking(order: Order, courier: Courier, nthDelivery: Int, onBack: () -> Unit) {
+private fun TransitTracking(order: Order, courier: Courier, nthDelivery: Int, citySeed: Long, onBack: () -> Unit) {
     // Map + bottom sheet (researched): the live essentials — status, ETA, and
     // the courier — sit in the sheet's peek, glanceable above the fold; the
     // detailed timeline and order summary are revealed by dragging the sheet up
@@ -437,6 +449,8 @@ private fun TransitTracking(order: Order, courier: Courier, nthDelivery: Int, on
             vehicle = courier.vehicle,
             onBack = onBack,
             fill = true,
+            citySeed = citySeed,
+            orderId = order.id,
         )
     }
 }

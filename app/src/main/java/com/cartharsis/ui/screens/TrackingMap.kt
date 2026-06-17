@@ -31,11 +31,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -55,52 +59,144 @@ import com.cartharsis.data.trackingCode
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.MintGreen
+import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.random.Random
 
-// The map "paper" and its road network — a stylized city, not a real one.
-private val MapPaper = Color(0xFFE7E4EE)
-private val MapPaperLo = Color(0xFFDCD8E6)
-private val MapRoad = Color(0xFFF7F5FB)
-private val MapRoadShadow = Color(0xFFCBC6D6)
-private val MapBlock = Color(0xFFEFEDF4)
+// The map palette — a stylized map-app look: light land, white roads, green
+// parks, blue water. The road network and features are generated per address.
+private val MapPaper = Color(0xFFEAE8E2)
+private val MapPaperLo = Color(0xFFE1DDD5)
+private val MapRoad = Color(0xFFFCFBF9)
+private val MapRoadCasing = Color(0xFFD5D1C9)
+private val MapPark = Color(0xFFC3E0AF)
+private val MapWater = Color(0xFFA9CDEC)
 
-// The delivery route, as normalized (0..1) waypoints — an angular, routed
-// path the way a real map app draws turn-by-turn, stepping up and to the
-// right from the origin dot to the destination pin.
-private val ROUTE = listOf(
-    Offset(0.12f, 0.78f),
-    Offset(0.12f, 0.52f),
-    Offset(0.44f, 0.52f),
-    Offset(0.44f, 0.30f),
-    Offset(0.82f, 0.30f),
+/** One road in the generated grid: a normalized position (x for an avenue, y for
+ *  a street) and its stroke width. */
+internal data class CityRoad(val pos: Float, val width: Float)
+
+/**
+ * A generated, stylized city: a seeded road grid, a park or two, maybe some
+ * water, and the home marker — all derived from the shopper's address, so each
+ * neighborhood is its own and stays put across orders. The courier's route is
+ * generated separately (per order), so the approach direction varies.
+ */
+internal data class CityMap(
+    val avenues: List<CityRoad>,
+    val streets: List<CityRoad>,
+    val diagonal: Pair<Offset, Offset>?,
+    val parks: List<Rect>,
+    val water: List<Rect>,
+    val home: Offset,
 )
 
-/** The point a fraction [t] of the way along [ROUTE], by arc length. */
-private fun pointAlongRoute(t: Float): Offset {
+/** Roads evenly spread across the map with a little jitter; a few run thick. */
+private fun spacedRoads(count: Int, rng: Random): List<CityRoad> {
+    val step = 0.78f / (count - 1)
+    return (0 until count).map { i ->
+        val base = 0.11f + step * i
+        val jitter = (rng.nextFloat() - 0.5f) * step * 0.4f
+        val width = if (rng.nextFloat() < 0.4f) 13f else 8f
+        CityRoad((base + jitter).coerceIn(0.06f, 0.94f), width)
+    }
+}
+
+/** A block bounded by two adjacent avenues and two adjacent streets, inset a bit. */
+private fun cell(avenues: List<CityRoad>, streets: List<CityRoad>, rng: Random): Rect {
+    val ai = rng.nextInt(avenues.size - 1)
+    val si = rng.nextInt(streets.size - 1)
+    val x0 = avenues[ai].pos
+    val x1 = avenues[ai + 1].pos
+    val y0 = streets[si].pos
+    val y1 = streets[si + 1].pos
+    val ix = (x1 - x0) * 0.16f
+    val iy = (y1 - y0) * 0.16f
+    return Rect(x0 + ix, y0 + iy, x1 - ix, y1 - iy)
+}
+
+/** The whole city for an address [seed]: roads, parks, water, and home. */
+internal fun generateCity(seed: Long): CityMap {
+    val rng = Random(seed)
+    val avenues = spacedRoads(3 + rng.nextInt(2), rng) // 3-4 avenues
+    val streets = spacedRoads(4 + rng.nextInt(2), rng) // 4-5 streets
+    val diagonal = when {
+        rng.nextFloat() >= 0.5f -> null
+        rng.nextBoolean() -> Offset(-0.05f, 0.95f) to Offset(1.05f, 0.05f)
+        else -> Offset(-0.05f, 0.05f) to Offset(1.05f, 0.95f)
+    }
+    // Home sits at an upper-center intersection: visible above the bottom sheet
+    // in the full-bleed view, with room for the route to approach from any side.
+    val homeAv = avenues.filter { it.pos in 0.26f..0.78f }.ifEmpty { avenues }
+    val homeSt = streets.filter { it.pos in 0.16f..0.46f }.ifEmpty { streets }
+    val home = Offset(homeAv[rng.nextInt(homeAv.size)].pos, homeSt[rng.nextInt(homeSt.size)].pos)
+    val homeCell = Rect(home.x - 0.08f, home.y - 0.08f, home.x + 0.08f, home.y + 0.08f)
+    fun patches(n: Int): List<Rect> {
+        val out = mutableListOf<Rect>()
+        repeat(n * 4) {
+            if (out.size < n) {
+                val r = cell(avenues, streets, rng)
+                if (!r.overlaps(homeCell) && out.none { it.overlaps(r) }) out += r
+            }
+        }
+        return out
+    }
+    val parks = patches(1 + rng.nextInt(2))
+    val water = if (rng.nextFloat() < 0.55f) patches(1) else emptyList()
+    return CityMap(avenues, streets, diagonal, parks, water, home)
+}
+
+/** A grid line to enter along, preferring one that isn't the home's own line. */
+private fun pickLine(positions: List<Float>, avoid: Float, rng: Random): Float {
+    val options = positions.filter { abs(it - avoid) > 0.01f }
+    val pool = options.ifEmpty { positions }
+    return pool[rng.nextInt(pool.size)]
+}
+
+/**
+ * The courier's route for an order: an L-shaped path along real grid roads from
+ * one of the four edges to home. Seeded by the order, so the approach comes from
+ * a different direction once in a while rather than always the same way.
+ */
+internal fun routeFor(city: CityMap, orderSeed: Int): List<Offset> {
+    val rng = Random(orderSeed * 2_654_435_761L + 17L)
+    val home = city.home
+    val avX = city.avenues.map { it.pos }
+    val stY = city.streets.map { it.pos }
+    return when (rng.nextInt(4)) {
+        0 -> pickLine(stY, home.y, rng).let { y -> listOf(Offset(-0.06f, y), Offset(home.x, y), home) }
+        1 -> pickLine(avX, home.x, rng).let { x -> listOf(Offset(x, -0.06f), Offset(x, home.y), home) }
+        2 -> pickLine(avX, home.x, rng).let { x -> listOf(Offset(x, 1.06f), Offset(x, home.y), home) }
+        else -> pickLine(stY, home.y, rng).let { y -> listOf(Offset(1.06f, y), Offset(home.x, y), home) }
+    }
+}
+
+/** The point a fraction [t] of the way along [route], by arc length. */
+private fun pointAlongRoute(route: List<Offset>, t: Float): Offset {
     val clamped = t.coerceIn(0f, 1f)
-    val lengths = ROUTE.zipWithNext { a, b -> hypot(b.x - a.x, b.y - a.y) }
+    val lengths = route.zipWithNext { a, b -> hypot(b.x - a.x, b.y - a.y) }
     val total = lengths.sum()
-    if (total == 0f) return ROUTE.first()
+    if (total == 0f) return route.first()
     var target = clamped * total
     for (i in lengths.indices) {
         if (target <= lengths[i]) {
             val f = if (lengths[i] == 0f) 0f else target / lengths[i]
             return Offset(
-                ROUTE[i].x + (ROUTE[i + 1].x - ROUTE[i].x) * f,
-                ROUTE[i].y + (ROUTE[i + 1].y - ROUTE[i].y) * f,
+                route[i].x + (route[i + 1].x - route[i].x) * f,
+                route[i].y + (route[i + 1].y - route[i].y) * f,
             )
         }
         target -= lengths[i]
     }
-    return ROUTE.last()
+    return route.last()
 }
 
 /**
- * The tracking map: a stylized street grid with a routed accent path from the
- * origin dot to the destination pin, the courier crawling along it, and a
- * floating back button — the centerpiece of the redesigned tracking screen.
- * The map is decorative (nothing is really being delivered), so the grid is
- * fixed rather than seeded.
+ * The tracking map: a stylized street network with a routed accent path from
+ * the origin dot to the destination pin, the courier crawling along it, and a
+ * floating back button — the centerpiece of the redesigned tracking screen. The
+ * city is generated from the shopper's address (so each neighborhood is its
+ * own) and the route from the order (so the approach direction varies).
  */
 @Composable
 internal fun RouteMap(
@@ -111,10 +207,16 @@ internal fun RouteMap(
     modifier: Modifier = Modifier,
     /** Fill the available height (for the full-bleed map behind the bottom sheet). */
     fill: Boolean = false,
+    /** Seeds the generated city (the address) and the courier's route (the order). */
+    citySeed: Long = 0L,
+    orderId: Int = 0,
 ) {
     // Same goal-gradient easing the old map used, so the courier and the
     // filled trail accelerate into the destination together.
     val eased = (progress * progress + progress) / 2f
+    // The neighborhood is the address's; the route through it is the order's.
+    val city = remember(citySeed) { generateCity(citySeed) }
+    val route = remember(citySeed, orderId) { routeFor(city, orderId) }
     BoxWithConstraints(
         modifier
             .fillMaxWidth()
@@ -125,16 +227,16 @@ internal fun RouteMap(
         val w = maxWidth.value
         val h = maxHeight.value
         Canvas(Modifier.fillMaxSize()) {
-            drawStreetGrid()
-            drawRoute(eased)
+            drawCity(city)
+            drawRoute(route, eased)
         }
-        // Origin marker (the fake store) and destination (home), placed in dp.
+        // Origin marker (where the courier set off) and destination (home).
         RouteDot(
             color = ElectricPurple,
             modifier = Modifier.offset {
                 IntOffset(
-                    (ROUTE.first().x * w - 7).dp.roundToPx(),
-                    (ROUTE.first().y * h - 7).dp.roundToPx(),
+                    (route.first().x * w - 7).dp.roundToPx(),
+                    (route.first().y * h - 7).dp.roundToPx(),
                 )
             },
         )
@@ -142,8 +244,8 @@ internal fun RouteMap(
             nearArrival = onTheWay && progress > 0.85f,
             modifier = Modifier.offset {
                 IntOffset(
-                    (ROUTE.last().x * w - 18).dp.roundToPx(),
-                    (ROUTE.last().y * h - 18).dp.roundToPx(),
+                    (route.last().x * w - 18).dp.roundToPx(),
+                    (route.last().y * h - 18).dp.roundToPx(),
                 )
             },
         )
@@ -165,7 +267,7 @@ internal fun RouteMap(
             // Layout-phase offset: the courier bobs every frame while en route,
             // so a composition-phase offset would recompose this each frame.
             modifier = Modifier.offset {
-                val p = pointAlongRoute(eased)
+                val p = pointAlongRoute(route, eased)
                 IntOffset((p.x * w - 13).dp.roundToPx(), (p.y * h - 9 + bob).dp.roundToPx())
             },
         )
@@ -177,30 +279,28 @@ internal fun RouteMap(
     }
 }
 
-/** A light, map-like grid: blocks, then the white road network over them. */
-private fun DrawScope.drawStreetGrid() {
-    // Faint block fills so the paper isn't a flat plane.
-    val cols = 5
-    val rows = 6
-    for (r in 0 until rows) {
-        for (c in 0 until cols) {
-            if ((r + c) % 2 == 0) {
-                drawRect(
-                    color = MapBlock,
-                    topLeft = Offset(size.width * c / cols, size.height * r / rows),
-                    size = androidx.compose.ui.geometry.Size(size.width / cols, size.height / rows),
-                )
-            }
-        }
+/** The generated city: water and parks under a white road network. */
+private fun DrawScope.drawCity(city: CityMap) {
+    fun patch(color: Color, r: Rect) {
+        val radius = CornerRadius(size.minDimension * 0.02f)
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(size.width * r.left, size.height * r.top),
+            size = Size(size.width * r.width, size.height * r.height),
+            cornerRadius = radius,
+        )
     }
+    city.water.forEach { patch(MapWater, it) }
+    city.parks.forEach { patch(MapPark, it) }
+
     fun road(x1: Float, y1: Float, x2: Float, y2: Float, width: Float) {
-        // A soft shadow under each road, then the road itself — gives the
-        // network a faint sense of depth without a real map renderer.
+        // A soft casing under each road, then the road itself — the white-road-
+        // on-tinted-land look of a map app, without a real map renderer.
         drawLine(
-            MapRoadShadow,
+            MapRoadCasing,
             Offset(size.width * x1, size.height * y1 + 1.5f),
             Offset(size.width * x2, size.height * y2 + 1.5f),
-            strokeWidth = width + 2f,
+            strokeWidth = width + 3f,
             cap = StrokeCap.Round,
         )
         drawLine(
@@ -211,18 +311,14 @@ private fun DrawScope.drawStreetGrid() {
             cap = StrokeCap.Round,
         )
     }
-    // Avenues (thick) and side streets (thin).
-    listOf(0.12f, 0.44f, 0.82f).forEach { x -> road(x, -0.05f, x, 1.05f, 13f) }
-    listOf(0.28f, 0.62f).forEach { x -> road(x, -0.05f, x, 1.05f, 7f) }
-    listOf(0.30f, 0.52f, 0.78f).forEach { y -> road(-0.05f, y, 1.05f, y, 13f) }
-    listOf(0.16f, 0.40f, 0.66f, 0.90f).forEach { y -> road(-0.05f, y, 1.05f, y, 7f) }
-    // One diagonal boulevard, the way real downtowns have one.
-    road(-0.05f, 0.95f, 1.05f, 0.05f, 9f)
+    city.diagonal?.let { (a, b) -> road(a.x, a.y, b.x, b.y, 9f) }
+    city.avenues.forEach { road(it.pos, -0.05f, it.pos, 1.05f, it.width) }
+    city.streets.forEach { road(-0.05f, it.pos, 1.05f, it.pos, it.width) }
 }
 
-/** Draws the route: a dashed full path, then the traveled part filled solid. */
-private fun DrawScope.drawRoute(traveledFraction: Float) {
-    val pts = ROUTE.map { Offset(it.x * size.width, it.y * size.height) }
+/** Draws the route: the full path as a faint road, then the traveled part solid. */
+private fun DrawScope.drawRoute(route: List<Offset>, traveledFraction: Float) {
+    val pts = route.map { Offset(it.x * size.width, it.y * size.height) }
     val full = Path().apply {
         moveTo(pts.first().x, pts.first().y)
         pts.drop(1).forEach { lineTo(it.x, it.y) }
@@ -233,7 +329,7 @@ private fun DrawScope.drawRoute(traveledFraction: Float) {
     drawPath(full, accent.copy(alpha = 0.28f), style = Stroke(width = 7f, cap = StrokeCap.Round))
 
     if (traveledFraction > 0f) {
-        val lengths = ROUTE.zipWithNext { a, b -> hypot(b.x - a.x, b.y - a.y) }
+        val lengths = route.zipWithNext { a, b -> hypot(b.x - a.x, b.y - a.y) }
         val total = lengths.sum()
         var remaining = traveledFraction.coerceIn(0f, 1f) * total
         val traveled = Path().apply { moveTo(pts.first().x, pts.first().y) }
