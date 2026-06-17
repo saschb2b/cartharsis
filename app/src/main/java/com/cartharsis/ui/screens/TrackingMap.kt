@@ -63,42 +63,78 @@ import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.random.Random
 
-// The map palette — a stylized map-app look: light land, white roads, green
-// parks, blue water. The road network and features are generated per address.
-private val MapPaper = Color(0xFFEAE8E2)
-private val MapPaperLo = Color(0xFFE1DDD5)
-private val MapRoad = Color(0xFFFCFBF9)
-private val MapRoadCasing = Color(0xFFD5D1C9)
-private val MapPark = Color(0xFFC3E0AF)
-private val MapWater = Color(0xFFA9CDEC)
-
-/** One road in the generated grid: a normalized position (x for an avenue, y for
- *  a street) and its stroke width. */
-internal data class CityRoad(val pos: Float, val width: Float)
+// The map palette, tuned to map-app cartography (the Google Maps "basic"
+// scheme): warm off-white land, muted building blocks with crisp edges, white
+// roads over grey casing, a soft-yellow highway, pastel-green parks, serene
+// blue water. The neutral base lets the pink delivery route carry the eye.
+private val MapPaper = Color(0xFFF2EFE8)
+private val MapPaperLo = Color(0xFFEAE6DC)
+private val MapRoad = Color(0xFFFFFFFF)
+private val MapRoadCasing = Color(0xFFD9D5CB)
+private val MapHighway = Color(0xFFFBE7A6)
+private val MapHighwayCasing = Color(0xFFEACF82)
+private val MapPark = Color(0xFFC4E1A6)
+private val MapPark2 = Color(0xFFB7D998)
+private val MapWater = Color(0xFFAAD4F2)
+private val MapWaterEdge = Color(0xFF93C4E8)
+private val MapBuildingLine = Color(0xFFD7D2C7)
+private val MapBuildingShadow = Color(0x16000000)
+private val buildingShades = listOf(Color(0xFFEAE5DC), Color(0xFFE4DED4), Color(0xFFEEE9E1))
 
 /**
- * A generated, stylized city: a seeded road grid, a park or two, maybe some
- * water, and the home marker — all derived from the shopper's address, so each
- * neighborhood is its own and stays put across orders. The courier's route is
- * generated separately (per order), so the approach direction varies.
+ * One road: a normalized position (x for an avenue, y for a street), a stroke
+ * width (thick = a full-span arterial, thin = a local street), and the span it
+ * runs over along the other axis. Locals often stop short, so the network reads
+ * as a hierarchy with T-junctions and superblocks rather than a perfect lattice.
+ */
+internal data class CityRoad(val pos: Float, val width: Float, val from: Float, val to: Float) {
+    val arterial: Boolean get() = width >= 12f
+}
+
+/** One building footprint: a normalized rect and a shade index into [buildingShades]. */
+internal data class Building(val rect: Rect, val shade: Int)
+
+/**
+ * A generated, stylized city: a seeded road grid, building footprints filling
+ * the blocks, a park or two, maybe some water, a highway, and the home marker —
+ * all derived from the shopper's address, so each neighborhood is its own and
+ * stays put across orders. The route is generated separately (per order), so the
+ * approach direction varies.
  */
 internal data class CityMap(
     val avenues: List<CityRoad>,
     val streets: List<CityRoad>,
-    val diagonal: Pair<Offset, Offset>?,
+    val highway: Pair<Offset, Offset>?,
     val parks: List<Rect>,
     val water: List<Rect>,
+    val buildings: List<Building>,
     val home: Offset,
 )
 
-/** Roads evenly spread across the map with a little jitter; a few run thick. */
+/**
+ * Roads spread across the map with jitter, in a hierarchy: one or two run as
+ * full-span thick arterials, and the thin locals between them often stop short
+ * at an edge, leaving T-junctions and superblocks instead of a perfect grid.
+ */
 private fun spacedRoads(count: Int, rng: Random): List<CityRoad> {
     val step = 0.78f / (count - 1)
+    val arterials = mutableSetOf(1 + rng.nextInt((count - 1).coerceAtLeast(1)))
+    if (rng.nextBoolean()) arterials += rng.nextInt(count)
     return (0 until count).map { i ->
-        val base = 0.11f + step * i
-        val jitter = (rng.nextFloat() - 0.5f) * step * 0.4f
-        val width = if (rng.nextFloat() < 0.4f) 13f else 8f
-        CityRoad((base + jitter).coerceIn(0.06f, 0.94f), width)
+        val pos = (0.11f + step * i + (rng.nextFloat() - 0.5f) * step * 0.4f).coerceIn(0.06f, 0.94f)
+        when {
+            i in arterials -> CityRoad(pos, 13f, -0.05f, 1.05f)
+            rng.nextFloat() < 0.55f -> CityRoad(pos, 7f, -0.05f, 1.05f)
+            else -> {
+                // A local street that runs in from one edge and dead-ends.
+                val len = 0.4f + rng.nextFloat() * 0.45f
+                if (rng.nextBoolean()) {
+                    CityRoad(pos, 7f, -0.05f, -0.05f + len)
+                } else {
+                    CityRoad(pos, 7f, 1.05f - len, 1.05f)
+                }
+            }
+        }
     }
 }
 
@@ -115,21 +151,32 @@ private fun cell(avenues: List<CityRoad>, streets: List<CityRoad>, rng: Random):
     return Rect(x0 + ix, y0 + iy, x1 - ix, y1 - iy)
 }
 
-/** The whole city for an address [seed]: roads, parks, water, and home. */
+/** The whole city for an address [seed]: roads, blocks of buildings, parks,
+ *  water, a highway, and home. */
 internal fun generateCity(seed: Long): CityMap {
     val rng = Random(seed)
-    val avenues = spacedRoads(3 + rng.nextInt(2), rng) // 3-4 avenues
-    val streets = spacedRoads(4 + rng.nextInt(2), rng) // 4-5 streets
-    val diagonal = when {
+    val rawAvenues = spacedRoads(3 + rng.nextInt(2), rng) // 3-4 avenues
+    val rawStreets = spacedRoads(4 + rng.nextInt(2), rng) // 4-5 streets
+    val highway = when {
         rng.nextFloat() >= 0.5f -> null
         rng.nextBoolean() -> Offset(-0.05f, 0.95f) to Offset(1.05f, 0.05f)
         else -> Offset(-0.05f, 0.05f) to Offset(1.05f, 0.95f)
     }
-    // Home sits at an upper-center intersection: visible above the bottom sheet
-    // in the full-bleed view, with room for the route to approach from any side.
-    val homeAv = avenues.filter { it.pos in 0.26f..0.78f }.ifEmpty { avenues }
-    val homeSt = streets.filter { it.pos in 0.16f..0.46f }.ifEmpty { streets }
-    val home = Offset(homeAv[rng.nextInt(homeAv.size)].pos, homeSt[rng.nextInt(homeSt.size)].pos)
+
+    // Home sits in the upper-center band (visible above the bottom sheet); its
+    // two roads are promoted to full-span arterials so the route overlays real
+    // road right to the door.
+    fun pickIndex(roads: List<CityRoad>, band: ClosedFloatingPointRange<Float>): Int {
+        val inBand = roads.indices.filter { roads[it].pos in band }
+        val pool = inBand.ifEmpty { roads.indices.toList() }
+        return pool[rng.nextInt(pool.size)]
+    }
+    fun promote(r: CityRoad) = r.copy(width = 13f, from = -0.05f, to = 1.05f)
+    val homeAvIdx = pickIndex(rawAvenues, 0.26f..0.78f)
+    val homeStIdx = pickIndex(rawStreets, 0.16f..0.46f)
+    val avenues = rawAvenues.mapIndexed { i, r -> if (i == homeAvIdx) promote(r) else r }
+    val streets = rawStreets.mapIndexed { i, r -> if (i == homeStIdx) promote(r) else r }
+    val home = Offset(avenues[homeAvIdx].pos, streets[homeStIdx].pos)
     val homeCell = Rect(home.x - 0.08f, home.y - 0.08f, home.x + 0.08f, home.y + 0.08f)
     fun patches(n: Int): List<Rect> {
         val out = mutableListOf<Rect>()
@@ -143,7 +190,43 @@ internal fun generateCity(seed: Long): CityMap {
     }
     val parks = patches(1 + rng.nextInt(2))
     val water = if (rng.nextFloat() < 0.55f) patches(1) else emptyList()
-    return CityMap(avenues, streets, diagonal, parks, water, home)
+    // Building footprints fill each block: the dense built environment that
+    // makes a map read as a city rather than a wireframe grid. Each block is
+    // subdivided into a small grid of footprints with alley gaps and a few empty
+    // lots; buildings keep off the parks and water.
+    val features = parks + water
+    val buildings = buildList {
+        for (i in 0 until avenues.size - 1) {
+            for (j in 0 until streets.size - 1) {
+                val x0 = avenues[i].pos
+                val x1 = avenues[i + 1].pos
+                val y0 = streets[j].pos
+                val y1 = streets[j + 1].pos
+                val bx0 = x0 + (x1 - x0) * 0.14f
+                val bx1 = x1 - (x1 - x0) * 0.14f
+                val by0 = y0 + (y1 - y0) * 0.14f
+                val by1 = y1 - (y1 - y0) * 0.14f
+                if (bx1 - bx0 < 0.03f || by1 - by0 < 0.03f) continue
+                val cols = 2 + rng.nextInt(2)
+                val rows = 2 + rng.nextInt(2)
+                val gap = 0.009f
+                val cw = (bx1 - bx0 - gap * (cols - 1)) / cols
+                val rh = (by1 - by0 - gap * (rows - 1)) / rows
+                for (c in 0 until cols) {
+                    for (r in 0 until rows) {
+                        if (rng.nextFloat() < 0.16f) continue // a few empty lots
+                        val rx0 = bx0 + c * (cw + gap)
+                        val ry0 = by0 + r * (rh + gap)
+                        val rect = Rect(rx0, ry0, rx0 + cw, ry0 + rh)
+                        if (features.none { it.overlaps(rect) }) {
+                            add(Building(rect, rng.nextInt(buildingShades.size)))
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return CityMap(avenues, streets, highway, parks, water, buildings, home)
 }
 
 /** A grid line to enter along, preferring one that isn't the home's own line. */
@@ -161,8 +244,9 @@ private fun pickLine(positions: List<Float>, avoid: Float, rng: Random): Float {
 internal fun routeFor(city: CityMap, orderSeed: Int): List<Offset> {
     val rng = Random(orderSeed * 2_654_435_761L + 17L)
     val home = city.home
-    val avX = city.avenues.map { it.pos }
-    val stY = city.streets.map { it.pos }
+    // Approach along full-span arterials, so the courier travels on real road.
+    val avX = city.avenues.filter { it.arterial }.map { it.pos }.ifEmpty { city.avenues.map { it.pos } }
+    val stY = city.streets.filter { it.arterial }.map { it.pos }.ifEmpty { city.streets.map { it.pos } }
     return when (rng.nextInt(4)) {
         0 -> pickLine(stY, home.y, rng).let { y -> listOf(Offset(-0.06f, y), Offset(home.x, y), home) }
         1 -> pickLine(avX, home.x, rng).let { x -> listOf(Offset(x, -0.06f), Offset(x, home.y), home) }
@@ -279,41 +363,58 @@ internal fun RouteMap(
     }
 }
 
-/** The generated city: water and parks under a white road network. */
+/** The generated city: water and parks, building footprints on the blocks, then
+ *  the road network and a highway on top — layered like a real map. */
 private fun DrawScope.drawCity(city: CityMap) {
-    fun patch(color: Color, r: Rect) {
-        val radius = CornerRadius(size.minDimension * 0.02f)
+    fun rectOf(r: Rect) = Offset(size.width * r.left, size.height * r.top) to
+        Size(size.width * r.width, size.height * r.height)
+
+    // Natural features first, with a crisp darker edge so they read cleanly.
+    val featureRadius = CornerRadius(size.minDimension * 0.05f)
+    fun feature(edge: Color, fill: Color, r: Rect) {
+        val (tl, sz) = rectOf(r)
+        drawRoundRect(edge, topLeft = tl, size = sz, cornerRadius = featureRadius)
         drawRoundRect(
-            color = color,
-            topLeft = Offset(size.width * r.left, size.height * r.top),
-            size = Size(size.width * r.width, size.height * r.height),
-            cornerRadius = radius,
+            fill,
+            topLeft = Offset(tl.x + 1.5f, tl.y + 1.5f),
+            size = Size(sz.width - 3f, sz.height - 3f),
+            cornerRadius = featureRadius,
         )
     }
-    city.water.forEach { patch(MapWater, it) }
-    city.parks.forEach { patch(MapPark, it) }
+    city.water.forEach { feature(MapWaterEdge, MapWater, it) }
+    city.parks.forEach { feature(MapPark2, MapPark, it) }
 
-    fun road(x1: Float, y1: Float, x2: Float, y2: Float, width: Float) {
-        // A soft casing under each road, then the road itself — the white-road-
-        // on-tinted-land look of a map app, without a real map renderer.
+    // Building footprints: a faint drop shadow, a muted fill, a crisp edge —
+    // the density that makes the blocks read as a built city.
+    val bRadius = CornerRadius(size.minDimension * 0.006f)
+    city.buildings.forEach { b ->
+        val (tl, sz) = rectOf(b.rect)
+        drawRoundRect(MapBuildingShadow, topLeft = Offset(tl.x, tl.y + 1.2f), size = sz, cornerRadius = bRadius)
+        drawRoundRect(buildingShades[b.shade], topLeft = tl, size = sz, cornerRadius = bRadius)
+        drawRoundRect(MapBuildingLine, topLeft = tl, size = sz, cornerRadius = bRadius, style = Stroke(1f))
+    }
+
+    fun road(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, fill: Color, casing: Color) {
         drawLine(
-            MapRoadCasing,
-            Offset(size.width * x1, size.height * y1 + 1.5f),
-            Offset(size.width * x2, size.height * y2 + 1.5f),
+            casing,
+            Offset(size.width * x1, size.height * y1),
+            Offset(size.width * x2, size.height * y2),
             strokeWidth = width + 3f,
             cap = StrokeCap.Round,
         )
         drawLine(
-            MapRoad,
+            fill,
             Offset(size.width * x1, size.height * y1),
             Offset(size.width * x2, size.height * y2),
             strokeWidth = width,
             cap = StrokeCap.Round,
         )
     }
-    city.diagonal?.let { (a, b) -> road(a.x, a.y, b.x, b.y, 9f) }
-    city.avenues.forEach { road(it.pos, -0.05f, it.pos, 1.05f, it.width) }
-    city.streets.forEach { road(-0.05f, it.pos, 1.05f, it.pos, it.width) }
+    // The street network — each road over its own span, so locals dead-end —
+    // then the highway over it (a prominent through-road).
+    city.avenues.forEach { road(it.pos, it.from, it.pos, it.to, it.width, MapRoad, MapRoadCasing) }
+    city.streets.forEach { road(it.from, it.pos, it.to, it.pos, it.width, MapRoad, MapRoadCasing) }
+    city.highway?.let { (a, b) -> road(a.x, a.y, b.x, b.y, 13f, MapHighway, MapHighwayCasing) }
 }
 
 /** Draws the route: the full path as a faint road, then the traveled part solid. */

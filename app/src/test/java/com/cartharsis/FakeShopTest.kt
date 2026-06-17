@@ -832,6 +832,11 @@ class FakeShopTest {
             assertTrue("$seed street count", c.streets.size in 4..5)
             c.avenues.forEach { assertTrue("$seed avenue pos/width", it.pos in 0f..1f && it.width > 0f) }
             c.streets.forEach { assertTrue("$seed street pos", it.pos in 0f..1f) }
+            // At least one full-span arterial per direction (the route rides them).
+            assertTrue("$seed no avenue arterial", c.avenues.any { it.arterial })
+            assertTrue("$seed no street arterial", c.streets.any { it.arterial })
+            // The blocks are filled with building footprints, not left as bare land.
+            assertTrue("$seed has no buildings", c.buildings.isNotEmpty())
             // Home sits upper-center so it clears the bottom sheet in the full view.
             assertTrue("$seed home.x ${c.home.x}", c.home.x in 0.2f..0.82f)
             assertTrue("$seed home.y ${c.home.y}", c.home.y in 0.14f..0.5f)
