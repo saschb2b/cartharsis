@@ -124,13 +124,18 @@ private fun RarityGem(rarity: String, modifier: Modifier = Modifier) {
  */
 @Composable
 private fun HoloSheen() {
+    // The gloss band auto-sweeps (the chase reveal shows the foil off on its
+    // own), and how you tilt the phone nudges where the light sits, so a pulled
+    // chase answers your hand like the real foil it apes. rememberTilt reads 0
+    // when the phone is held still or has no sensor, leaving just the sweep.
     val t = rememberInfiniteTransition(label = "sheen")
-    val x by t.animateFloat(
+    val sweep by t.animateFloat(
         initialValue = -0.6f,
         targetValue = 1.6f,
         animationSpec = infiniteRepeatable(tween(1700, easing = LinearEasing)),
         label = "sheenX",
     )
+    val tilt = rememberTilt()
     Canvas(Modifier.fillMaxSize()) {
         drawRect(
             Brush.linearGradient(
@@ -142,6 +147,7 @@ private fun HoloSheen() {
                 end = Offset(size.width, size.height),
             ),
         )
+        val pos = sweep + tilt.value.x * 0.6f
         drawRect(
             Brush.linearGradient(
                 0.0f to Color.Transparent,
@@ -151,8 +157,8 @@ private fun HoloSheen() {
                 0.53f to HotPink.copy(alpha = 0.14f),
                 0.58f to Color.Transparent,
                 1.0f to Color.Transparent,
-                start = Offset(size.width * (x - 0.5f), 0f),
-                end = Offset(size.width * (x + 0.5f), size.height),
+                start = Offset(size.width * (pos - 0.5f), 0f),
+                end = Offset(size.width * (pos + 0.5f), size.height),
             ),
         )
     }

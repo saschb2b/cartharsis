@@ -1,6 +1,7 @@
 package com.cartharsis
 
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Couriers
 import com.cartharsis.data.Currency
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.HomeShelf
@@ -12,6 +13,7 @@ import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.badges
 import com.cartharsis.data.decodeBinderCard
 import com.cartharsis.data.decodeUserReview
+import com.cartharsis.data.deliveriesTogetherLine
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.encodeBinderCard
 import com.cartharsis.data.encodeUserReview
@@ -25,10 +27,13 @@ import com.cartharsis.data.keptInCoffees
 import com.cartharsis.data.lastSavingsMilestone
 import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.nextSavingsMilestone
+import com.cartharsis.data.ordinal
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.data.trackingCode
 import com.cartharsis.data.withPriceOverride
+import com.cartharsis.ui.screens.generateCity
+import com.cartharsis.ui.screens.routeFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -758,5 +763,107 @@ class FakeShopTest {
         }
         assertEquals("TRANSIT", OrderStatus.ON_THE_WAY.badge)
         assertEquals("ARRIVED", OrderStatus.DELIVERED.badge)
+    }
+
+    @Test
+    fun `courier assignment is deterministic, in-roster, regular-dominant, rocket-rare`() {
+        val regular = Couriers.dario.id
+        val picks = (1..5000).map { Couriers.forOrder(it, regular) }
+        // A revisit to the same order shows the same courier.
+        assertEquals(Couriers.forOrder(42, regular), Couriers.forOrder(42, regular))
+        assertTrue("assigned a courier off the roster", picks.all { it in Couriers.all })
+        val byId = picks.groupingBy { it.id }.eachCount()
+        // The regular shows up more than anyone, and more than half the time.
+        assertEquals(regular, byId.maxByOrNull { it.value }!!.key)
+        assertTrue("regular should dominate", byId.getValue(regular) > picks.size / 2)
+        // The rocket courier is a real but rare guest.
+        val rocket = byId[Couriers.vega.id] ?: 0
+        assertTrue("rocket courier too common", rocket < picks.size / 6)
+        assertTrue("rocket courier never appeared", rocket > 0)
+        // The other regulars turn up as occasional guests.
+        Couriers.commons.filter { it.id != regular }.forEach {
+            assertTrue("${it.name} never guested", (byId[it.id] ?: 0) > 0)
+        }
+    }
+
+    @Test
+    fun `every courier is a well-formed person`() {
+        val ids = Couriers.all.map { it.id }
+        assertEquals("courier ids not unique", ids.size, ids.toSet().size)
+        val names = Couriers.all.map { it.name }
+        assertEquals("courier names not unique", names.size, names.toSet().size)
+        Couriers.all.forEach { c ->
+            assertTrue("${c.id} has blank fields", c.name.isNotBlank() && c.avatar.isNotBlank())
+            assertTrue(
+                "${c.name} missing ride/bio/note",
+                c.vehicle.isNotBlank() && c.tagline.isNotBlank() && c.signoff.isNotBlank(),
+            )
+            assertTrue("${c.name} has too few moments", c.moments.size >= 4)
+            assertTrue("${c.name} has a blank moment", c.moments.all { it.isNotBlank() })
+            assertTrue("${c.name} rating out of range", c.rating in 4.0..5.0)
+        }
+        // pickRegular only ever returns a regular, never the rare rocket courier.
+        (0L..20L).forEach { assertTrue(Couriers.pickRegular(it) in Couriers.commons) }
+        assertEquals(Couriers.minjun, Couriers.byId("minjun"))
+        assertEquals(Couriers.minjun, Couriers.byId("not-a-courier")) // safe fallback
+    }
+
+    @Test
+    fun `ordinal and the relationship line read right`() {
+        listOf(
+            1 to "1st", 2 to "2nd", 3 to "3rd", 4 to "4th", 11 to "11th", 12 to "12th", 13 to "13th", 21 to "21st",
+            22 to "22nd", 23 to "23rd",
+        )
+            .forEach { (n, s) -> assertEquals(s, ordinal(n)) }
+        // The first meeting reads warmly; later ones count up.
+        assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 0))
+        assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 1))
+        assertEquals("Your 4th delivery with Aria", deliveriesTogetherLine("Aria", 4))
+    }
+
+    @Test
+    fun `generated city is deterministic, well-formed, and homes upper-center`() {
+        // Same address seed always draws the same neighborhood; different ones differ.
+        assertEquals(generateCity(42L), generateCity(42L))
+        assertTrue(generateCity(1L) != generateCity(2L))
+        listOf(1L, 7L, 42L, 99L, 1_234L, -55L).forEach { seed ->
+            val c = generateCity(seed)
+            assertTrue("$seed avenue count", c.avenues.size in 3..4)
+            assertTrue("$seed street count", c.streets.size in 4..5)
+            c.avenues.forEach { assertTrue("$seed avenue pos/width", it.pos in 0f..1f && it.width > 0f) }
+            c.streets.forEach { assertTrue("$seed street pos", it.pos in 0f..1f) }
+            // At least one full-span arterial per direction (the route rides them).
+            assertTrue("$seed no avenue arterial", c.avenues.any { it.arterial })
+            assertTrue("$seed no street arterial", c.streets.any { it.arterial })
+            // The blocks are filled with building footprints, not left as bare land.
+            assertTrue("$seed has no buildings", c.buildings.isNotEmpty())
+            // Home sits upper-center so it clears the bottom sheet in the full view.
+            assertTrue("$seed home.x ${c.home.x}", c.home.x in 0.2f..0.82f)
+            assertTrue("$seed home.y ${c.home.y}", c.home.y in 0.14f..0.5f)
+        }
+    }
+
+    @Test
+    fun `courier route is deterministic, ends at home, and varies the approach`() {
+        val city = generateCity(42L)
+        // A revisit to the same order retraces the same route.
+        assertEquals(routeFor(city, 3), routeFor(city, 3))
+        val r = routeFor(city, 3)
+        assertTrue("route too short", r.size >= 2)
+        assertEquals("route doesn't arrive home", city.home, r.last())
+        // The origin is off one of the four map edges (the courier comes from off-map).
+        val o = r.first()
+        assertTrue("origin not off-edge", o.x < 0f || o.x > 1f || o.y < 0f || o.y > 1f)
+        // Across many orders the approach comes from more than one direction.
+        val edges = (1..40).map {
+            val s = routeFor(city, it).first()
+            when {
+                s.x < 0f -> "L"
+                s.x > 1f -> "R"
+                s.y < 0f -> "T"
+                else -> "B"
+            }
+        }.toSet()
+        assertTrue("approach never varies", edges.size >= 2)
     }
 }

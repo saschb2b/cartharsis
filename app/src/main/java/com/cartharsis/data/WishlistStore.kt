@@ -19,12 +19,14 @@ private val PROFILE_NAME_KEY = stringPreferencesKey("profile_name")
 private val PROFILE_STREET_KEY = stringPreferencesKey("profile_street")
 private val PROFILE_CITY_KEY = stringPreferencesKey("profile_city")
 private val PROFILE_ONBOARDED_KEY = booleanPreferencesKey("profile_onboarded")
+private val PROFILE_MEMBER_SINCE_KEY = longPreferencesKey("profile_member_since_epoch_day")
 private val STREAK_DAYS_KEY = intPreferencesKey("streak_days")
 private val STREAK_LAST_DAY_KEY = longPreferencesKey("streak_last_epoch_day")
 private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
 private val MOPPLING_KEY = stringSetPreferencesKey("moppling_shelf")
 private val CURRENCY_KEY = stringPreferencesKey("currency_code")
 private val CARD_SEED_KEY = longPreferencesKey("card_seed")
+private val COURIER_REGULAR_KEY = stringPreferencesKey("courier_regular_id")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
 private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
 private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
@@ -91,6 +93,8 @@ object ProfileStore {
         val street: String = DEFAULT_STREET,
         val city: String = DEFAULT_CITY,
         val onboarded: Boolean = false,
+        /** Epoch day the account was created; 0 for installs that predate it. */
+        val memberSinceEpochDay: Long = 0L,
     )
 
     const val DEFAULT_STREET = "Apt ∞, Anticipation Street"
@@ -106,6 +110,7 @@ object ProfileStore {
             // don't make a regular ask them to "create an account".
             onboarded = prefs[PROFILE_ONBOARDED_KEY]
                 ?: (prefs[WISHLIST_KEY] != null || prefs[STATS_ORDERS_KEY] != null),
+            memberSinceEpochDay = prefs[PROFILE_MEMBER_SINCE_KEY] ?: 0L,
         )
     }
 
@@ -115,6 +120,7 @@ object ProfileStore {
             prefs[PROFILE_STREET_KEY] = profile.street
             prefs[PROFILE_CITY_KEY] = profile.city
             prefs[PROFILE_ONBOARDED_KEY] = profile.onboarded
+            prefs[PROFILE_MEMBER_SINCE_KEY] = profile.memberSinceEpochDay
         }
     }
 }
@@ -177,6 +183,38 @@ object StatsStore {
             prefs[STATS_ORDERS_KEY] = stats.ordersPlaced
             prefs[STATS_ITEMS_KEY] = stats.itemsBought
             prefs[STATS_CENTS_KEY] = stats.centsKept
+        }
+    }
+}
+
+/**
+ * Persists the courier relationship: which courier is the shopper's regular
+ * (picked once, then forever theirs) and how many deliveries each courier has
+ * completed for them. Orders themselves are session-only, but the bond with
+ * the one person who shows up is worth keeping.
+ */
+object CourierStore {
+
+    private fun deliveriesKey(courierId: String) = intPreferencesKey("courier_deliv_$courierId")
+
+    suspend fun loadRegularId(context: Context): String? = context.dataStore.data.first()[COURIER_REGULAR_KEY]
+
+    suspend fun saveRegularId(context: Context, id: String) {
+        context.dataStore.edit { it[COURIER_REGULAR_KEY] = id }
+    }
+
+    /** Completed-delivery counts per courier id; absent couriers default to 0. */
+    suspend fun loadDeliveries(context: Context): Map<String, Int> {
+        val prefs = context.dataStore.data.first()
+        return Couriers.all
+            .associate { it.id to (prefs[deliveriesKey(it.id)] ?: 0) }
+            .filterValues { it > 0 }
+    }
+
+    suspend fun incrementDelivery(context: Context, courierId: String) {
+        context.dataStore.edit { prefs ->
+            val key = deliveriesKey(courierId)
+            prefs[key] = (prefs[key] ?: 0) + 1
         }
     }
 }

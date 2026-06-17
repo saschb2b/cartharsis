@@ -1,6 +1,7 @@
 package com.cartharsis.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Couriers
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
@@ -34,7 +36,22 @@ private fun sampleOrder(status: OrderStatus, progress: Float): Order {
 internal fun RouteMapMidPreview() {
     CartharsisTheme {
         Column {
-            RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {})
+            RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {}, citySeed = 7L, orderId = 3)
+        }
+    }
+}
+
+/** Four addresses, four generated neighborhoods and approaches — the variety. */
+@PreviewTest
+@Preview(name = "Generated neighborhoods", showBackground = true, widthDp = 360, heightDp = 1340)
+@Composable
+internal fun GeneratedCitiesPreview() {
+    CartharsisTheme {
+        Column {
+            listOf(1L to 2, 4L to 5, 9L to 1, 13L to 8).forEach { (city, order) ->
+                RouteMap(progress = 0.55f, onTheWay = true, vehicle = "🛵", onBack = {
+                }, citySeed = city, orderId = order)
+            }
         }
     }
 }
@@ -71,6 +88,46 @@ internal fun DeliveryTimelineFullPreview() {
     CartharsisTheme {
         Column(Modifier.padding(20.dp)) {
             DeliveryTimeline(order = sampleOrder(OrderStatus.DELIVERED, 1f))
+        }
+    }
+}
+
+/** The bottom sheet's glanceable hero: status, whimsical ETA, progress, location. */
+@PreviewTest
+@Preview(name = "Status hero", showBackground = true, widthDp = 380)
+@Composable
+internal fun StatusHeroPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            StatusHero(order = sampleOrder(OrderStatus.ON_THE_WAY, 0.45f))
+            StatusHero(order = sampleOrder(OrderStatus.PACKING, 0f))
+        }
+    }
+}
+
+/** The courier as a person: regular, first-time guest, and the rare rocket one. */
+@PreviewTest
+@Preview(name = "Courier card", showBackground = true, widthDp = 400)
+@Composable
+internal fun CourierCardPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CourierCard(courier = Couriers.minjun, nthDelivery = 4)
+            CourierCard(courier = Couriers.aria, nthDelivery = 1)
+            CourierCard(courier = Couriers.vega, nthDelivery = 1)
+        }
+    }
+}
+
+/** The note left at the door on arrival, signed by the courier. */
+@PreviewTest
+@Preview(name = "Courier sign-off", showBackground = true, widthDp = 400)
+@Composable
+internal fun CourierSignoffPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CourierSignoff(courier = Couriers.minjun, nthDelivery = 4)
+            CourierSignoff(courier = Couriers.bo, nthDelivery = 7)
         }
     }
 }

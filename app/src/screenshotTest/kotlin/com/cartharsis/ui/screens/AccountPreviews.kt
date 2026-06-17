@@ -26,9 +26,31 @@ internal fun AccountContentPreview() {
             ),
             currency = Currency.EUR,
             cardSeed = 42L,
-            onShuffleCard = {},
+            onOpenWallet = {},
             onSave = { _, _, _ -> },
             onSelectCurrency = {},
+            onBack = {},
+        )
+    }
+}
+
+/**
+ * The wallet pushed from Account: the card as hero (front), the shuffle/flip
+ * hint, and the membership "terms" that are all jokes.
+ */
+@PreviewTest
+@Preview(name = "Wallet", showBackground = true, widthDp = 380, heightDp = 640)
+@Composable
+internal fun WalletContentPreview() {
+    CartharsisTheme {
+        WalletContent(
+            profile = ProfileStore.Profile(
+                name = "Sascha Becker",
+                onboarded = true,
+                memberSinceEpochDay = 20_600L,
+            ),
+            cardSeed = 11L,
+            onShuffleCard = {},
             onBack = {},
         )
     }

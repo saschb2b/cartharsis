@@ -57,6 +57,7 @@ import com.cartharsis.ui.screens.OnboardingScreen
 import com.cartharsis.ui.screens.OrdersScreen
 import com.cartharsis.ui.screens.ProductDetailScreen
 import com.cartharsis.ui.screens.TrackingScreen
+import com.cartharsis.ui.screens.WalletScreen
 import com.cartharsis.ui.screens.WishlistScreen
 import com.cartharsis.ui.theme.CartharsisTheme
 import com.cartharsis.ui.theme.Motion
@@ -298,6 +299,17 @@ fun CartharsisApp(viewModel: ShopViewModel, pendingRoute: MutableStateFlow<Strin
                 popExitTransition = { pushPopExit() },
             ) {
                 AccountScreen(
+                    viewModel = viewModel,
+                    onOpenWallet = { navController.navigate("wallet") },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable(
+                "wallet",
+                enterTransition = { pushEnter() },
+                popExitTransition = { pushPopExit() },
+            ) {
+                WalletScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
                 )

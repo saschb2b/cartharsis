@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "android-compose": {
+      "source": "saschb2b/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/android-compose/SKILL.md",
+      "computedHash": "5336352b0462823883e61caae50596ee4065e471384b5c3809d900f40b5bb631"
+    },
     "autopilot": {
       "source": "saschb2b/skills",
       "sourceType": "github",

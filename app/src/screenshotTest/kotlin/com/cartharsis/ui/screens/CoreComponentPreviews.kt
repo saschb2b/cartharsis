@@ -116,6 +116,25 @@ internal fun ImaginationCardPreview() {
     }
 }
 
+/** The card's back — magnetic stripe, signature, infinity CVV, member-since,
+ *  hologram, and the deadpan fine print — shown flipped for the gallery. */
+@PreviewTest
+@Preview(name = "Imagination card, back", showBackground = true, widthDp = 340)
+@Composable
+internal fun ImaginationCardBackPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ImaginationCard(
+                cardHolder = "Sascha Becker",
+                seed = 42L,
+                flippable = true,
+                memberSince = "JUN 2026",
+                initiallyFlipped = true,
+            )
+        }
+    }
+}
+
 /** The savings vault on Orders, at low / mid / near-milestone fills. */
 @PreviewTest
 @Preview(name = "Savings vault, three fills", showBackground = true, widthDp = 360, heightDp = 520)

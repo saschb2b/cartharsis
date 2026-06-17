@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,13 +42,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -76,19 +82,25 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CardPull
+import com.cartharsis.data.Courier
+import com.cartharsis.data.Couriers
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.MopplingFigure
 import com.cartharsis.data.MopplingWave
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
+import com.cartharsis.data.deliveriesTogetherLine
 import com.cartharsis.data.formatOrderDate
 import com.cartharsis.data.formatPrice
+import com.cartharsis.data.trackingCode
 import com.cartharsis.ui.theme.ElectricPurple
 import com.cartharsis.ui.theme.HotPink
 import com.cartharsis.ui.theme.JuicyOrange
@@ -97,6 +109,7 @@ import com.cartharsis.ui.theme.LocalSavingsColor
 import com.cartharsis.ui.theme.Motion
 import com.cartharsis.ui.theme.SkyBlue
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -133,232 +146,255 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
         }
     }
 
-    // Roughly one order in eight gets a courier upgrade. Purely decorative,
-    // stable per order so revisits keep the same ride.
-    val vehicle = remember(orderId) { if ((orderId * 31 + 7) % 8 == 0) "🚀" else "🛵" }
-
-    // In transit, the screen is the routed-map experience: a full-bleed map
-    // with a floating back button (no app bar), an overlapping order header,
-    // and the delivery timeline. The arrival/unbox ceremony below is the
-    // delivered branch, untouched.
-    if (order.status != OrderStatus.DELIVERED) {
-        TransitTracking(order = order, vehicle = vehicle, onBack = onBack)
-        return
+    // The courier: usually your regular, sometimes a guest, rarely the rocket
+    // one. Their own ride is the vehicle on the map, and the relationship count
+    // is how many times they've delivered to you — this trip included until it
+    // lands, at which point the persisted count already covers it.
+    val regularId by viewModel.regularCourierId.collectAsState()
+    val courierDeliveries by viewModel.courierDeliveries.collectAsState()
+    val courier = remember(orderId, regularId) {
+        Couriers.forOrder(orderId, regularId.ifBlank { Couriers.minjun.id })
+    }
+    // The map's neighborhood is seeded from the saved address, so it's the same
+    // streets every time you track, and different from someone at another address.
+    val profile by viewModel.profile.collectAsState()
+    val citySeed = remember(profile?.street, profile?.city) {
+        (profile?.street.orEmpty() + "|" + profile?.city.orEmpty()).hashCode().toLong()
+    }
+    val completedWithCourier = courierDeliveries[courier.id] ?: 0
+    val nthDelivery = if (order.status == OrderStatus.DELIVERED) {
+        maxOf(1, completedWithCourier)
+    } else {
+        completedWithCourier + 1
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { NestedTopBar(onBack = onBack, title = "Order #${order.id}") },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                run {
-                    // The haul: one emoji per ordered line. A Mystery Box shows
-                    // what it hypothetically held — that's the content you came
-                    // to see — rather than its own ❓.
-                    val haul = remember(order.id) {
-                        order.items.map { line ->
-                            if (line.product.id == FakeCatalog.mysteryBox.id) {
-                                FakeCatalog.mysteryRevealFor(order.id).emoji
-                            } else {
-                                line.product.emoji
-                            }
-                        }.take(7)
-                    }
-                    // A trading-card order unboxes into the pack-rip ceremony
-                    // (tear the foil, tap through the commons, flip the chase)
-                    // instead of the generic haul burst. Every pack gets its
-                    // own rip — one per quantity of each card line, each with
-                    // its own deal — capped so the ceremony stays a ceremony.
-                    val ripPacks = remember(order.id) {
-                        order.items
-                            .flatMap { line -> List(line.quantity) { i -> line.product to i } }
-                            .mapNotNull { (product, i) ->
-                                FakeCatalog.packRipFor(order.id, product, i)?.let { cards ->
-                                    RipPack(
-                                        game = product.variantGroup!!.substringBefore('-'),
-                                        seriesGroup = product.variantGroup!!,
-                                        series = FakeCatalog.cardSeriesTitles[product.variantGroup].orEmpty(),
-                                        cards = cards,
-                                    )
+    // The screen has two faces: the in-transit map + bottom sheet, and the
+    // delivered unbox ceremony. AnimatedContent crossfades between them on a
+    // spatial spring, so arrival eases from one layout into the other (the
+    // parcel scaling up as the map fades) instead of hard-cutting.
+    AnimatedContent(
+        targetState = order.status == OrderStatus.DELIVERED,
+        transitionSpec = {
+            (fadeIn(Motion.effects()) + scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial()))
+                .togetherWith(fadeOut(Motion.effects()))
+        },
+        label = "trackingPhase",
+    ) { delivered ->
+        if (!delivered) {
+            TransitTracking(
+                order = order,
+                courier = courier,
+                nthDelivery = nthDelivery,
+                citySeed = citySeed,
+                onBack = onBack,
+            )
+            return@AnimatedContent
+        }
+
+        Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = { NestedTopBar(onBack = onBack, title = "Order #${order.id}") },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    run {
+                        // The haul: one emoji per ordered line. A Mystery Box shows
+                        // what it hypothetically held — that's the content you came
+                        // to see — rather than its own ❓.
+                        val haul = remember(order.id) {
+                            order.items.map { line ->
+                                if (line.product.id == FakeCatalog.mysteryBox.id) {
+                                    FakeCatalog.mysteryRevealFor(order.id).emoji
+                                } else {
+                                    line.product.emoji
                                 }
-                            }
-                            .take(MAX_PACK_RIPS)
-                    }
-                    // A blind-box order unboxes into the shake-and-pop reveal
-                    // — one opening per unit, capped like the pack rips.
-                    val blindBoxes = remember(order.id) {
-                        order.items
-                            .flatMap { line -> List(line.quantity) { i -> line.product to i } }
-                            .mapNotNull { (product, i) ->
-                                FakeCatalog.mopplingPullsFor(order.id, product, i)
-                            }
-                            .take(MAX_PACK_RIPS)
-                    }
-                    // `unboxed` (ViewModel) is the durable "opened ever" flag;
-                    // `revealing` is local so the burst plays only on the live
-                    // tap, never on a revisit. Mixed orders rip first, then
-                    // shake — every ceremony in the parcel gets its moment.
-                    var revealing by remember(orderId) { mutableStateOf(false) }
-                    var ripsDone by remember(orderId) { mutableStateOf(false) }
-                    val phase = when {
-                        !unboxed -> UnboxPhase.Sealed
-                        revealing && ripPacks.isNotEmpty() && !ripsDone -> UnboxPhase.Ripping
-                        revealing && blindBoxes.isNotEmpty() -> UnboxPhase.Shaking
-                        revealing -> UnboxPhase.Revealing
-                        else -> UnboxPhase.Opened
-                    }
-                    AnimatedContent(
-                        targetState = phase,
-                        label = "unbox",
-                        transitionSpec = {
-                            (
-                                scaleIn(
-                                    initialScale = 0.85f,
-                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                                ) + fadeIn()
-                                ).togetherWith(fadeOut(tween(120)))
-                        },
-                    ) { ph ->
-                        when (ph) {
-                            UnboxPhase.Sealed -> SealedParcel(
-                                onUnbox = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    revealing = true
-                                    viewModel.markUnboxed(order.id)
-                                    // Card and blind-box orders save the burst
-                                    // for their own reveal — one big
-                                    // celebration per flow.
-                                    if (ripPacks.isEmpty() && blindBoxes.isEmpty()) celebrate = true
-                                },
-                            )
-                            UnboxPhase.Ripping -> {
-                                var packIdx by remember(order.id) { mutableIntStateOf(0) }
-                                val lastPack = packIdx == ripPacks.lastIndex
-                                AnimatedContent(
-                                    targetState = packIdx,
-                                    label = "packQueue",
-                                    transitionSpec = {
-                                        (
-                                            fadeIn(Motion.effects()) +
-                                                scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
-                                            ).togetherWith(fadeOut(Motion.effects()))
+                            }.take(7)
+                        }
+                        // A trading-card order unboxes into the pack-rip ceremony
+                        // (tear the foil, tap through the commons, flip the chase)
+                        // instead of the generic haul burst. Every pack gets its
+                        // own rip — one per quantity of each card line, each with
+                        // its own deal — capped so the ceremony stays a ceremony.
+                        val ripPacks = remember(order.id) {
+                            order.items
+                                .flatMap { line -> List(line.quantity) { i -> line.product to i } }
+                                .mapNotNull { (product, i) ->
+                                    FakeCatalog.packRipFor(order.id, product, i)?.let { cards ->
+                                        RipPack(
+                                            game = product.variantGroup!!.substringBefore('-'),
+                                            seriesGroup = product.variantGroup!!,
+                                            series = FakeCatalog.cardSeriesTitles[product.variantGroup].orEmpty(),
+                                            cards = cards,
+                                        )
+                                    }
+                                }
+                                .take(MAX_PACK_RIPS)
+                        }
+                        // A blind-box order unboxes into the shake-and-pop reveal
+                        // — one opening per unit, capped like the pack rips.
+                        val blindBoxes = remember(order.id) {
+                            order.items
+                                .flatMap { line -> List(line.quantity) { i -> line.product to i } }
+                                .mapNotNull { (product, i) ->
+                                    FakeCatalog.mopplingPullsFor(order.id, product, i)
+                                }
+                                .take(MAX_PACK_RIPS)
+                        }
+                        // `unboxed` (ViewModel) is the durable "opened ever" flag;
+                        // `revealing` is local so the burst plays only on the live
+                        // tap, never on a revisit. Mixed orders rip first, then
+                        // shake — every ceremony in the parcel gets its moment.
+                        var revealing by remember(orderId) { mutableStateOf(false) }
+                        var ripsDone by remember(orderId) { mutableStateOf(false) }
+                        val phase = when {
+                            !unboxed -> UnboxPhase.Sealed
+                            revealing && ripPacks.isNotEmpty() && !ripsDone -> UnboxPhase.Ripping
+                            revealing && blindBoxes.isNotEmpty() -> UnboxPhase.Shaking
+                            revealing -> UnboxPhase.Revealing
+                            else -> UnboxPhase.Opened
+                        }
+                        AnimatedContent(
+                            targetState = phase,
+                            label = "unbox",
+                            transitionSpec = {
+                                (
+                                    scaleIn(
+                                        initialScale = 0.85f,
+                                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                    ) + fadeIn()
+                                    ).togetherWith(fadeOut(tween(120)))
+                            },
+                        ) { ph ->
+                            when (ph) {
+                                UnboxPhase.Sealed -> SealedParcel(
+                                    onUnbox = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        revealing = true
+                                        viewModel.markUnboxed(order.id)
+                                        // Card and blind-box orders save the burst
+                                        // for their own reveal — one big
+                                        // celebration per flow.
+                                        if (ripPacks.isEmpty() && blindBoxes.isEmpty()) celebrate = true
                                     },
-                                ) { idx ->
-                                    PackRipReveal(
-                                        pack = ripPacks[idx],
-                                        packNumber = idx + 1,
-                                        packCount = ripPacks.size,
-                                        onChaseRevealed = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            Chime.playSuccess()
-                                            // The flipped chase goes into the
-                                            // persistent binder.
-                                            viewModel.recordPull(
-                                                game = ripPacks[idx].game,
-                                                card = ripPacks[idx].cards.last(),
-                                            )
-                                            // Every chase lands with haptic+chime;
-                                            // the confetti is the finale's.
-                                            if (lastPack) celebrate = true
+                                )
+                                UnboxPhase.Ripping -> {
+                                    var packIdx by remember(order.id) { mutableIntStateOf(0) }
+                                    val lastPack = packIdx == ripPacks.lastIndex
+                                    AnimatedContent(
+                                        targetState = packIdx,
+                                        label = "packQueue",
+                                        transitionSpec = {
+                                            (
+                                                fadeIn(Motion.effects()) +
+                                                    scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
+                                                ).togetherWith(fadeOut(Motion.effects()))
                                         },
-                                        onFinished = {
-                                            if (!lastPack) {
-                                                packIdx += 1
-                                            } else if (blindBoxes.isNotEmpty()) {
-                                                ripsDone = true
-                                            } else {
-                                                revealing = false
-                                            }
-                                        },
-                                    )
+                                    ) { idx ->
+                                        PackRipReveal(
+                                            pack = ripPacks[idx],
+                                            packNumber = idx + 1,
+                                            packCount = ripPacks.size,
+                                            onChaseRevealed = {
+                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                Chime.playSuccess()
+                                                // The flipped chase goes into the
+                                                // persistent binder.
+                                                viewModel.recordPull(
+                                                    game = ripPacks[idx].game,
+                                                    card = ripPacks[idx].cards.last(),
+                                                )
+                                                // Every chase lands with haptic+chime;
+                                                // the confetti is the finale's.
+                                                if (lastPack) celebrate = true
+                                            },
+                                            onFinished = {
+                                                if (!lastPack) {
+                                                    packIdx += 1
+                                                } else if (blindBoxes.isNotEmpty()) {
+                                                    ripsDone = true
+                                                } else {
+                                                    revealing = false
+                                                }
+                                            },
+                                        )
+                                    }
                                 }
-                            }
-                            UnboxPhase.Shaking -> {
-                                var boxIdx by remember(order.id) { mutableIntStateOf(0) }
-                                val lastBox = boxIdx == blindBoxes.lastIndex
-                                AnimatedContent(
-                                    targetState = boxIdx,
-                                    label = "boxQueue",
-                                    transitionSpec = {
-                                        (
-                                            fadeIn(Motion.effects()) +
-                                                scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
-                                            ).togetherWith(fadeOut(Motion.effects()))
-                                    },
-                                ) { idx ->
-                                    val (wave, figures) = blindBoxes[idx]
-                                    BlindBoxReveal(
-                                        wave = wave,
-                                        figures = figures,
-                                        boxNumber = idx + 1,
-                                        boxCount = blindBoxes.size,
-                                        onOpened = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            Chime.playSuccess()
-                                            // Revealed figures go onto the
-                                            // persistent Moppling shelf.
-                                            viewModel.recordMopplings(wave.key, figures)
-                                            // Every pop lands with haptic+chime;
-                                            // the confetti is the finale's.
-                                            if (lastBox) celebrate = true
+                                UnboxPhase.Shaking -> {
+                                    var boxIdx by remember(order.id) { mutableIntStateOf(0) }
+                                    val lastBox = boxIdx == blindBoxes.lastIndex
+                                    AnimatedContent(
+                                        targetState = boxIdx,
+                                        label = "boxQueue",
+                                        transitionSpec = {
+                                            (
+                                                fadeIn(Motion.effects()) +
+                                                    scaleIn(initialScale = 0.92f, animationSpec = Motion.spatial())
+                                                ).togetherWith(fadeOut(Motion.effects()))
                                         },
-                                        onFinished = {
-                                            if (lastBox) revealing = false else boxIdx += 1
-                                        },
-                                    )
+                                    ) { idx ->
+                                        val (wave, figures) = blindBoxes[idx]
+                                        BlindBoxReveal(
+                                            wave = wave,
+                                            figures = figures,
+                                            boxNumber = idx + 1,
+                                            boxCount = blindBoxes.size,
+                                            onOpened = {
+                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                Chime.playSuccess()
+                                                // Revealed figures go onto the
+                                                // persistent Moppling shelf.
+                                                viewModel.recordMopplings(wave.key, figures)
+                                                // Every pop lands with haptic+chime;
+                                                // the confetti is the finale's.
+                                                if (lastBox) celebrate = true
+                                            },
+                                            onFinished = {
+                                                if (lastBox) revealing = false else boxIdx += 1
+                                            },
+                                        )
+                                    }
                                 }
+                                UnboxPhase.Revealing -> UnboxingReveal(
+                                    haul = haul,
+                                    onFinished = { revealing = false },
+                                )
+                                UnboxPhase.Opened -> DeliveredCelebration(order, courier, nthDelivery, onShopMore)
                             }
-                            UnboxPhase.Revealing -> UnboxingReveal(
-                                haul = haul,
-                                onFinished = { revealing = false },
-                            )
-                            UnboxPhase.Opened -> DeliveredCelebration(order, onShopMore)
                         }
                     }
-                }
-                // The same vertical timeline the transit map uses — here the
-                // full log, all five stages latest-first — in a card so it
-                // sits among the ceremony's other cards.
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Delivery timeline",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 12.dp),
-                        )
-                        DeliveryTimeline(order)
+                    // The same vertical timeline the transit map uses — here the
+                    // full log, all five stages latest-first — in a card so it
+                    // sits among the ceremony's other cards.
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                    ) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Delivery timeline",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 12.dp),
+                            )
+                            DeliveryTimeline(order)
+                        }
                     }
+                    ItemsCard(order)
                 }
-                ItemsCard(order)
-            }
-            if (celebrate) {
-                ConfettiOverlay(Modifier.fillMaxSize(), durationMillis = 2_600)
+                if (celebrate) {
+                    ConfettiOverlay(Modifier.fillMaxSize(), durationMillis = 2_600)
+                }
             }
         }
     }
 }
-
-// Tiny en-route vignettes — checking back occasionally pays off with a new
-// one. Bucketed on progress so each appears exactly once per trip.
-private val courierMoments = listOf(
-    "🐕 Briefly stopped to pet a dog",
-    "🚦 Caught every green light so far",
-    "🌤️ Weather over the route: imaginary and mild",
-    "🪢 Double-checked the straps, the nothing is secure",
-    "🎶 Courier is humming. Good sign.",
-)
 
 // Whimsical waypoints the nothing passes through while on the way — the
 // header card's "current location", bucketed on trip progress.
@@ -384,41 +420,220 @@ private fun currentLocation(order: Order): String = when {
  * the order summary. Its own full-bleed layout with a floating back button,
  * no app bar; the delivered branch keeps the ceremony's Scaffold.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TransitTracking(order: Order, vehicle: String, onBack: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState()),
+private fun TransitTracking(order: Order, courier: Courier, nthDelivery: Int, citySeed: Long, onBack: () -> Unit) {
+    // Map + bottom sheet (researched): the live essentials — status, ETA, and
+    // the courier — sit in the sheet's peek, glanceable above the fold; the
+    // detailed timeline and order summary are revealed by dragging the sheet up
+    // (progressive disclosure) rather than stacked down a long scroll.
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded,
+            skipHiddenState = true,
+        ),
+    )
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 300.dp,
+        sheetContainerColor = MaterialTheme.colorScheme.surface,
+        sheetShadowElevation = 8.dp,
+        containerColor = MaterialTheme.colorScheme.background,
+        sheetContent = { TransitSheet(order, courier, nthDelivery) },
     ) {
+        // The map fills the whole area behind the sheet; the destination and the
+        // courier's approach stay above the peek, the origin tucks behind it.
         RouteMap(
             progress = if (order.status >= OrderStatus.ON_THE_WAY) order.progress else 0f,
             onTheWay = order.status == OrderStatus.ON_THE_WAY,
-            vehicle = vehicle,
+            vehicle = courier.vehicle,
             onBack = onBack,
+            fill = true,
+            citySeed = citySeed,
+            orderId = order.id,
         )
-        // The header card overlaps the map's bottom edge, as in the concept.
-        Column(Modifier.offset(y = (-24).dp).padding(horizontal = 16.dp)) {
-            TrackingHeaderCard(order = order, location = currentLocation(order))
-            if (order.status == OrderStatus.ON_THE_WAY) {
-                val index = (order.progress * courierMoments.size)
-                    .toInt().coerceAtMost(courierMoments.lastIndex)
-                AnimatedContent(targetState = index, label = "moment") { i ->
+    }
+}
+
+/** The sheet over the map: the hero (status/ETA/courier) in the peek, the rest below. */
+@Composable
+private fun TransitSheet(order: Order, courier: Courier, nthDelivery: Int) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+    ) {
+        StatusHero(order)
+        Spacer(Modifier.height(16.dp))
+        // The person behind the delivery, in the glanceable peek.
+        CourierCard(courier = courier, nthDelivery = nthDelivery)
+        if (order.status == OrderStatus.ON_THE_WAY) {
+            // The en-route moments, in this courier's own voice.
+            val moments = courier.moments
+            val index = (order.progress * moments.size).toInt().coerceAtMost(moments.lastIndex)
+            AnimatedContent(targetState = index, label = "moment") { i ->
+                Text(
+                    text = moments[i],
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 12.dp, start = 4.dp),
+                )
+            }
+        }
+        // Below the peek: the full history and the order summary, on drag-up.
+        Spacer(Modifier.height(20.dp))
+        Text(
+            text = "Delivery updates",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+        Column(Modifier.padding(top = 12.dp, start = 4.dp)) {
+            DeliveryTimeline(order = order)
+        }
+        Spacer(Modifier.height(16.dp))
+        ItemsCard(order)
+    }
+}
+
+/** The glanceable hero: current status, a whimsical ETA, a slim progress track, location. */
+@Composable
+internal fun StatusHero(order: Order) {
+    val fraction by animateFloatAsState(targetValue = overallFraction(order), label = "trackProgress")
+    Column(Modifier.padding(top = 8.dp)) {
+        Text(
+            text = order.status.label,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = etaLine(order),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = LocalSavingsColor.current,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)),
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(fraction.coerceIn(0f, 1f))
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .background(Brush.horizontalGradient(listOf(HotPink, ElectricPurple))),
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("📍", fontSize = 13.sp)
+            Text(
+                text = currentLocation(order),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f).padding(start = 6.dp),
+            )
+            Text(
+                text = trackingCode(order.id),
+                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/** A whimsical ETA — anticipation is the point, and it's post-commit, so it's fair game. */
+private fun etaLine(order: Order): String = when (order.status) {
+    OrderStatus.CONFIRMED -> "Confirmed. Preparing your nothing."
+    OrderStatus.PACKING -> "Carefully wrapping the void"
+    OrderStatus.COURIER_ASSIGNED -> "Your courier is heading out"
+    OrderStatus.ON_THE_WAY -> {
+        val remaining = ((1f - order.progress) * ShopViewModel.COURIER_TRIP_SECONDS).roundToInt()
+        if (remaining > 3) "Arriving in ~${remaining}s" else "Seconds away"
+    }
+    OrderStatus.DELIVERED -> "Arrived. Exactly as planned."
+}
+
+/** Overall completion across the five stages, for the hero's slim progress track. */
+private fun overallFraction(order: Order): Float = when (order.status) {
+    OrderStatus.CONFIRMED -> 0.06f
+    OrderStatus.PACKING -> 0.22f
+    OrderStatus.COURIER_ASSIGNED -> 0.42f
+    OrderStatus.ON_THE_WAY -> 0.5f + order.progress * 0.46f
+    OrderStatus.DELIVERED -> 1f
+}
+
+/**
+ * The courier, made a person: their face, name, rating, the ride they actually
+ * use, a line of who they are, and how many times they've delivered to you.
+ */
+@Composable
+internal fun CourierCard(courier: Courier, nthDelivery: Int) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Avatar, with their ride badged on the corner.
+            Box {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(courier.avatar, fontSize = 26.sp)
+                }
+                Text(
+                    text = courier.vehicle,
+                    fontSize = 16.sp,
+                    modifier = Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 4.dp),
+                )
+            }
+            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = courierMoments[i],
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 10.dp, start = 4.dp),
+                        text = courier.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "★ ${courier.rating}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
+                Text(
+                    text = courier.tagline,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 1.dp),
+                )
+                Text(
+                    text = deliveriesTogetherLine(courier.name, nthDelivery),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = LocalSavingsColor.current,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
             }
-            Column(Modifier.padding(top = 18.dp, start = 4.dp)) {
-                DeliveryTimeline(order = order)
-            }
-            Spacer(Modifier.height(16.dp))
-            ItemsCard(order)
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
@@ -594,7 +809,7 @@ private fun SealedParcel(onUnbox: () -> Unit) {
 }
 
 @Composable
-private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
+private fun DeliveredCelebration(order: Order, courier: Courier, nthDelivery: Int, onShopMore: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -662,9 +877,61 @@ private fun DeliveredCelebration(order: Order, onShopMore: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
+            // The note at the door: the one person who showed up, signing off.
+            Spacer(Modifier.height(20.dp))
+            CourierSignoff(courier = courier, nthDelivery = nthDelivery)
             Button(onClick = onShopMore, modifier = Modifier.padding(top = 16.dp)) {
                 Text("Shop the next nothing", fontWeight = FontWeight.Bold)
             }
+        }
+    }
+}
+
+/** The courier's handwritten-feeling note, left at the door on arrival. */
+@Composable
+internal fun CourierSignoff(courier: Courier, nthDelivery: Int) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(courier.avatar, fontSize = 20.sp)
+                }
+                Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                    Text(
+                        text = "A note from ${courier.name}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = deliveriesTogetherLine(courier.name, nthDelivery),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = "★ ${courier.rating}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            Text(
+                text = courier.signoff,
+                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(top = 10.dp),
+            )
         }
     }
 }

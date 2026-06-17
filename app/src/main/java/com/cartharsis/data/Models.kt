@@ -105,7 +105,7 @@ enum class OrderStatus(
 ) {
     CONFIRMED("✅", "Order confirmed", "Your order of nothing has been received.", "CONFIRMED"),
     PACKING("📦", "Packing", "Someone is carefully wrapping the void.", "PACKING"),
-    COURIER_ASSIGNED("🛵", "Courier assigned", "Min-jun has accepted your delivery.", "DISPATCHED"),
+    COURIER_ASSIGNED("🛵", "Courier assigned", "Your courier has the package and is heading out.", "DISPATCHED"),
     ON_THE_WAY("🚀", "On the way", "Your nothing is moving through the city.", "TRANSIT"),
     DELIVERED("🧘", "Delivered", "Nothing has arrived. Exactly as planned.", "ARRIVED"),
 }
@@ -207,3 +207,15 @@ fun effectiveStreak(savedDays: Int, lastEpochDay: Long, todayEpochDay: Long): In
 /** "Jun 9, 8:51 PM" — order history needs a when, even for orders of nothing. */
 fun formatOrderDate(millis: Long): String = java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
     .format(java.util.Date(millis))
+
+/**
+ * "JUN 2026" for the wallet's MEMBER SINCE line. Installs that predate the
+ * stored join date (epoch day 0) get the deadpan "DAY ONE" instead.
+ */
+fun formatMemberSince(epochDay: Long): String = if (epochDay <= 0L) {
+    "DAY ONE"
+} else {
+    java.text.SimpleDateFormat("MMM yyyy", java.util.Locale.getDefault())
+        .format(java.util.Date(epochDay * 86_400_000L))
+        .uppercase(java.util.Locale.getDefault())
+}
