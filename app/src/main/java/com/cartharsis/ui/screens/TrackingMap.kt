@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -108,6 +109,8 @@ internal fun RouteMap(
     vehicle: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Fill the available height (for the full-bleed map behind the bottom sheet). */
+    fill: Boolean = false,
 ) {
     // Same goal-gradient easing the old map used, so the courier and the
     // filled trail accelerate into the destination together.
@@ -115,7 +118,7 @@ internal fun RouteMap(
     BoxWithConstraints(
         modifier
             .fillMaxWidth()
-            .height(330.dp)
+            .then(if (fill) Modifier.fillMaxHeight() else Modifier.height(330.dp))
             .background(Brush.verticalGradient(listOf(MapPaper, MapPaperLo)))
             .clearAndSetSemantics { contentDescription = "Delivery route map" },
     ) {

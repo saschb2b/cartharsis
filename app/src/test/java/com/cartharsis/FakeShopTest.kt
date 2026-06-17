@@ -1,6 +1,7 @@
 package com.cartharsis
 
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Couriers
 import com.cartharsis.data.Currency
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.HomeShelf
@@ -12,6 +13,7 @@ import com.cartharsis.data.advanceStreak
 import com.cartharsis.data.badges
 import com.cartharsis.data.decodeBinderCard
 import com.cartharsis.data.decodeUserReview
+import com.cartharsis.data.deliveriesTogetherLine
 import com.cartharsis.data.effectiveStreak
 import com.cartharsis.data.encodeBinderCard
 import com.cartharsis.data.encodeUserReview
@@ -25,6 +27,7 @@ import com.cartharsis.data.keptInCoffees
 import com.cartharsis.data.lastSavingsMilestone
 import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.nextSavingsMilestone
+import com.cartharsis.data.ordinal
 import com.cartharsis.data.plusProduct
 import com.cartharsis.data.savingsMilestoneProgress
 import com.cartharsis.data.trackingCode
@@ -758,5 +761,61 @@ class FakeShopTest {
         }
         assertEquals("TRANSIT", OrderStatus.ON_THE_WAY.badge)
         assertEquals("ARRIVED", OrderStatus.DELIVERED.badge)
+    }
+
+    @Test
+    fun `courier assignment is deterministic, in-roster, regular-dominant, rocket-rare`() {
+        val regular = Couriers.dario.id
+        val picks = (1..5000).map { Couriers.forOrder(it, regular) }
+        // A revisit to the same order shows the same courier.
+        assertEquals(Couriers.forOrder(42, regular), Couriers.forOrder(42, regular))
+        assertTrue("assigned a courier off the roster", picks.all { it in Couriers.all })
+        val byId = picks.groupingBy { it.id }.eachCount()
+        // The regular shows up more than anyone, and more than half the time.
+        assertEquals(regular, byId.maxByOrNull { it.value }!!.key)
+        assertTrue("regular should dominate", byId.getValue(regular) > picks.size / 2)
+        // The rocket courier is a real but rare guest.
+        val rocket = byId[Couriers.vega.id] ?: 0
+        assertTrue("rocket courier too common", rocket < picks.size / 6)
+        assertTrue("rocket courier never appeared", rocket > 0)
+        // The other regulars turn up as occasional guests.
+        Couriers.commons.filter { it.id != regular }.forEach {
+            assertTrue("${it.name} never guested", (byId[it.id] ?: 0) > 0)
+        }
+    }
+
+    @Test
+    fun `every courier is a well-formed person`() {
+        val ids = Couriers.all.map { it.id }
+        assertEquals("courier ids not unique", ids.size, ids.toSet().size)
+        val names = Couriers.all.map { it.name }
+        assertEquals("courier names not unique", names.size, names.toSet().size)
+        Couriers.all.forEach { c ->
+            assertTrue("${c.id} has blank fields", c.name.isNotBlank() && c.avatar.isNotBlank())
+            assertTrue(
+                "${c.name} missing ride/bio/note",
+                c.vehicle.isNotBlank() && c.tagline.isNotBlank() && c.signoff.isNotBlank(),
+            )
+            assertTrue("${c.name} has too few moments", c.moments.size >= 4)
+            assertTrue("${c.name} has a blank moment", c.moments.all { it.isNotBlank() })
+            assertTrue("${c.name} rating out of range", c.rating in 4.0..5.0)
+        }
+        // pickRegular only ever returns a regular, never the rare rocket courier.
+        (0L..20L).forEach { assertTrue(Couriers.pickRegular(it) in Couriers.commons) }
+        assertEquals(Couriers.minjun, Couriers.byId("minjun"))
+        assertEquals(Couriers.minjun, Couriers.byId("not-a-courier")) // safe fallback
+    }
+
+    @Test
+    fun `ordinal and the relationship line read right`() {
+        listOf(
+            1 to "1st", 2 to "2nd", 3 to "3rd", 4 to "4th", 11 to "11th", 12 to "12th", 13 to "13th", 21 to "21st",
+            22 to "22nd", 23 to "23rd",
+        )
+            .forEach { (n, s) -> assertEquals(s, ordinal(n)) }
+        // The first meeting reads warmly; later ones count up.
+        assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 0))
+        assertEquals("Your first delivery with Min-jun", deliveriesTogetherLine("Min-jun", 1))
+        assertEquals("Your 4th delivery with Aria", deliveriesTogetherLine("Aria", 4))
     }
 }

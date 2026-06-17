@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import com.cartharsis.data.BinderStore
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.CartItem
+import com.cartharsis.data.Courier
+import com.cartharsis.data.CourierStore
+import com.cartharsis.data.Couriers
 import com.cartharsis.data.Currency
 import com.cartharsis.data.CurrencyState
 import com.cartharsis.data.FakeCatalog
@@ -135,6 +138,18 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     private var streakLastEpochDay = 0L
 
+    /** The shopper's regular courier id, picked once and persisted; "" until loaded. */
+    private val _regularCourierId = MutableStateFlow("")
+    val regularCourierId: StateFlow<String> = _regularCourierId.asStateFlow()
+
+    /** Completed deliveries per courier id, persisted — the relationship that lasts. */
+    private val _courierDeliveries = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val courierDeliveries: StateFlow<Map<String, Int>> = _courierDeliveries.asStateFlow()
+
+    /** The courier on an order: usually the regular, sometimes a guest, rarely the rocket. */
+    fun courierFor(orderId: Int): Courier =
+        Couriers.forOrder(orderId, _regularCourierId.value.ifBlank { Couriers.minjun.id })
+
     private var nextOrderId = 1
 
     /**
@@ -202,6 +217,16 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             _cardSeed.value = SettingsStore.loadCardSeed(getApplication())
+        }
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            // The regular is picked once and kept forever; the same face that
+            // mostly shows up at your door. The delivery counts are the history.
+            val regularId = CourierStore.loadRegularId(app)
+                ?: Couriers.pickRegular(System.currentTimeMillis()).id
+                    .also { CourierStore.saveRegularId(app, it) }
+            _regularCourierId.value = regularId
+            _courierDeliveries.value = CourierStore.loadDeliveries(app)
         }
         viewModelScope.launch {
             val saved = BinderStore.load(getApplication())
@@ -459,6 +484,7 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun runDeliverySimulation(orderId: Int) {
         viewModelScope.launch {
+            val courier = courierFor(orderId)
             delay(3_000)
             updateOrder(orderId) { it.copy(status = OrderStatus.PACKING) }
             delay(5_000)
@@ -480,15 +506,19 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
                     NotificationPolicy.shouldPingDelivery(appInForeground())
                 ) {
                     nearbyPinged = true
-                    Notifier.notifyCourierNearby(getApplication(), orderId)
+                    Notifier.notifyCourierNearby(getApplication(), orderId, courier.name)
                 }
             }
             updateOrder(orderId) { it.copy(status = OrderStatus.DELIVERED, progress = 1f) }
+            // Record the delivery against the courier — orders are session-only,
+            // but the history with the person who showed up persists.
+            CourierStore.incrementDelivery(getApplication(), courier.id)
+            _courierDeliveries.update { it + (courier.id to ((it[courier.id] ?: 0) + 1)) }
             val delivered = _orders.value.firstOrNull { it.id == orderId } ?: return@launch
             // In the foreground the tracking screen already celebrates the arrival;
             // the system notification is only for someone who wandered off.
             if (NotificationPolicy.shouldPingDelivery(appInForeground())) {
-                Notifier.notifyDelivered(getApplication(), orderId, formatPrice(delivered.totalCents))
+                Notifier.notifyDelivered(getApplication(), orderId, formatPrice(delivered.totalCents), courier.name)
             }
         }
     }

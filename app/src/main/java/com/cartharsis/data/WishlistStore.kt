@@ -26,6 +26,7 @@ private val BINDER_KEY = stringSetPreferencesKey("binder_cards")
 private val MOPPLING_KEY = stringSetPreferencesKey("moppling_shelf")
 private val CURRENCY_KEY = stringPreferencesKey("currency_code")
 private val CARD_SEED_KEY = longPreferencesKey("card_seed")
+private val COURIER_REGULAR_KEY = stringPreferencesKey("courier_regular_id")
 private val STATS_ORDERS_KEY = intPreferencesKey("stats_orders_placed")
 private val STATS_ITEMS_KEY = intPreferencesKey("stats_items_bought")
 private val STATS_CENTS_KEY = longPreferencesKey("stats_cents_kept")
@@ -182,6 +183,38 @@ object StatsStore {
             prefs[STATS_ORDERS_KEY] = stats.ordersPlaced
             prefs[STATS_ITEMS_KEY] = stats.itemsBought
             prefs[STATS_CENTS_KEY] = stats.centsKept
+        }
+    }
+}
+
+/**
+ * Persists the courier relationship: which courier is the shopper's regular
+ * (picked once, then forever theirs) and how many deliveries each courier has
+ * completed for them. Orders themselves are session-only, but the bond with
+ * the one person who shows up is worth keeping.
+ */
+object CourierStore {
+
+    private fun deliveriesKey(courierId: String) = intPreferencesKey("courier_deliv_$courierId")
+
+    suspend fun loadRegularId(context: Context): String? = context.dataStore.data.first()[COURIER_REGULAR_KEY]
+
+    suspend fun saveRegularId(context: Context, id: String) {
+        context.dataStore.edit { it[COURIER_REGULAR_KEY] = id }
+    }
+
+    /** Completed-delivery counts per courier id; absent couriers default to 0. */
+    suspend fun loadDeliveries(context: Context): Map<String, Int> {
+        val prefs = context.dataStore.data.first()
+        return Couriers.all
+            .associate { it.id to (prefs[deliveriesKey(it.id)] ?: 0) }
+            .filterValues { it > 0 }
+    }
+
+    suspend fun incrementDelivery(context: Context, courierId: String) {
+        context.dataStore.edit { prefs ->
+            val key = deliveriesKey(courierId)
+            prefs[key] = (prefs[key] ?: 0) + 1
         }
     }
 }

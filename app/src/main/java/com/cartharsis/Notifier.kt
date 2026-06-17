@@ -61,23 +61,23 @@ object Notifier {
      * updates the same shade entry in place instead of stacking a second one
      * (post() alerts only once per id).
      */
-    fun notifyCourierNearby(context: Context, orderId: Int) {
+    fun notifyCourierNearby(context: Context, orderId: Int, courierName: String) {
         post(
             context,
             channelId = DELIVERY_CHANNEL_ID,
             id = 1_000 + orderId,
-            title = "👀 Your courier is nearby",
-            text = "Order #$orderId is almost there. The nothing is holding steady.",
+            title = "👀 $courierName is nearby",
+            text = "Almost at your door with order #$orderId. The nothing is holding steady.",
             route = "tracking/$orderId",
         )
     }
 
-    fun notifyDelivered(context: Context, orderId: Int, moneyKept: String) {
+    fun notifyDelivered(context: Context, orderId: Int, moneyKept: String, courierName: String) {
         post(
             context,
             channelId = DELIVERY_CHANNEL_ID,
             id = 1_000 + orderId,
-            title = "🧘 Your nothing has been delivered",
+            title = "🧘 $courierName delivered your nothing",
             text = "Order #$orderId arrived containing exactly nothing. " +
                 "$moneyKept stays in your account. Breathe.",
             route = "tracking/$orderId",

@@ -105,7 +105,7 @@ enum class OrderStatus(
 ) {
     CONFIRMED("✅", "Order confirmed", "Your order of nothing has been received.", "CONFIRMED"),
     PACKING("📦", "Packing", "Someone is carefully wrapping the void.", "PACKING"),
-    COURIER_ASSIGNED("🛵", "Courier assigned", "Min-jun has accepted your delivery.", "DISPATCHED"),
+    COURIER_ASSIGNED("🛵", "Courier assigned", "Your courier has the package and is heading out.", "DISPATCHED"),
     ON_THE_WAY("🚀", "On the way", "Your nothing is moving through the city.", "TRANSIT"),
     DELIVERED("🧘", "Delivered", "Nothing has arrived. Exactly as planned.", "ARRIVED"),
 }
