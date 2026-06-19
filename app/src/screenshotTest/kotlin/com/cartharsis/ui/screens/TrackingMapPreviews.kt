@@ -41,6 +41,18 @@ internal fun RouteMapMidPreview() {
     }
 }
 
+/** The night-navigation palette — the dark-theme map, with its neon route. */
+@PreviewTest
+@Preview(name = "Route map, night", showBackground = true, widthDp = 400)
+@Composable
+internal fun RouteMapNightPreview() {
+    CartharsisTheme(darkTheme = true) {
+        Column {
+            RouteMap(progress = 0.62f, onTheWay = true, vehicle = "🛵", onBack = {}, citySeed = 7L, orderId = 3)
+        }
+    }
+}
+
 /** Four addresses, four generated neighborhoods and approaches — the variety. */
 @PreviewTest
 @Preview(name = "Generated neighborhoods", showBackground = true, widthDp = 360, heightDp = 1340)

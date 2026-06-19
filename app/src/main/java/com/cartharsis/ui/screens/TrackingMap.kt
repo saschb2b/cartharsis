@@ -1,5 +1,6 @@
 package com.cartharsis.ui.screens
 
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -44,8 +46,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -63,23 +67,76 @@ import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.random.Random
 
-// The map palette, tuned to map-app cartography (the Google Maps "basic"
-// scheme): warm off-white land, muted building blocks with crisp edges, white
-// roads over grey casing, a soft-yellow highway, pastel-green parks, serene
-// blue water. The neutral base lets the pink delivery route carry the eye.
-private val MapPaper = Color(0xFFF2EFE8)
-private val MapPaperLo = Color(0xFFEAE6DC)
-private val MapRoad = Color(0xFFFFFFFF)
-private val MapRoadCasing = Color(0xFFD9D5CB)
-private val MapHighway = Color(0xFFFBE7A6)
-private val MapHighwayCasing = Color(0xFFEACF82)
-private val MapPark = Color(0xFFC4E1A6)
-private val MapPark2 = Color(0xFFB7D998)
-private val MapWater = Color(0xFFAAD4F2)
-private val MapWaterEdge = Color(0xFF93C4E8)
-private val MapBuildingLine = Color(0xFFD7D2C7)
-private val MapBuildingShadow = Color(0x16000000)
-private val buildingShades = listOf(Color(0xFFEAE5DC), Color(0xFFE4DED4), Color(0xFFEEE9E1))
+/**
+ * Every color the map draws with, for one theme. Two instances below so the map
+ * follows the system theme — a warm light "map-app" scheme by day, a dark "night
+ * navigation" scheme after dark. This also keeps the edge-to-edge status-bar
+ * icons (which follow the theme) legible: dark icons over the light map, light
+ * icons over the dark one. The pink→purple delivery route carries the eye in
+ * both.
+ */
+internal data class MapColors(
+    val landTop: Color,
+    val landBottom: Color,
+    val road: Color,
+    val roadCasing: Color,
+    val highway: Color,
+    val highwayCasing: Color,
+    val park: Color,
+    val parkEdge: Color,
+    val water: Color,
+    val waterEdge: Color,
+    val buildings: List<Color>,
+    val buildingLine: Color,
+    val buildingShadow: Color,
+    /** A bright road-highlight laid under the route; transparent at night, where
+     *  the glow does that job instead. */
+    val routeCasing: Color,
+    val routeGlow: Color,
+    val puck: Color,
+)
+
+// Light: the researched Google-Maps-"basic" cartography — warm off-white land,
+// white roads over grey casing, soft-yellow highway, pastel parks, serene water.
+private val LightMapColors = MapColors(
+    landTop = Color(0xFFF2EFE8),
+    landBottom = Color(0xFFEAE6DC),
+    road = Color(0xFFFFFFFF),
+    roadCasing = Color(0xFFD9D5CB),
+    highway = Color(0xFFFBE7A6),
+    highwayCasing = Color(0xFFEACF82),
+    park = Color(0xFFC4E1A6),
+    parkEdge = Color(0xFFB7D998),
+    water = Color(0xFFAAD4F2),
+    waterEdge = Color(0xFF93C4E8),
+    buildings = listOf(Color(0xFFEAE5DC), Color(0xFFE4DED4), Color(0xFFEEE9E1)),
+    buildingLine = Color(0xFFD7D2C7),
+    buildingShadow = Color(0x16000000),
+    routeCasing = Color(0xB8FFFFFF),
+    routeGlow = HotPink.copy(alpha = 0.14f),
+    puck = Color(0xFFFFFFFF),
+)
+
+// Night: charcoal land, dim roads a touch lighter than the land so the network
+// still reads, a muted-amber highway, deep parks and water, and a neon route glow.
+private val NightMapColors = MapColors(
+    landTop = Color(0xFF1C2027),
+    landBottom = Color(0xFF14171C),
+    road = Color(0xFF474E59),
+    roadCasing = Color(0xFF2B303A),
+    highway = Color(0xFF6E5B36),
+    highwayCasing = Color(0xFF4B3E25),
+    park = Color(0xFF2C4030),
+    parkEdge = Color(0xFF35513B),
+    water = Color(0xFF1E3A52),
+    waterEdge = Color(0xFF2A597B),
+    buildings = listOf(Color(0xFF252A33), Color(0xFF21262F), Color(0xFF283039)),
+    buildingLine = Color(0xFF333B48),
+    buildingShadow = Color(0x33000000),
+    routeCasing = Color(0x00000000),
+    routeGlow = HotPink.copy(alpha = 0.36f),
+    puck = Color(0xFFFFFFFF),
+)
 
 /**
  * One road: a normalized position (x for an avenue, y for a street), a stroke
@@ -91,7 +148,7 @@ internal data class CityRoad(val pos: Float, val width: Float, val from: Float, 
     val arterial: Boolean get() = width >= 12f
 }
 
-/** One building footprint: a normalized rect and a shade index into [buildingShades]. */
+/** One building footprint: a normalized rect and a shade index into [MapColors.buildings]. */
 internal data class Building(val rect: Rect, val shade: Int)
 
 /**
@@ -219,7 +276,8 @@ internal fun generateCity(seed: Long): CityMap {
                         val ry0 = by0 + r * (rh + gap)
                         val rect = Rect(rx0, ry0, rx0 + cw, ry0 + rh)
                         if (features.none { it.overlaps(rect) }) {
-                            add(Building(rect, rng.nextInt(buildingShades.size)))
+                            // Shade index is valid for both palettes (same count).
+                            add(Building(rect, rng.nextInt(LightMapColors.buildings.size)))
                         }
                     }
                 }
@@ -301,71 +359,77 @@ internal fun RouteMap(
     // The neighborhood is the address's; the route through it is the order's.
     val city = remember(citySeed) { generateCity(citySeed) }
     val route = remember(citySeed, orderId) { routeFor(city, orderId) }
+    // The map follows the applied theme (read from the scheme, not the system,
+    // so it tracks a forced theme too) — keeping it legible under the status bar,
+    // whose icons follow the same theme.
+    val colors = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) NightMapColors else LightMapColors
     BoxWithConstraints(
         modifier
             .fillMaxWidth()
             .then(if (fill) Modifier.fillMaxHeight() else Modifier.height(330.dp))
-            .background(Brush.verticalGradient(listOf(MapPaper, MapPaperLo)))
+            // The land gradient fills the whole area, the status-bar strip
+            // included, so it reads as plain ground under the bar…
+            .background(Brush.verticalGradient(listOf(colors.landTop, colors.landBottom)))
+            // …but the map's content (roads, route, markers) is inset below the
+            // status bar and clipped to that area, so nothing draws over the bar.
+            .then(if (fill) Modifier.statusBarsPadding() else Modifier)
+            .clipToBounds()
             .clearAndSetSemantics { contentDescription = "Delivery route map" },
     ) {
         val w = maxWidth.value
         val h = maxHeight.value
         Canvas(Modifier.fillMaxSize()) {
-            drawCity(city)
-            drawRoute(route, eased)
+            drawCity(city, colors)
+            drawRoute(route, eased, colors)
         }
         // Origin marker (where the courier set off) and destination (home).
         RouteDot(
             color = ElectricPurple,
+            ring = colors.puck,
             modifier = Modifier.offset {
                 IntOffset(
-                    (route.first().x * w - 7).dp.roundToPx(),
-                    (route.first().y * h - 7).dp.roundToPx(),
+                    (route.first().x * w - 8).dp.roundToPx(),
+                    (route.first().y * h - 8).dp.roundToPx(),
                 )
             },
         )
-        HomeMarker(
+        DestinationPin(
+            accent = ElectricPurple,
             nearArrival = onTheWay && progress > 0.85f,
+            // The pin's tip points at home; hang it so the tip lands on the point.
             modifier = Modifier.offset {
                 IntOffset(
-                    (route.last().x * w - 18).dp.roundToPx(),
-                    (route.last().y * h - 18).dp.roundToPx(),
+                    (route.last().x * w - 16).dp.roundToPx(),
+                    (route.last().y * h - 42).dp.roundToPx(),
                 )
             },
         )
-        // The courier, interpolated along the route by arc length.
-        val bob = if (onTheWay) {
-            val t = rememberInfiniteTransition(label = "bob")
-            t.animateFloat(
-                initialValue = -2f,
-                targetValue = 2f,
-                animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
-                label = "bobValue",
-            ).value
-        } else {
-            0f
-        }
-        Text(
-            text = vehicle,
-            fontSize = 26.sp,
-            // Layout-phase offset: the courier bobs every frame while en route,
-            // so a composition-phase offset would recompose this each frame.
+        // The courier as a map "puck" — a white disc with the vehicle, a soft
+        // shadow lifting it off the road, and a radar ping while moving — rather
+        // than a raw emoji sitting on the line.
+        CourierPuck(
+            vehicle = vehicle,
+            puck = colors.puck,
+            pulsing = onTheWay,
+            // Layout-phase offset: the courier crawls as progress advances; the
+            // ping animates inside the puck, isolated from this positioning.
             modifier = Modifier.offset {
                 val p = pointAlongRoute(route, eased)
-                IntOffset((p.x * w - 13).dp.roundToPx(), (p.y * h - 9 + bob).dp.roundToPx())
+                IntOffset((p.x * w - 22).dp.roundToPx(), (p.y * h - 22).dp.roundToPx())
             },
         )
+        // Sits within the already-inset content, so it clears the status bar
+        // without dodging it a second time.
         FloatingBackButton(
             onBack = onBack,
-            // The map bleeds under the status bar; the button dodges it.
-            modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp),
+            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
         )
     }
 }
 
 /** The generated city: water and parks, building footprints on the blocks, then
  *  the road network and a highway on top — layered like a real map. */
-private fun DrawScope.drawCity(city: CityMap) {
+private fun DrawScope.drawCity(city: CityMap, c: MapColors) {
     fun rectOf(r: Rect) = Offset(size.width * r.left, size.height * r.top) to
         Size(size.width * r.width, size.height * r.height)
 
@@ -381,17 +445,17 @@ private fun DrawScope.drawCity(city: CityMap) {
             cornerRadius = featureRadius,
         )
     }
-    city.water.forEach { feature(MapWaterEdge, MapWater, it) }
-    city.parks.forEach { feature(MapPark2, MapPark, it) }
+    city.water.forEach { feature(c.waterEdge, c.water, it) }
+    city.parks.forEach { feature(c.parkEdge, c.park, it) }
 
     // Building footprints: a faint drop shadow, a muted fill, a crisp edge —
     // the density that makes the blocks read as a built city.
     val bRadius = CornerRadius(size.minDimension * 0.006f)
     city.buildings.forEach { b ->
         val (tl, sz) = rectOf(b.rect)
-        drawRoundRect(MapBuildingShadow, topLeft = Offset(tl.x, tl.y + 1.2f), size = sz, cornerRadius = bRadius)
-        drawRoundRect(buildingShades[b.shade], topLeft = tl, size = sz, cornerRadius = bRadius)
-        drawRoundRect(MapBuildingLine, topLeft = tl, size = sz, cornerRadius = bRadius, style = Stroke(1f))
+        drawRoundRect(c.buildingShadow, topLeft = Offset(tl.x, tl.y + 1.2f), size = sz, cornerRadius = bRadius)
+        drawRoundRect(c.buildings[b.shade], topLeft = tl, size = sz, cornerRadius = bRadius)
+        drawRoundRect(c.buildingLine, topLeft = tl, size = sz, cornerRadius = bRadius, style = Stroke(1f))
     }
 
     fun road(x1: Float, y1: Float, x2: Float, y2: Float, width: Float, fill: Color, casing: Color) {
@@ -412,22 +476,31 @@ private fun DrawScope.drawCity(city: CityMap) {
     }
     // The street network — each road over its own span, so locals dead-end —
     // then the highway over it (a prominent through-road).
-    city.avenues.forEach { road(it.pos, it.from, it.pos, it.to, it.width, MapRoad, MapRoadCasing) }
-    city.streets.forEach { road(it.from, it.pos, it.to, it.pos, it.width, MapRoad, MapRoadCasing) }
-    city.highway?.let { (a, b) -> road(a.x, a.y, b.x, b.y, 13f, MapHighway, MapHighwayCasing) }
+    city.avenues.forEach { road(it.pos, it.from, it.pos, it.to, it.width, c.road, c.roadCasing) }
+    city.streets.forEach { road(it.from, it.pos, it.to, it.pos, it.width, c.road, c.roadCasing) }
+    city.highway?.let { (a, b) -> road(a.x, a.y, b.x, b.y, 13f, c.highway, c.highwayCasing) }
 }
 
-/** Draws the route: the full path as a faint road, then the traveled part solid. */
-private fun DrawScope.drawRoute(route: List<Offset>, traveledFraction: Float) {
+/**
+ * Draws the route: a soft glow, an optional bright casing (day), the faint full
+ * path, then the traveled part as a high-contrast pink→purple gradient — the
+ * accent the whole map is composed to carry, per the route-contrast research.
+ */
+private fun DrawScope.drawRoute(route: List<Offset>, traveledFraction: Float, c: MapColors) {
     val pts = route.map { Offset(it.x * size.width, it.y * size.height) }
     val full = Path().apply {
         moveTo(pts.first().x, pts.first().y)
         pts.drop(1).forEach { lineTo(it.x, it.y) }
     }
-    val accent = HotPink
-    // A soft white casing under the route, like a highlighted road.
-    drawPath(full, Color.White.copy(alpha = 0.7f), style = Stroke(width = 13f, cap = StrokeCap.Round))
-    drawPath(full, accent.copy(alpha = 0.28f), style = Stroke(width = 7f, cap = StrokeCap.Round))
+    val round = Stroke(width = 8f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    // A halo so the route glows off the map (the only "casing" at night).
+    drawPath(full, c.routeGlow, style = Stroke(width = 18f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    if (c.routeCasing.alpha > 0f) {
+        drawPath(full, c.routeCasing, style = Stroke(width = 13f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    }
+    // The remaining (untraveled) path, faint.
+    val faint = Stroke(width = 6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    drawPath(full, HotPink.copy(alpha = 0.30f), style = faint)
 
     if (traveledFraction > 0f) {
         val lengths = route.zipWithNext { a, b -> hypot(b.x - a.x, b.y - a.y) }
@@ -444,44 +517,94 @@ private fun DrawScope.drawRoute(route: List<Offset>, traveledFraction: Float) {
             traveled.lineTo(end.x, end.y)
             remaining -= lengths[i]
         }
-        drawPath(traveled, accent, style = Stroke(width = 8f, cap = StrokeCap.Round))
+        drawPath(
+            traveled,
+            brush = Brush.linearGradient(
+                listOf(HotPink, ElectricPurple),
+                start = Offset.Zero,
+                end = Offset(size.width, size.height),
+            ),
+            style = round,
+        )
     }
 }
 
-/** The origin marker: a solid dot lifted off the map by a shadow — not a
- * white-ringed concentric dot, which would read as a record. */
+/** The origin marker: a small accent dot in a light ring, lifted by a shadow. */
 @Composable
-private fun RouteDot(color: Color, modifier: Modifier = Modifier) {
-    Surface(
-        shape = CircleShape,
-        color = color,
-        shadowElevation = 2.dp,
-        modifier = modifier.size(15.dp),
-        content = {},
-    )
-}
-
-@Composable
-private fun HomeMarker(nearArrival: Boolean, modifier: Modifier = Modifier) {
-    val scale = if (nearArrival) {
-        val t = rememberInfiniteTransition(label = "homePulse")
-        t.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.18f,
-            animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
-            label = "homeScale",
-        ).value
-    } else {
-        1f
-    }
-    Surface(
-        shape = CircleShape,
-        color = ElectricPurple,
-        shadowElevation = 3.dp,
-        modifier = modifier.size(36.dp),
-    ) {
+private fun RouteDot(color: Color, ring: Color, modifier: Modifier = Modifier) {
+    Surface(shape = CircleShape, color = ring, shadowElevation = 2.dp, modifier = modifier.size(16.dp)) {
         Box(contentAlignment = Alignment.Center) {
-            Text("🏠", fontSize = (17 * scale).sp)
+            Box(Modifier.size(9.dp).background(color, CircleShape))
+        }
+    }
+}
+
+/**
+ * The courier as a map "puck": a white disc carrying the vehicle, a soft shadow
+ * lifting it off the road, and a radar ping rippling out while it's moving.
+ */
+@Composable
+private fun CourierPuck(vehicle: String, puck: Color, pulsing: Boolean, modifier: Modifier = Modifier) {
+    Box(modifier.size(44.dp), contentAlignment = Alignment.Center) {
+        if (pulsing) {
+            val t = rememberInfiniteTransition(label = "ping")
+            val s by t.animateFloat(
+                0.8f, 2f, infiniteRepeatable(tween(1500, easing = LinearEasing)), label = "pingScale",
+            )
+            val a by t.animateFloat(
+                0.45f, 0f, infiniteRepeatable(tween(1500, easing = LinearEasing)), label = "pingAlpha",
+            )
+            Box(Modifier.size(34.dp).scale(s).background(HotPink.copy(alpha = a), CircleShape))
+        }
+        Surface(shape = CircleShape, color = puck, shadowElevation = 5.dp, modifier = Modifier.size(34.dp)) {
+            Box(contentAlignment = Alignment.Center) { Text(vehicle, fontSize = 17.sp) }
+        }
+    }
+}
+
+/**
+ * The destination as a classic teardrop pin — accent body, white centre, a
+ * grounding shadow at the tip, which points at the exact home location. A ping
+ * ripples from the doorstep as the courier nears.
+ */
+@Composable
+private fun DestinationPin(accent: Color, nearArrival: Boolean, modifier: Modifier = Modifier) {
+    Box(modifier.size(width = 32.dp, height = 42.dp)) {
+        if (nearArrival) {
+            val t = rememberInfiniteTransition(label = "homePing")
+            val s by t.animateFloat(
+                0.7f, 1.9f, infiniteRepeatable(tween(1200, easing = LinearEasing)), label = "homePingS",
+            )
+            val a by t.animateFloat(
+                0.4f, 0f, infiniteRepeatable(tween(1200, easing = LinearEasing)), label = "homePingA",
+            )
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .size(18.dp)
+                    .scale(s)
+                    .background(accent.copy(alpha = a), CircleShape),
+            )
+        }
+        Canvas(Modifier.fillMaxSize()) {
+            val w = size.width
+            val headR = w / 2f
+            val cx = w / 2f
+            val cy = headR
+            drawOval(
+                Color(0x33000000),
+                topLeft = Offset(cx - w * 0.16f, size.height - w * 0.13f),
+                size = Size(w * 0.32f, w * 0.16f),
+            )
+            val body = Path().apply {
+                addOval(Rect(0f, 0f, w, w))
+                moveTo(cx - headR * 0.62f, cy + headR * 0.40f)
+                lineTo(cx, size.height)
+                lineTo(cx + headR * 0.62f, cy + headR * 0.40f)
+                close()
+            }
+            drawPath(body, accent)
+            drawCircle(Color.White, radius = headR * 0.40f, center = Offset(cx, cy))
         }
     }
 }
