@@ -13,6 +13,25 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.cartharsis.ui.theme.CartharsisTheme
 
+/**
+ * The hold-to-pay bar across the fill — empty, mid (swell + hot leading edge,
+ * label flipped to white), nearly locked in, and the keep-holding hint. The
+ * iteration surface for the anticipation polish.
+ */
+@PreviewTest
+@Preview(name = "Hold to pay, fill states", showBackground = true, widthDp = 360)
+@Composable
+internal fun HoldToPayPreview() {
+    CartharsisTheme {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            HoldButtonVisual(progress = 0f, label = "Hold to pay $129.00", hinting = false)
+            HoldButtonVisual(progress = 0.55f, label = "Hold to pay $129.00", hinting = false)
+            HoldButtonVisual(progress = 0.95f, label = "Hold to pay $129.00", hinting = false)
+            HoldButtonVisual(progress = 0.3f, label = "Hold to pay $129.00", hinting = true)
+        }
+    }
+}
+
 /** Fractional star fills, the iteration surface for the rating polish. */
 @PreviewTest
 @Preview(name = "Rating stars, fractional", showBackground = true, widthDp = 280)

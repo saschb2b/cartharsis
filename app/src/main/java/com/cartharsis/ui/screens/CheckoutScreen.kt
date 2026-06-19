@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -80,6 +81,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
+import com.cartharsis.HoldHaptics
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CartItem
 import com.cartharsis.data.ProfileStore
@@ -329,15 +331,22 @@ fun CheckoutScreen(
     }
 }
 
+/** How long a from-cold hold takes to lock in. Long enough to read as a held
+ *  breath, not a long tap — 0.9s tested too quick to feel deliberate. */
+private const val HOLD_DURATION_MS = 1_450
+
 /**
  * The payment ceremony: you don't tap a fake purchase, you commit to it —
  * at the full fake price, because a commitment to $0.00 carries no weight.
- * Hold ~0.9s while the fill rises with haptic ticks; release early and it
- * springs back. Screen readers get a plain activate action instead.
+ * Hold ~1.45s while the fill rises and the buzz builds under your thumb
+ * (rising amplitude + ticks that tighten toward the finish, see [HoldHaptics]),
+ * climaxing in a thunk as it locks in; release early and it springs back.
+ * Screen readers get a plain activate action instead.
  */
 @Composable
 private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modifier: Modifier = Modifier) {
-    val haptics = LocalHapticFeedback.current
+    val context = LocalContext.current
+    val vibrator = remember { HoldHaptics.vibrator(context) }
     val scope = rememberCoroutineScope()
     val progress = remember { Animatable(0f) }
     var done by remember { mutableStateOf(false) }
@@ -353,45 +362,34 @@ private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modif
     fun complete() {
         if (!done) {
             done = true
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            // The thunk fires on the same frame the bar locks in — gesture,
+            // haptic, and the phase hand-off all land together.
+            HoldHaptics.thunk(vibrator)
             onPlaced()
         }
     }
 
-    val labelColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (progress.value > 0.4f) Color.White else MaterialTheme.colorScheme.primary,
-        animationSpec = Motion.effects(),
-        label = "labelColor",
-    )
-
     Box(
         modifier = modifier
-            .height(54.dp)
-            .clip(RoundedCornerShape(27.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f))
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
+                        val remaining = (HOLD_DURATION_MS * (1f - progress.value)).toInt()
+                        // The buzz runs off the raw vibrator in parallel with the
+                        // visual fill — one layered waveform, sized to the same
+                        // window, so it can't fight the fill's haptics.
+                        HoldHaptics.startFill(vibrator, remaining, progress.value)
                         val fill = scope.launch {
-                            var lastTick = 0
                             progress.animateTo(
                                 targetValue = 1f,
-                                animationSpec = tween(
-                                    durationMillis = (900 * (1f - progress.value)).toInt(),
-                                    easing = LinearEasing,
-                                ),
-                            ) {
-                                val tick = (value * 4).toInt()
-                                if (tick > lastTick && value < 1f) {
-                                    lastTick = tick
-                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                }
-                            }
+                                animationSpec = tween(durationMillis = remaining, easing = LinearEasing),
+                            )
                             complete()
                         }
                         tryAwaitRelease()
                         if (!done) {
                             fill.cancel()
+                            HoldHaptics.cancel(vibrator)
                             if (progress.value < 0.5f) showHoldHint = true
                             scope.launch {
                                 progress.animateTo(0f, spring(stiffness = Spring.StiffnessMedium))
@@ -407,22 +405,63 @@ private fun HoldToPlaceOrderButton(totalCents: Long, onPlaced: () -> Unit, modif
                     true
                 }
             },
+    ) {
+        HoldButtonVisual(
+            progress = progress.value,
+            label = "Hold to pay ${formatPrice(totalCents)}",
+            hinting = showHoldHint,
+        )
+    }
+}
+
+/**
+ * The bar itself — stateless so a preview can pin it mid-fill. As it fills it
+ * swells a touch under the thumb (scale) and carries a brighter "hot" leading
+ * edge where the fill is burning forward, so the rising buzz has something to
+ * see.
+ */
+@Composable
+internal fun HoldButtonVisual(progress: Float, label: String, hinting: Boolean, modifier: Modifier = Modifier) {
+    val labelColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (progress > 0.4f) Color.White else MaterialTheme.colorScheme.primary,
+        animationSpec = Motion.effects(),
+        label = "labelColor",
+    )
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            // Swells slightly as it fills — the button tightening under the thumb.
+            .scale(1f + 0.035f * progress)
+            .clip(RoundedCornerShape(27.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(progress.value)
+                .fillMaxWidth(progress)
                 .background(Brush.horizontalGradient(listOf(HotPink, ElectricPurple)))
                 .align(Alignment.CenterStart),
-        )
-        Crossfade(targetState = showHoldHint, label = "holdHint") { hinting ->
+        ) {
+            // The hot leading edge: a bright sliver riding the front of the fill.
+            if (progress > 0.02f && progress < 0.999f) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(10.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(Color.Transparent, Color.White.copy(alpha = 0.55f)),
+                            ),
+                        ),
+                )
+            }
+        }
+        Crossfade(targetState = hinting, label = "holdHint") { showingHint ->
             Text(
-                text = if (hinting) {
-                    "Keep holding, commitment takes a second"
-                } else {
-                    "Hold to pay ${formatPrice(totalCents)}"
-                },
+                text = if (showingHint) "Keep holding, commitment takes a second" else label,
                 fontWeight = FontWeight.Bold,
                 color = labelColor,
             )
