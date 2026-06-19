@@ -79,6 +79,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -88,6 +89,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cartharsis.Chime
+import com.cartharsis.HoldHaptics
 import com.cartharsis.ShopViewModel
 import com.cartharsis.data.CardPull
 import com.cartharsis.data.Courier
@@ -246,6 +248,13 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                 }
                                 .take(MAX_PACK_RIPS)
                         }
+                        // Whether the parcel holds its own follow-on ceremony (a
+                        // card rip or a blind-box shake). If so the shipping box
+                        // opens on a single tap, because the suspense lives in the
+                        // tear/shake to come; otherwise it's pried open over a few
+                        // escalating taps — that pry *is* the generic haul's
+                        // anticipation beat.
+                        val hasInnerCeremony = ripPacks.isNotEmpty() || blindBoxes.isNotEmpty()
                         // `unboxed` (ViewModel) is the durable "opened ever" flag;
                         // `revealing` is local so the burst plays only on the live
                         // tap, never on a revisit. Mixed orders rip first, then
@@ -273,14 +282,18 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                         ) { ph ->
                             when (ph) {
                                 UnboxPhase.Sealed -> SealedParcel(
+                                    prySteps = if (hasInnerCeremony) 1 else PRY_TAPS_TO_OPEN,
                                     onUnbox = {
-                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         revealing = true
                                         viewModel.markUnboxed(order.id)
-                                        // Card and blind-box orders save the burst
-                                        // for their own reveal — one big
-                                        // celebration per flow.
-                                        if (ripPacks.isEmpty() && blindBoxes.isEmpty()) celebrate = true
+                                        // The box-open crack for the inner
+                                        // ceremonies. The generic haul instead
+                                        // fires its own synced climax
+                                        // (haptic+chime+confetti) at the burst in
+                                        // UnboxingReveal, so nothing fires here.
+                                        if (hasInnerCeremony) {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        }
                                     },
                                 )
                                 UnboxPhase.Ripping -> {
@@ -362,6 +375,7 @@ fun TrackingScreen(viewModel: ShopViewModel, orderId: Int, onBack: () -> Unit, o
                                 }
                                 UnboxPhase.Revealing -> UnboxingReveal(
                                     haul = haul,
+                                    onReveal = { celebrate = true },
                                     onFinished = { revealing = false },
                                 )
                                 UnboxPhase.Opened -> DeliveredCelebration(order, courier, nthDelivery, onShopMore)
@@ -689,16 +703,31 @@ private enum class UnboxPhase { Sealed, Ripping, Shaking, Revealing, Opened }
  * nothing — the dissolve itself is the punchline, handing off to the calm
  * "nothing has arrived" truth. Hand-rolled from one 0→1 driver.
  */
+/** The reveal's whole arc. Long enough to let the haul *dwell* — the
+ *  inspection beat the old 2.8s version skipped by dissolving the haul almost
+ *  as soon as it appeared. */
+private const val REVEAL_TOTAL_MS = 3_800
+
 @Composable
-private fun UnboxingReveal(haul: List<String>, onFinished: () -> Unit) {
+private fun UnboxingReveal(haul: List<String>, onReveal: () -> Unit, onFinished: () -> Unit) {
+    val context = LocalContext.current
+    val vibrator = remember { HoldHaptics.vibrator(context) }
     val t = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        t.animateTo(1f, tween(durationMillis = 2_800, easing = LinearEasing))
+        // The burst IS the climax: thunk, chime, and confetti fire on the same
+        // frame the haul explodes out — not on the tap that triggered it. (The
+        // old path fired the confetti at the tap and never played the chime.)
+        HoldHaptics.thunk(vibrator)
+        Chime.playSuccess()
+        onReveal()
+        t.animateTo(1f, tween(durationMillis = REVEAL_TOTAL_MS, easing = LinearEasing))
         onFinished()
     }
     val p = t.value
-    val burst = (p / 0.32f).coerceIn(0f, 1f)
-    val dissolve = ((p - 0.64f) / 0.36f).coerceIn(0f, 1f)
+    // Bursts out fast (~0.5s), holds for a long inspection dwell, then dissolves
+    // only in the final ~0.75s as it settles into the resting payoff.
+    val burst = (p / 0.13f).coerceIn(0f, 1f)
+    val dissolve = ((p - 0.80f) / 0.20f).coerceIn(0f, 1f)
 
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -745,7 +774,7 @@ private fun UnboxingReveal(haul: List<String>, onFinished: () -> Unit) {
                 val arcLift = (mid - kotlin.math.abs(i - mid)) * 7f
                 val targetY = rowY - arcLift
                 val localBurst = easeOutBack(
-                    (((p - i * 0.05f) / 0.32f)).coerceIn(0f, 1f),
+                    (((p - i * 0.022f) / 0.13f)).coerceIn(0f, 1f),
                 )
                 val x = boxX + (targetX - boxX) * localBurst
                 val y = boxY + (targetY - boxY) * localBurst - dissolve * 120f
@@ -772,34 +801,94 @@ private fun easeOutBack(x: Float): Float {
     return 1f + c3 * u * u * u + c1 * u * u
 }
 
-/** The parcel wiggles just enough to say "I'm waiting"; the tap is the payoff. */
+/** How many taps it takes to pry the generic shipping box open — the
+ *  anticipation beat. Each non-final tap jolts and strains the lid looser with
+ *  a climbing haptic; the last one pops it. Tunable for snappier/longer build. */
+private const val PRY_TAPS_TO_OPEN = 4
+
+/**
+ * The sealed parcel. With [prySteps] > 1 it's pried open over that many
+ * escalating taps — the lid jolts and strains looser each time, a haptic tick
+ * climbing with it, until the final tap pops it (the generic haul's
+ * anticipation, per the loot-box research: the build-up is the reward). With
+ * [prySteps] == 1 it opens on one tap, for parcels whose suspense lives in the
+ * tear/shake that follows. Idle, it wiggles just enough to say "I'm waiting."
+ */
 @Composable
-private fun SealedParcel(onUnbox: () -> Unit) {
+private fun SealedParcel(prySteps: Int, onUnbox: () -> Unit) {
+    val context = LocalContext.current
+    val vibrator = remember { HoldHaptics.vibrator(context) }
+    val scope = rememberCoroutineScope()
+    var pries by remember { mutableIntStateOf(0) }
+    // Strain ratchets up and holds (the lid creeping open); jolt is a per-tap
+    // recoil kick that springs back, flipping side each tap for a real shake.
+    val strain = remember { Animatable(0f) }
+    val jolt = remember { Animatable(0f) }
+    var joltDir by remember { mutableIntStateOf(1) }
+
     val transition = rememberInfiniteTransition(label = "parcelWiggle")
-    val angle by transition.animateFloat(
+    val wiggle by transition.animateFloat(
         initialValue = -4f,
         targetValue = 4f,
         animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
         label = "parcelAngle",
     )
+
+    fun pry() {
+        if (pries >= prySteps) return
+        pries += 1
+        if (pries < prySteps) {
+            val frac = pries.toFloat() / prySteps
+            HoldHaptics.tick(vibrator, 0.4f + 0.55f * frac)
+            joltDir = -joltDir
+            scope.launch { strain.animateTo(frac, Motion.spatialFast()) }
+            scope.launch {
+                jolt.snapTo(0.4f + 0.6f * frac)
+                jolt.animateTo(0f, spring(dampingRatio = 0.32f, stiffness = Spring.StiffnessMedium))
+            }
+        } else {
+            // The pop. The crack/boom belongs to the burst that follows, so the
+            // tap just hands off — no big haptic competing here.
+            onUnbox()
+        }
+    }
+
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        modifier = Modifier.clickable(onClickLabel = "Unbox your order", onClick = onUnbox),
+        modifier = Modifier.clickable(
+            onClickLabel = if (prySteps > 1) "Pry your parcel open" else "Unbox your order",
+            onClick = { pry() },
+        ),
     ) {
         Column(
             Modifier.fillMaxWidth().padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("📦", fontSize = 64.sp, modifier = Modifier.rotate(angle))
             Text(
-                text = "It's here.",
+                "📦",
+                fontSize = 64.sp,
+                modifier = Modifier.graphicsLayer {
+                    val s = strain.value
+                    // The idle wiggle fades as the lid is gripped and strained.
+                    rotationZ = wiggle * (1f - s) + jolt.value * 11f * joltDir
+                    scaleX = 1f + 0.07f * s + jolt.value * 0.05f
+                    scaleY = 1f + 0.07f * s + jolt.value * 0.05f
+                    translationY = -s * 7.dp.toPx()
+                },
+            )
+            Text(
+                text = if (prySteps > 1 && pries > 0) "Almost…" else "It's here.",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(top = 8.dp),
             )
             Text(
-                text = "Tap to unbox",
+                text = when {
+                    prySteps <= 1 -> "Tap to unbox"
+                    pries == 0 -> "Tap to pry it open"
+                    else -> "It's coming loose — keep prying"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.75f),
                 modifier = Modifier.padding(top = 4.dp),
