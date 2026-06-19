@@ -44,10 +44,15 @@ android {
         compose = true
     }
     lint {
-        // New warnings fail the build; the baseline absorbs the historical
-        // ones (dependency-version advisories) so only regressions bite.
+        // New warnings fail the build, so only real regressions bite; the
+        // baseline absorbs the historical ones.
         warningsAsErrors = true
         baseline = file("lint-baseline.xml")
+        // "A newer version is available" advisories are network-dependent and
+        // re-fire whenever a dependency publishes a release, so they can't be a
+        // build gate (a version-pinned baseline just goes stale). Dependency
+        // bumps are a deliberate, reviewed change, not a lint error.
+        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion")
     }
 }
 
