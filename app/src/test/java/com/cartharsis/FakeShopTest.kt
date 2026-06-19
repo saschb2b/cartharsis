@@ -4,7 +4,7 @@ import com.cartharsis.data.CartItem
 import com.cartharsis.data.Couriers
 import com.cartharsis.data.Currency
 import com.cartharsis.data.FakeCatalog
-import com.cartharsis.data.HomeShelf
+import com.cartharsis.data.HomeModule
 import com.cartharsis.data.NotificationPolicy
 import com.cartharsis.data.Order
 import com.cartharsis.data.OrderStatus
@@ -20,11 +20,12 @@ import com.cartharsis.data.encodeUserReview
 import com.cartharsis.data.fakeStockLeft
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.homeGreeting
+import com.cartharsis.data.homeModules
 import com.cartharsis.data.homeOrder
-import com.cartharsis.data.homeShelves
 import com.cartharsis.data.keptEquivalent
 import com.cartharsis.data.keptInCoffees
 import com.cartharsis.data.lastSavingsMilestone
+import com.cartharsis.data.moduleProductIds
 import com.cartharsis.data.newlyEarned
 import com.cartharsis.data.nextSavingsMilestone
 import com.cartharsis.data.ordinal
@@ -158,29 +159,38 @@ class FakeShopTest {
     }
 
     @Test
-    fun `home shelves are full, non-repeating, daily-stable, and personalize`() {
+    fun `home modules are varied, deduped, seeded, and exclude the hero`() {
         val cat = FakeCatalog.products
-        val shelves = homeShelves(
-            cat, seed = 99L, recentlyViewedIds = emptyList(), wishlistIds = emptySet(),
-            hourOfDay = 14, epochDay = 20_000L,
+        val modules = homeModules(cat, seed = 99L, hourOfDay = 14)
+
+        // Mood tiles lead; then up to MAX_CONTENT_MODULES content bands.
+        assertTrue("expected a mood module first", modules.first() is HomeModule.Moods)
+        val content = modules.filterNot { it is HomeModule.Moods }
+        assertTrue(content.isNotEmpty() && content.size <= 4)
+
+        // Consecutive content bands never share a shape — the whole point.
+        content.zipWithNext().forEach { (a, b) ->
+            assertTrue("two ${a::class.simpleName} in a row", a::class != b::class)
+        }
+
+        // No product repeats down the page (deduped across modules)...
+        val ids = content.flatMap { moduleProductIds(it) }
+        assertEquals("a product repeated across modules", ids.size, ids.toSet().size)
+        // ...and the hero product is held out so it can't recur in the deck.
+        val hero = cat.first().id
+        val withHero = homeModules(cat, 7L, 14, excludeIds = setOf(hero))
+        assertTrue(withHero.flatMap { moduleProductIds(it) }.none { it == hero })
+
+        // Same seed → same deck; different seeds → a different page.
+        assertEquals(
+            ids,
+            homeModules(cat, 99L, 14).filterNot { it is HomeModule.Moods }.flatMap { moduleProductIds(it) },
         )
-        // Up to `count` shelves, each filled (no thin rows), no product repeated
-        // down the page (deduped across shelves).
-        assertTrue(shelves.isNotEmpty() && shelves.size <= 5)
-        shelves.forEach { assertTrue("${it.title} too thin", it.products.size >= 4) }
-        val allIds = shelves.flatMap { it.products.map { p -> p.id } }
-        assertEquals("a product repeated across shelves", allIds.size, allIds.toSet().size)
-
-        // The daily collection is stable within a day regardless of open-seed...
-        val a = homeShelves(cat, 1L, emptyList(), emptySet(), 14, 20_000L).first()
-        val b = homeShelves(cat, 2L, emptyList(), emptySet(), 14, 20_000L).first()
-        assertEquals(a.title, b.title)
-        assertEquals(a.products.map { it.id }, b.products.map { it.id })
-
-        // ...and the personalized row appears only when there's history.
-        val titles = { s: List<HomeShelf> -> s.map { it.title } }
-        val withHistory = homeShelves(cat, 5L, listOf(cat[3].id, cat[7].id), setOf(cat[1].id), 14, 20_000L)
-        assertTrue(titles(withHistory).any { it.startsWith("Rediscover") })
+        assertTrue(
+            homeModules(cat, 1L, 14).map { it::class } != emptyList<Any>() &&
+                homeModules(cat, 1L, 14).flatMap { moduleProductIds(it) } !=
+                homeModules(cat, 2L, 14).flatMap { moduleProductIds(it) },
+        )
     }
 
     @Test

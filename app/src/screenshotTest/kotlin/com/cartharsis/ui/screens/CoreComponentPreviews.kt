@@ -14,7 +14,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.cartharsis.data.FakeCatalog
-import com.cartharsis.data.formatPrice
 import com.cartharsis.ui.theme.CartharsisTheme
 
 // Real catalog products picked for the states that change a card's look, so
@@ -149,21 +148,14 @@ internal fun SavingsVaultPreview() {
     }
 }
 
-/** The home flash-deal promo banner. */
+/** The home editorial hero — the page's opening feature. */
 @PreviewTest
-@Preview(name = "Flash deal banner", showBackground = true, widthDp = 380)
+@Preview(name = "Hero feature", showBackground = true, widthDp = 380)
 @Composable
-internal fun FlashDealBannerPreview() {
+internal fun HeroFeaturePreview() {
     CartharsisTheme {
         Column(Modifier.padding(12.dp)) {
-            FlashDealBanner(
-                emoji = saleProduct.emoji,
-                name = saleProduct.name,
-                price = formatPrice(saleProduct.priceCents),
-                originalPrice = saleProduct.originalPriceCents?.let(::formatPrice),
-                countdown = "1:42",
-                onClick = {},
-            )
+            HeroFeature(product = saleProduct, onClick = {})
         }
     }
 }

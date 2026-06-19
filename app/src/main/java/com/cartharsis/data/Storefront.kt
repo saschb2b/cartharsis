@@ -51,77 +51,126 @@ fun homeGreeting(seed: Long, hourOfDay: Int): String {
 /** The browse grid reshuffled per open, so the same product never always leads. */
 fun homeOrder(products: List<Product>, seed: Long): List<Product> = products.shuffled(Random(seed))
 
-/** A named, scrollable row of products on the home screen. */
-data class HomeShelf(val title: String, val products: List<Product>)
+/**
+ * A heterogeneous "magazine" module for the home feed. The variety of *shapes*
+ * down the page — not just of products — is what makes the storefront feel like
+ * a curated store rather than a stack of identical shelves.
+ */
+sealed interface HomeModule {
+    /** Colorful entry tiles; tapping one filters the grid to [MoodEntry.category]. */
+    data class Moods(val entries: List<MoodEntry>) : HomeModule
 
-private const val SHELF_SIZE = 8
-private const val MIN_SHELF = 4
+    /** A themed collection as a bento — one big tile beside a cluster of smalls. */
+    data class Bento(val title: String, val big: Product, val smalls: List<Product>) : HomeModule
+
+    /** An editorial ranked list, "from the editors". */
+    data class Editors(val title: String, val items: List<Product>) : HomeModule
+
+    /** Two medium feature cards side by side. */
+    data class Duo(val title: String, val left: Product, val right: Product) : HomeModule
+}
+
+/** A curated entry tile pairing an evocative mood with an existing [category]. */
+data class MoodEntry(val label: String, val emoji: String, val category: String)
+
+private val ALL_MOODS = listOf(
+    MoodEntry("Treat yourself", "💎", "Beauty"),
+    MoodEntry("Cozy night in", "🕯️", "Self-Care"),
+    MoodEntry("Press start", "🎮", "Gaming"),
+    MoodEntry("Snack run", "🍿", "Snacks"),
+    MoodEntry("Geek out", "🤖", "Tech"),
+    MoodEntry("Good vibes", "🎧", "Audio"),
+    MoodEntry("Collector mode", "🎴", "Trading Cards"),
+    MoodEntry("Pure chaos", "🌀", "Chaos"),
+    MoodEntry("Get moving", "🏃", "Fitness"),
+    MoodEntry("Nest mode", "🛋️", "Home"),
+    MoodEntry("Fit check", "🧥", "Fashion"),
+    MoodEntry("Touch grass", "🏕️", "Outdoors"),
+)
+
+private const val BENTO_SMALLS = 4
+private const val MAX_CONTENT_MODULES = 4
+
+/** One themed pool to draw a module from: an editorial title and its products. */
+private data class Theme(val title: String, val pool: List<Product>)
 
 /**
- * The freshness engine: a daily-stable "collection of the day" (so repeat opens
- * within a day keep some continuity) followed by per-open shelves dealt from a
- * deck of themed generators. The personalized "Rediscover" exploit row appears
- * when there's history; the rest is explore. Contents are deduped across
- * shelves so the same product doesn't repeat down the page. All seeded — finite
- * catalog, effectively non-repeating sessions, no backend.
+ * The home "magazine": a varied deck of heterogeneous modules dealt from a fixed
+ * catalog and one per-open seed, so the page reads differently every open with
+ * no backend and no repeats. Mood tiles lead; then a seeded shuffle of themed
+ * collections, each rendered as one of three rotating shapes (bento / editors'
+ * list / spotlight duo) so consecutive bands never look alike. Products are
+ * deduped down the page, and [excludeIds] keeps the hero feature from recurring.
+ * The variety is the reward; nothing here pressures the open or the scroll.
  */
-fun homeShelves(
+fun homeModules(
     catalog: List<Product>,
     seed: Long,
-    recentlyViewedIds: List<Int>,
-    wishlistIds: Set<Int>,
     hourOfDay: Int,
-    epochDay: Long,
-    count: Int = 5,
-): List<HomeShelf> {
-    val byId = catalog.associateBy { it.id }
-    val used = mutableSetOf<Int>()
-    val shelves = mutableListOf<HomeShelf>()
-
-    fun add(title: String, pool: List<Product>, rng: Random, min: Int = MIN_SHELF) {
-        if (shelves.size >= count || shelves.any { it.title == title }) return
-        val pick = pool.filter { it.id !in used }.shuffled(rng).take(SHELF_SIZE)
-        if (pick.size >= min) {
-            shelves += HomeShelf(title, pick)
-            used += pick.map { it.id }
-        }
-    }
-
-    // Collection of the day — stable within a day, renews at midnight.
-    val dailyTitles = listOf("Today's wander 🧭", "Fresh today 🌱", "The daily drop 🎯", "Picked for today ✨")
-    val dailyTitle = dailyTitles[Math.floorMod(epochDay, dailyTitles.size.toLong()).toInt()]
-    add(dailyTitle, catalog, Random(epochDay * 2654435761L))
-
+    excludeIds: Set<Int> = emptySet(),
+): List<HomeModule> {
     val rng = Random(seed)
+    val used = excludeIds.toMutableSet()
+    val modules = mutableListOf<HomeModule>()
 
-    // Personalized exploit row — worth showing even with just a couple of
-    // hearted/viewed items, so it uses a lower minimum than the explore shelves.
-    val rediscover = (wishlistIds.mapNotNull { byId[it] } + recentlyViewedIds.mapNotNull { byId[it] }).distinct()
-    if (rediscover.isNotEmpty()) add("Rediscover 💭", rediscover, rng, min = 2)
+    // Lead with mood tiles — evocative doorways into the catalog's real categories.
+    val present = catalog.mapTo(mutableSetOf()) { it.category }
+    val moods = ALL_MOODS.filter { it.category in present }.shuffled(rng).take(6)
+    if (moods.size >= 3) modules += HomeModule.Moods(moods)
 
-    val timeShelf = when {
-        hourOfDay < 12 -> "Morning picks ☕" to catalog.filter {
-            it.category in setOf("Kitchen", "Beauty", "Self-Care", "Snacks", "Fitness")
-        }
-        hourOfDay >= 22 || hourOfDay < 5 -> "Night owl finds 🌙" to catalog.filter {
-            it.category in setOf("Gaming", "Snacks", "Self-Care", "Tech", "Audio", "Trading Cards")
-        }
-        else -> "Afternoon finds 🛍️" to catalog
+    // Titles are clean typographic headers — no trailing emoji. The decorative
+    // glyphs live on the mood tiles and the editorial kickers, where an icon is
+    // the element's job; a bold section header stays uncluttered.
+    val timeTheme = when {
+        hourOfDay < 12 -> Theme(
+            "Slow morning picks",
+            catalog.filter { it.category in setOf("Kitchen", "Beauty", "Self-Care", "Snacks") },
+        )
+        hourOfDay >= 22 || hourOfDay < 5 -> Theme(
+            "The 2am temptations",
+            catalog.filter { it.category in setOf("Gaming", "Snacks", "Tech", "Audio", "Trading Cards") },
+        )
+        else -> Theme("Afternoon wander", catalog)
     }
+    val themes = listOf(
+        Theme("New to the void", catalog),
+        Theme("Under \$20, still nothing", catalog.filter { it.priceCents < 2_000 }),
+        Theme("Treat yourself", catalog.sortedByDescending { it.priceCents }.take(40)),
+        Theme("Everyone's not-buying", catalog),
+        Theme("Weekend wander", catalog.filter { it.category in setOf("Chaos", "Hobbies", "Snacks", "Outdoors") }),
+        Theme("Collector's corner", catalog.filter { it.category in setOf("Trading Cards", "Hobbies") }),
+        Theme("Tiny luxuries", catalog.filter { it.priceCents in 2_000..6_000 }),
+        Theme("The deep cuts", catalog.sortedByDescending { it.id }.take(70)),
+        timeTheme,
+    ).shuffled(rng)
 
-    // The explore deck — dealt in shuffled order until `count` is reached.
-    val deck: List<Pair<String, List<Product>>> = listOf(
-        "Fresh finds ✨" to catalog,
-        "Under \$20 🪙" to catalog.filter { it.priceCents < 2_000 },
-        "Treat yourself 💎" to catalog.sortedByDescending { it.priceCents }.take(40),
-        "Trending right now 🔥" to catalog,
-        "Weekend wander 🎢" to catalog.filter { it.category in setOf("Chaos", "Hobbies", "Snacks") },
-        "Collector's corner 🎴" to catalog.filter { it.category in setOf("Trading Cards", "Hobbies") },
-        "Tiny luxuries 🤏" to catalog.filter { it.priceCents in 2_000..6_000 },
-        "The deep cuts 🕳️" to catalog.sortedByDescending { it.id }.take(70),
-        "One of each 🗂️" to catalog.groupBy { it.category }.values.mapNotNull { it.shuffled(rng).firstOrNull() },
-        timeShelf,
-    )
-    deck.shuffled(rng).forEach { (title, pool) -> add(title, pool, rng) }
-    return shelves
+    // Rotate shapes so consecutive emitted modules never share a shape.
+    var shape = rng.nextInt(3)
+    for (theme in themes) {
+        if (modules.count { it !is HomeModule.Moods } >= MAX_CONTENT_MODULES) break
+        val avail = theme.pool.filter { it.id !in used }.shuffled(rng)
+        val module: HomeModule? = when (shape % 3) {
+            0 -> if (avail.size >= 1 + BENTO_SMALLS) {
+                HomeModule.Bento(theme.title, avail.first(), avail.drop(1).take(BENTO_SMALLS))
+            } else {
+                null
+            }
+            1 -> if (avail.size >= 4) HomeModule.Editors(theme.title, avail.take(5)) else null
+            else -> if (avail.size >= 2) HomeModule.Duo(theme.title, avail[0], avail[1]) else null
+        }
+        if (module != null) {
+            modules += module
+            used += moduleProductIds(module)
+            shape++
+        }
+    }
+    return modules
+}
+
+/** The product ids a module shows, for cross-module dedup. */
+fun moduleProductIds(module: HomeModule): List<Int> = when (module) {
+    is HomeModule.Bento -> listOf(module.big.id) + module.smalls.map { it.id }
+    is HomeModule.Editors -> module.items.map { it.id }
+    is HomeModule.Duo -> listOf(module.left.id, module.right.id)
+    is HomeModule.Moods -> emptyList()
 }

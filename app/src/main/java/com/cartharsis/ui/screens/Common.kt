@@ -318,6 +318,10 @@ private val softHeroGradients: List<List<Color>> =
  * stable "packaging" tint, shared by EmojiHero and the PDP hero stage. */
 internal fun heroGradientColors(seed: Int): List<Color> = softHeroGradients[abs(seed) % softHeroGradients.size]
 
+/** The vivid (un-softened) per-product gradient — for hero/feature surfaces that
+ *  carry white text, where the soft tint would wash out. */
+internal fun heroGradientColorsVivid(seed: Int): List<Color> = heroGradients[abs(seed) % heroGradients.size]
+
 /** The (stage, glow) brush pair for a card's hero-bleed, memoized per seed. */
 @Composable
 private fun rememberStageBrushes(seed: Int): Pair<Brush, Brush> = remember(seed) {
@@ -392,6 +396,10 @@ fun SectionHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
+            // An explicit token, not the inherited content color: a header on a
+            // bare (non-Surface) background would otherwise fall back to black
+            // and vanish in dark mode.
+            color = MaterialTheme.colorScheme.onSurface,
             // A heading so TalkBack users can jump between sections.
             modifier = Modifier.weight(1f).semantics { heading() },
         )

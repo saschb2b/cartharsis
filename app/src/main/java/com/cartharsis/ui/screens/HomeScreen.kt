@@ -1,6 +1,5 @@
 package com.cartharsis.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -8,13 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -38,14 +34,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,12 +47,9 @@ import com.cartharsis.ShopViewModel
 import com.cartharsis.data.FakeCatalog
 import com.cartharsis.data.formatPrice
 import com.cartharsis.data.homeGreeting
+import com.cartharsis.data.homeModules
 import com.cartharsis.data.homeOrder
-import com.cartharsis.data.homeShelves
 import com.cartharsis.data.withPriceOverride
-import com.cartharsis.ui.theme.ElectricPurple
-import com.cartharsis.ui.theme.HotPink
-import com.cartharsis.ui.theme.JuicyOrange
 import com.cartharsis.ui.theme.MintGreen
 import java.util.Calendar
 import kotlinx.coroutines.delay
@@ -74,12 +65,6 @@ private val categoryEmoji = mapOf(
 /** The wall-clock hour the seed was captured at — drives time-of-day greetings. */
 private fun hourOfDayFor(seedMillis: Long): Int =
     Calendar.getInstance().apply { timeInMillis = seedMillis }.get(Calendar.HOUR_OF_DAY)
-
-// The flash-deal banner's brushes are constant, so they're allocated once
-// rather than rebuilt on every 1 Hz countdown tick.
-private val FlashDealGradient = Brush.linearGradient(listOf(HotPink, ElectricPurple))
-private val FlashDealGlow =
-    Brush.radialGradient(listOf(Color.White.copy(alpha = 0.28f), Color.Transparent))
 
 // Spacing rhythm (internal < external): the grid's spacedBy(10) is the tight
 // base that binds items within a group; a section start adds this on top so a
@@ -138,16 +123,16 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onAccoun
         entranceDone = true
     }
 
-    // Themed shelves, recomputed only when the seed changes (a fresh open), so
-    // they stay put while you browse but renew on every re-open.
-    val shelves = remember(homeSeed) {
-        homeShelves(
+    // The magazine deck — a varied mix of module shapes, recomputed only when
+    // the seed (a fresh open) or the hero deal changes, so it stays put while you
+    // browse but renews on every re-open. The hero product is held out so it
+    // can't recur in the deck below it.
+    val modules = remember(homeSeed, flashDeal.id) {
+        homeModules(
             catalog = viewModel.catalog,
             seed = homeSeed,
-            recentlyViewedIds = recentlyViewed,
-            wishlistIds = wishlist,
             hourOfDay = hourOfDayFor(homeSeed),
-            epochDay = viewModel.todayEpochDayValue,
+            excludeIds = setOf(flashDeal.id),
         )
     }
 
@@ -220,23 +205,14 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onAccoun
             )
         }
 
-        if (query.isBlank()) {
+        if (query.isBlank() && selectedCategory == "All") {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(Modifier.padding(top = 6.dp)) {
                     AppearOnce(homeSeed, delayMillis = 90, enabled = !entranceDone) {
+                        // The editorial hero — the page's opening feature, framed
+                        // as an obsession rather than a ticking deal alert.
                         val deal = flashDeal.withPriceOverride(priceDrops[flashDeal.id])
-                        // The 1Hz countdown is collected here, inside the banner
-                        // item, so each tick recomposes one row — not the whole
-                        // scrolling grid.
-                        val secondsLeft by viewModel.flashDealSecondsLeft.collectAsState()
-                        FlashDealBanner(
-                            emoji = deal.emoji,
-                            name = deal.name,
-                            price = formatPrice(deal.priceCents),
-                            originalPrice = deal.originalPriceCents?.let(::formatPrice),
-                            countdown = formatCountdown(secondsLeft),
-                            onClick = { onProductClick(deal.id) },
-                        )
+                        HeroFeature(product = deal, onClick = { onProductClick(deal.id) })
                     }
                 }
             }
@@ -286,28 +262,18 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onAccoun
             }
         }
 
-        // Themed shelves — the freshness engine, default browse view only.
+        // The magazine deck — varied module shapes, default browse view only.
         if (query.isBlank() && selectedCategory == "All") {
-            itemsIndexed(shelves, span = { _, _ ->
+            itemsIndexed(modules, span = { _, _ ->
                 GridItemSpan(maxLineSpan)
-            }, key = { _, s -> "shelf-${s.title}" }) { index, shelf ->
+            }, key = { index, _ -> "module-$index" }) { index, module ->
                 AppearOnce(homeSeed, delayMillis = 150 + index * 70, enabled = !entranceDone) {
-                    Column(Modifier.animateItem().padding(top = SectionGap)) {
-                        SectionHeader(
-                            title = shelf.title,
-                            modifier = Modifier.padding(bottom = 8.dp),
+                    Box(Modifier.animateItem().padding(top = SectionGap)) {
+                        HomeModuleView(
+                            module = module,
+                            onProductClick = onProductClick,
+                            onMoodPick = { category -> selectedCategory = category },
                         )
-                        Row(
-                            modifier = Modifier.horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            shelf.products.forEach { p ->
-                                MiniProductCard(
-                                    product = viewModel.displayProduct(p),
-                                    onClick = { onProductClick(p.id) },
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -345,9 +311,15 @@ fun HomeScreen(viewModel: ShopViewModel, onProductClick: (Int) -> Unit, onAccoun
                 ) {
                     Text("🔍", fontSize = 48.sp)
                     Text(
+                        // The echoed query is bounded — a long paste would
+                        // otherwise blow this title out to ragged centered lines.
+                        // The full text stays in the search field above.
                         text = "Nothing matches \"$query\"",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 8.dp),
                     )
                     Text(
@@ -396,101 +368,6 @@ private fun ProfileAvatar(initial: String, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-        }
-    }
-}
-
-@Composable
-internal fun FlashDealBanner(
-    emoji: String,
-    name: String,
-    price: String,
-    originalPrice: String?,
-    countdown: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(FlashDealGradient)
-            .clickable(onClick = onClick, onClickLabel = "View the flash deal")
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // The art runs oversized and breaks past a soft spotlight glow — the
-        // same hero-bleed the product cards use, so the deal feels alive.
-        Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
-            Box(
-                Modifier
-                    .size(72.dp)
-                    .background(FlashDealGlow, CircleShape),
-            )
-            // Decorative; the deal's name and price carry the announcement.
-            Text(text = emoji, fontSize = 60.sp, modifier = Modifier.clearAndSetSemantics {})
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // An eyebrow kicker, not a headline: small and tracked so the
-                // product name below is the line that leads.
-                Text(
-                    text = "⚡ FLASH DEAL",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.8.sp,
-                    color = Color.White.copy(alpha = 0.85f),
-                )
-                Surface(
-                    color = Color.Black.copy(alpha = 0.25f),
-                    shape = RoundedCornerShape(6.dp),
-                    modifier = Modifier.padding(start = 6.dp),
-                ) {
-                    Text(
-                        text = countdown,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                    )
-                }
-            }
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                )
-                originalPrice?.let {
-                    Text(
-                        text = "  $it",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                    )
-                }
-            }
-        }
-        // A real gap before the CTA so the name never butts against it.
-        Spacer(Modifier.width(12.dp))
-        Surface(color = JuicyOrange, shape = RoundedCornerShape(12.dp)) {
-            Text(
-                text = "GRAB IT",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            )
         }
     }
 }
