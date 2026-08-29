@@ -15,13 +15,13 @@ this invariant is out of scope by design.
 The Android Studio JBR provides the JDK (no system java on PATH):
 
 ```bash
-JAVA_HOME=/app/extra/jbr ./gradlew assembleDebug
-JAVA_HOME=/app/extra/jbr ./gradlew test
-JAVA_HOME=/app/extra/jbr ./gradlew lint           # warningsAsErrors; baseline in app/lint-baseline.xml
-JAVA_HOME=/app/extra/jbr ./gradlew spotlessCheck  # ktlint formatting gate; spotlessApply fixes
-JAVA_HOME=/app/extra/jbr ./gradlew validateDebugScreenshotTest  # @Preview gallery vs reference PNGs
-JAVA_HOME=/app/extra/jbr ./gradlew updateDebugScreenshotTest    # re-render the references
-JAVA_HOME=/app/extra/jbr ./gradlew :app:generateBaselineProfile # needs an API 28+ device/emulator
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew assembleDebug
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew test
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew lint           # warningsAsErrors; baseline in app/lint-baseline.xml
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew spotlessCheck  # ktlint formatting gate; spotlessApply fixes
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew validateDebugScreenshotTest  # @Preview gallery vs reference PNGs
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew updateDebugScreenshotTest    # re-render the references
+JAVA_HOME=/snap/android-studio/current/jbr ./gradlew :app:generateBaselineProfile # needs an API 28+ device/emulator
 ```
 
 Component galleries live in `app/src/screenshotTest/` (`@PreviewTest` +
@@ -30,7 +30,7 @@ checked in under `app/src/screenshotTestDebug/reference/`. When you change a
 previewed component on purpose, run `updateDebugScreenshotTest` and commit
 the new references; use the renders to iterate on visuals fast.
 
-SDK location comes from `local.properties` (`/home/sascha/Android/Sdk`).
+SDK location comes from `local.properties` (`/home/saschabecker/Android/Sdk`).
 
 CI (`.github/workflows/ci.yml`) runs spotlessCheck + lint + test + assembleDebug
 on every push/PR; the emulator smoke test runs weekly/on-demand

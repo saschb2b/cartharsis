@@ -563,7 +563,7 @@ Declined by owner: review sort/filter controls.
       app so the profile installs at first run for AOT compilation. The Gradle
       config resolves, the app builds, and the generator compiles; the profile
       itself is generated on an API 28+ device/emulator with
-      `JAVA_HOME=/app/extra/jbr ./gradlew :app:generateBaselineProfile`
+      `JAVA_HOME=/snap/android-studio/current/jbr ./gradlew :app:generateBaselineProfile`
       (lands in app/src/release/generated/baselineProfiles/, not yet captured —
       no emulator in this environment). The walk is driven by visible copy, so
       update the selectors in BaselineProfileGenerator if onboarding strings
